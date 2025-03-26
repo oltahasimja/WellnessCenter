@@ -3,21 +3,26 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { ThemeProvider } from './components/ThemeContext'; 
 import User from './dashboard/User';
 import Role from './dashboard/Role';
-import Home from './pages/Home'
+import Home from './pages/Home';
+import Login from './pages/Login';
+import Register from './pages/Register';
+import Dashboard from './dashboard/Dashboard'
 
 const App = () => {
     return (
-            <div className="relative">
-                            <div className="absolute top-4 right-4">
-                                <ThemeProvider />
-                                </div>
-
+ 
 
         <ThemeProvider>
             <Router>
                 <Routes>
 
-                <Route path="/" element={<Home />} />
+                {/* <Route path="/" element={<Home />} /> */}
+                <Route path="/" element={<Login />} />
+                <Route path="/login" element={<Login />} />
+                <Route path="/Register" element={<Register />} />
+                <Route path="/dashboard" element={<Dashboard />} />
+
+
                 <Route path="/user" element={<User />} />
                 <Route path="/role" element={<Role />} />
 
@@ -26,7 +31,6 @@ const App = () => {
             </Router>
         </ThemeProvider>
 
-        </div>
     );
 };
 
