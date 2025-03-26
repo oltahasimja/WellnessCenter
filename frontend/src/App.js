@@ -6,7 +6,8 @@ import Role from './dashboard/Role';
 import Home from './pages/Home';
 import Login from './pages/Login';
 import Register from './pages/Register';
-import Dashboard from './dashboard/Dashboard'
+import Dashboard from './dashboard/Dashboard';
+import Program from './dashboard/Program';
 
 const App = () => {
     return (
@@ -22,7 +23,7 @@ const App = () => {
                 <Route path="/Register" element={<Register />} />
                 <Route path="/dashboard" element={<Dashboard />} />
 
-
+                <Route path="/program" element={<Program/>}/>
                 <Route path="/user" element={<User />} />
                 <Route path="/role" element={<Role />} />
 
