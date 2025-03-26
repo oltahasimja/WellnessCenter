@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import Sidebar from "../components/Sidebar";
+import Navbar from '../components/Navbar';
 
 const Program = () => {
   const [formData, setFormData] = useState({});
@@ -59,10 +61,24 @@ const Program = () => {
   };
 
   return (
-    <div className="flex justify-center items-center min-h-screen bg-gray-100">
+    <div className="h-screen flex flex-col">
+    {/* Navbar lart */}
+    <Navbar />
+    <div className="flex flex-1 mb-[2rem]">
+      {/* Sidebar në të majtë */}
+      <Sidebar />
+      {/* Përmbajtja e Dashboard-it */}
+      
+      <div className="p-6 flex-1 bg-gray-100 dark:bg-gray-800">
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Dashboard</h1>
+        <p className="text-gray-700 dark:text-gray-300 mt-4">
+          Mirë se vini në panelin tuaj! Këtu mund të menaxhoni të gjitha funksionet.
+        </p>  <div className="flex justify-center items-center min-h-screen bg-gray-100">
       <div className="bg-white shadow-lg rounded-lg p-6 w-full max-w-3xl">
+  
+  
         <h1 className="text-3xl font-bold text-center mb-6 text-gray-700">Program Management</h1>
-
+      
         {/* Forma */}
         <form onSubmit={handleSubmit} className="mb-6 space-y-4">
           <input
@@ -122,6 +138,9 @@ const Program = () => {
         </div>
       </div>
     </div>
+      </div>
+    </div>
+  </div>
   );
 };
 

@@ -39,11 +39,11 @@ const Sidebar = () => {
     }
   };
 
-  const MenuItem = ({ icon: Icon, label, active, hasDropdown, children }) => (
+  const MenuItem = ({ icon: Icon, label, active, hasDropdown, children, onClick }) => (
     <div 
       className={`relative flex flex-col items-start ${isOpen ? 'px-4' : ''} py-2 cursor-pointer text-lg
         ${active ? 'bg-blue-100 dark:bg-blue-800 text-blue-700 dark:text-white' : 'hover:bg-blue-50 dark:hover:bg-gray-700 hover:text-blue-700'}`}
-      onClick={() => hasDropdown && toggleDropdown(label)}
+      onClick={onClick || (() => hasDropdown && toggleDropdown(label))}
     >
       <div className="flex items-center justify-between w-full">
         <div className={`flex items-center space-x-3 ${isOpen ? 'justify-start' : 'justify-center'} w-full`}>
@@ -65,7 +65,7 @@ const Sidebar = () => {
       )}
     </div>
   );
-
+  
   return (
     <div className={`${isOpen ? 'w-64' : 'w-20'} 
       bg-white dark:bg-gray-900 dark:text-white border-r h-screen overflow-hidden 
@@ -85,6 +85,13 @@ const Sidebar = () => {
           {isOpen && <div className="text-sm text-gray-400 px-4 py-2">MENU</div>}
           <MenuItem icon={LayoutDashboard} label="Dashboard" active />
           <MenuItem icon={Calendar} label="Calendar" />
+          <MenuItem 
+  icon={Calendar} 
+  label="Program" 
+  onClick={() => navigate("/program")}  // Add this line to navigate on click
+/>
+
+
           <MenuItem icon={UserCircle2} label="User Profile" />
           <MenuItem icon={CheckSquare} label="Task" hasDropdown>
             <div className="space-y-2">
