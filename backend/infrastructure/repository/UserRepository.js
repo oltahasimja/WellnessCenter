@@ -147,6 +147,24 @@ class UserRepository {
       throw new Error('Error deleting User: ' + error.message);
     }
   }
+
+
+  async findByRole(roleId) {
+    try {
+      const role = await RoleMongo.findOne({ mysqlId: roleId.toString() });
+      if (!role) {
+        throw new Error(`Role with ID ${roleId} not found`);
+      }
+      
+      return await UserMongo.find({ roleId: role._id })
+        .populate('roleId')
+        .lean();
+    } catch (error) {
+      console.error("Error finding users by role:", error);
+      throw error;
+    }
+  }
+
 }
 
 module.exports = new UserRepository();

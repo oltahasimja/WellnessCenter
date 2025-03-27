@@ -105,6 +105,17 @@ const createUser = async (req, res) => {
   }
 };
 
+const getUsersByRole = async (req, res) => {
+  try {
+    const { roleId } = req.params;
+    const users = await UseCase.findByRole(roleId);
+    res.json(users);
+  } catch (error) {
+    console.error('Error getting users by role:', error);
+    res.status(500).json({ message: error.message });
+  }
+};
+
 
 
 
@@ -138,5 +149,6 @@ module.exports = {
   createUser, 
   updateUser, 
   deleteUser,
-  getSpecialists
+  getSpecialists,
+  getUsersByRole
 };

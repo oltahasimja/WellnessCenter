@@ -85,11 +85,8 @@ const Sidebar = () => {
           {isOpen && <div className="text-sm text-gray-400 px-4 py-2">MENU</div>}
           <MenuItem icon={LayoutDashboard} label="Dashboard" active />
           <MenuItem icon={Calendar} label="Calendar" />
-          <MenuItem 
-  icon={Calendar} 
-  label="Program" 
-  onClick={() => navigate("/program")}  // Add this line to navigate on click
-/>
+          <MenuItem icon={Calendar} label="Program" onClick={() => navigate("/program")}  
+        />
 
 
           <MenuItem icon={UserCircle2} label="User Profile" />
@@ -100,8 +97,29 @@ const Sidebar = () => {
               <button className="w-full text-left text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 px-2 py-1 rounded-md">Task 3</button>
             </div>
           </MenuItem>
-          <MenuItem icon={FileText} label="Forms" hasDropdown />
-          <MenuItem icon={Table} label="Tables" hasDropdown />
+
+          <MenuItem icon={Table} label="Tabels" hasDropdown>
+            <div className="space-y-2">
+              <button  onClick={() => navigate("/user")} className="w-full text-left text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 px-2 py-1 rounded-md">User</button>
+              {/* <button className="w-full text-left text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 px-2 py-1 rounded-md">Task 2</button> */}
+              {/* <button className="w-full text-left text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 px-2 py-1 rounded-md">Task 3</button> */}
+            </div>
+          </MenuItem>
+
+
+
+
+
+          <MenuItem icon={FileText} label="Forms" hasDropdown>
+            <div className="space-y-2">
+              <button onClick={() => navigate("/createuser")} className="w-full text-left text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 px-2 py-1 rounded-md">Create User</button>
+            </div>
+          </MenuItem>
+
+
+
+
+          
           <MenuItem icon={FileInput} label="Pages" hasDropdown />
         </div>
         

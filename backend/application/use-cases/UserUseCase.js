@@ -13,6 +13,9 @@ class UserUseCase {
   async getById(id) {
     return await this.port.getById(id);
   }
+  async findByRole(roleId) {
+    return await this.port.findByRole(roleId);
+  }
   async create(data) {
     return await this.port.create(data);
   }

@@ -6,7 +6,8 @@ const {
   createUser, 
   updateUser, 
   deleteUser,
-  getSpecialists
+  getSpecialists,
+  getUsersByRole
 } = require("../adapters/controllers/UserController");
 
 const router = express.Router();
@@ -14,6 +15,7 @@ const router = express.Router();
 router.get('/specialists', getSpecialists);
 router.get('/', getAllUsers);
 router.get('/:id', getUserById);
+router.get('/role/:roleId', getUsersByRole);  
 router.post('/', createUser);
 router.put('/:id', updateUser);
 router.delete('/:id', deleteUser);
