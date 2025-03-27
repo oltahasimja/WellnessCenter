@@ -8,6 +8,7 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import Dashboard from './dashboard/Dashboard';
 import Program from './dashboard/Program';
+import CreateUser from './dashboard/CreateUser';
 
 const App = () => {
     return (
@@ -25,6 +26,7 @@ const App = () => {
 
                 <Route path="/program" element={<Program/>}/>
                 <Route path="/user" element={<User />} />
+                <Route path="/createuser" element={<CreateUser />} />
                 <Route path="/role" element={<Role />} />
 
              

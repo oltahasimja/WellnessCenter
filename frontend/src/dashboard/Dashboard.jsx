@@ -36,6 +36,8 @@ function Dashboard() {
           <p className="text-gray-700 dark:text-gray-300 mt-4">
             Mirë se vini në panelin tuaj! Këtu mund të menaxhoni të gjitha funksionet.
           </p>
+
+          
         </div>
       </div>
     </div>

@@ -3,7 +3,7 @@ import ThemeSwitcher from "../components/ThemeSwitcher";
 
 function Navbar({ setTheme }) {
   return (
-    <nav className="flex items-center justify-end px-3 rounded-md py-2 bg-white shadow-md dark:bg-gray-900 w-[15rem] fixed top-0 right-0 mt-4 mr-4 z-50">
+    <nav className="flex items-center justify-end px-3 rounded-md py-2 bg-white shadow-md dark:bg-gray-900 w-[13rem] fixed top-0 right-0 mt-4 mr-4 z-50">
       {/* Seksioni i kërkimit */}
       <div className="flex items-center">
         {/* You can add a search section here if needed */}

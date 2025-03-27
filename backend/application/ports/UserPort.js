@@ -13,6 +13,9 @@ class UserPort {
   async getById(id) {
     return await this.repository.findById(id);
   }
+  async findByRole(roleId) {
+    return await this.repository.findByRole(roleId);
+  }
   async create(data) {
     return await this.repository.create(data);
   }
@@ -22,5 +25,7 @@ class UserPort {
   async delete(id) {
     return await this.repository.delete(id);
   }
+
+
 }
 module.exports = UserPort;
