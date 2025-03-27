@@ -25,19 +25,14 @@ const UserPrograms = sequelize.define('UserPrograms', {
     onUpdate: 'CASCADE',
   },
   invitedById: {  // The creator who invited the client
-    type: DataTypes.INTEGER,
-    allowNull: false,
-    references: {
-      model: User,  
-      key: 'id',
-    },
-    onDelete: 'CASCADE',
-    onUpdate: 'CASCADE',
+    type: DataTypes.STRING,
+    allowNull: true,
+  
   },
-  status: {  // Invitation status (Pending, Accepted, Rejected)
-    type: DataTypes.ENUM('Pending', 'Accepted', 'Rejected'),
-    defaultValue: 'Pending',
-  },
+  // status: {  // Invitation status (Pending, Accepted, Rejected)
+  //   type: DataTypes.ENUM('Pending', 'Accepted', 'Rejected'),
+  //   defaultValue: 'Pending',
+  // },
 }, {
   timestamps: true,
 });

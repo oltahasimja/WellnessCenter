@@ -18,19 +18,10 @@ const userProgramsSchema = new Schema({
     required: true,
   },
   invitedById: {  // The creator who invited the client
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'UserMongo',
-    required: true,
-  },
-  status: {  // Invitation status (Pending, Accepted, Rejected)
     type: String,
-    enum: ['Pending', 'Accepted', 'Rejected'],
-    default: 'Pending',
+    required: false,
   },
-  createdAt: {
-    type: Date,
-    default: Date.now,
-  },
+  createdAt: { type: Date, default: Date.now },
 });
 
 const UserProgramsMongo = mongoose.model('UserProgramsMongo', userProgramsSchema);
