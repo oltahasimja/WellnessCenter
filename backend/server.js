@@ -14,9 +14,10 @@ const User = require('./infrastructure/database/models/User');
 const fs = require('fs');
 const path = require('path');
 const sequelize = require('./config/database');
+const trainingRoutes = require('./routes/TrainingRoutes');
 
 const mongoose = require('mongoose')
-const trainingRoutes = require('./routes/TrainingRoutes');
+
 
 
 //
@@ -65,6 +66,7 @@ fs.readdirSync(routesPath).forEach((file) => {
     app.use(`/api/${file.replace('Routes.js', '').toLowerCase()}`, route);
   }
 });
+
 
 app.use(flash());
 
