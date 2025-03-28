@@ -28,51 +28,91 @@ class UserProgramsRepository {
     }
   }
 
+ 
+
   async create(data) {
     try {
-      console.log("Creating UserPrograms:", data);
-
-      const program = await Program.findByPk(data.programId);
-      if (!program || !program.createdById) {
-        throw new Error(`Program with ID ${data.programId} not found or missing createdById`);
+      console.log("Received data for creation:", data);
+      
+      // Validate input data structure
+      if (!data || typeof data !== 'object') {
+        throw new Error('Invalid data format');
       }
-
-      data.invitedById = program.createdById;
-
-      const mysqlResource = await UserPrograms.create(data);
-
+  
+      // Validate required fields with more detailed checks
+      if (!data.userId || !data.programId) {
+        throw new Error('Both userId and programId are required');
+      }
+  
+      // Safely convert to strings
+      const userIdStr = String(data.userId || '');
+      const programIdStr = String(data.programId || '');
+  
+      if (!userIdStr || !programIdStr) {
+        throw new Error('Invalid userId or programId format');
+      }
+  
+      // Check if the relationship already exists
+      const existing = await UserPrograms.findOne({
+        where: {
+          userId: userIdStr,
+          programId: programIdStr
+        }
+      });
+  
+      if (existing) {
+        throw new Error('This user-program relationship already exists');
+      }
+  
+      // Get the program to set invitedById
+      const program = await Program.findByPk(programIdStr);
+      if (!program) {
+        throw new Error(`Program with ID ${programIdStr} not found`);
+      }
+  
+      // Create in MySQL
+      const mysqlResource = await UserPrograms.create({
+        userId: userIdStr,
+        programId: programIdStr,
+        invitedById: program.createdById || null
+      });
+  
+      // Prepare data for MongoDB
       const mongoData = {
-        mysqlId: mysqlResource.id.toString(),
+        mysqlId: String(mysqlResource.id),
         createdAt: new Date(),
+        invitedById: program.createdById || null
       };
-
-      if (data.userId) {
-        const user = await UserMongo.findOne({ mysqlId: data.userId.toString() });
-        if (!user) throw new Error(`User with MySQL ID ${data.userId} not found in MongoDB`);
-        mongoData.userId = new ObjectId(user._id.toString());
+  
+      // Find and validate user in MongoDB
+      const user = await UserMongo.findOne({ mysqlId: userIdStr });
+      if (!user) {
+        throw new Error(`User with ID ${userIdStr} not found in MongoDB`);
       }
-
-      if (data.programId) {
-        const programMongo = await ProgramMongo.findOne({ mysqlId: data.programId.toString() });
-        if (!programMongo) throw new Error(`Program with MySQL ID ${data.programId} not found in MongoDB`);
-        mongoData.programId = new ObjectId(programMongo._id.toString());
+      mongoData.userId = user._id;
+  
+      // Find and validate program in MongoDB
+      const programMongo = await ProgramMongo.findOne({ mysqlId: programIdStr });
+      if (!programMongo) {
+        throw new Error(`Program with ID ${programIdStr} not found in MongoDB`);
       }
-
-      if (data.invitedById) {
-        const invitedByUser = await UserMongo.findOne({ mysqlId: data.invitedById.toString() });
-        if (!invitedByUser) throw new Error(`User with MySQL ID ${data.invitedById} not found in MongoDB`);
-        mongoData.invitedById = new ObjectId(invitedByUser._id.toString());
-      }
-
+      mongoData.programId = programMongo._id;
+  
+      // Create in MongoDB
       const mongoResource = await UserProgramsMongo.create(mongoData);
-      console.log("UserPrograms saved in MongoDB:", mongoResource);
-
+      console.log("Successfully created in MongoDB:", mongoResource);
+  
       return mysqlResource;
     } catch (error) {
-      console.error("Error creating UserPrograms:", error);
-      throw new Error('Error creating UserPrograms: ' + error.message);
+      console.error("Detailed creation error:", {
+        message: error.message,
+        stack: error.stack,
+        inputData: data
+      });
+      throw new Error(`Failed to create user-program relationship: ${error.message}`);
     }
   }
+
 
   async update(id, data) {
     try {

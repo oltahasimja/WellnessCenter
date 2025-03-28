@@ -4,6 +4,13 @@ const User = require('../models/User');
 const Program = require('../models/Program');
 
 const UserPrograms = sequelize.define('UserPrograms', {
+  id: {
+    type: DataTypes.INTEGER,
+    primaryKey: true,
+    autoIncrement: true
+    },
+  
+
   userId: {
     type: DataTypes.INTEGER,
     allowNull: false,
