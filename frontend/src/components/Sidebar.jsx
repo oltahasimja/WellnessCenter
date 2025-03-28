@@ -14,6 +14,8 @@ import {
   Mail, 
   Menu, 
   ChevronDown, 
+  Github,
+  Trello,
   LogOut 
 } from 'lucide-react';
 
@@ -85,8 +87,7 @@ const Sidebar = () => {
           {isOpen && <div className="text-sm text-gray-400 px-4 py-2">MENU</div>}
           <MenuItem icon={LayoutDashboard} label="Dashboard" active />
           <MenuItem icon={Calendar} label="Calendar" />
-          <MenuItem icon={Calendar} label="Program" onClick={() => navigate("/program")}  
-        />
+          <MenuItem icon={Calendar} label="Program" onClick={() => navigate("/program")}   />
 
 
           <MenuItem icon={UserCircle2} label="User Profile" />
@@ -129,7 +130,20 @@ const Sidebar = () => {
           <MenuItem icon={MessageCircle} label="Chat" hasDropdown />
           <MenuItem icon={Mail} label="Email" hasDropdown />
           <MenuItem icon={FileInput} label="Invoice" hasDropdown />
+          <MenuItem 
+              icon={Github} 
+              label="Repository" 
+              onClick={() => window.open("https://github.com/oltahasimja/WellnessCenter", "_blank")} 
+            />
+              <MenuItem 
+              icon={Trello} 
+              label="Trello" 
+              onClick={() => window.open("https://trello.com/b/EmwZHmbt/wellness-center", "_blank")} 
+            />
         </div>
+        
+
+
       </div>
 
       {/* Logout Button */}
