@@ -116,10 +116,32 @@ const isAuthenticated = (req, res, next) => {
     });
 };
 
-app.get('/user', isAuthenticated, (req, res) => {
-    res.json({ user: req.user });
+app.get('/user', isAuthenticated, async (req, res) => {
+  try {
+      const user = await User.findByPk(req.user.id, {
+          include: [{ model: Role }] 
+      });
+      
+      if (!user) {
+          return res.status(404).json({ error: 'User not found' });
+      }
+      
+      res.json({ 
+          user: {
+              id: user.id,
+              name: user.name,
+              lastName: user.lastName,
+              email: user.email,
+              number: user.number,
+              username: user.username,
+              role: user.Role ? user.Role.name : 'User',
+              profileImage: user.profileImage
+          }
+      });
+  } catch (error) {
+      res.status(500).json({ error: error.message });
+  }
 });
-
 
 
 

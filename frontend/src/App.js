@@ -14,6 +14,10 @@ import UserProgram from './dashboard/UserPrograms'
 
 import Training from './dashboard/Training';
 
+
+
+import Profile from './dashboard/Profile';
+
 const App = () => {
     return (
  
@@ -23,7 +27,7 @@ const App = () => {
                 <Routes>
 
                 {/* <Route path="/" element={<Home />} /> */}
-                <Route path="/" element={<UserProgram />} />
+                <Route path="/" element={<Login />} />
                 <Route path="/login" element={<Login />} />
                 <Route path="/Register" element={<Register />} />
                 <Route path="/dashboard" element={<Dashboard />} />
@@ -32,6 +36,7 @@ const App = () => {
                 <Route path="/user" element={<User />} />
                 <Route path="/createuser" element={<CreateUser />} />
                 <Route path="/role" element={<Role />} />
+                <Route path="/Profile" element={<Profile />} />
 
                 <Route path="/training" element={<Training/>}/>
 

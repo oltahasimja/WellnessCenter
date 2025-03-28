@@ -14,6 +14,8 @@ const User = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [usersPerPage] = useState(5);
   const [selectedRole, setSelectedRole] = useState("all");
+  const [searchTerm, setSearchTerm] = useState("");
+
 
 
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
@@ -25,14 +27,28 @@ const User = () => {
     fetchUsers();
     fetchRoles();
   }, []);
-
-  const fetchUsers = async (roleId = "all") => {
-    const url = roleId === "all" 
-      ? "http://localhost:5000/api/user"
-      : `http://localhost:5000/api/user/role/${roleId}`;
+  const fetchUsers = async (roleId = "all", search = "") => {
+    let url = "http://localhost:5000/api/user";
     
-    const response = await axios.get(url);
-    setUserList(response.data);
+    if (roleId !== "all") {
+      url = `http://localhost:5000/api/user/role/${roleId}`;
+    }
+    
+    try {
+      const response = await axios.get(url);
+      
+      // Filter users by search term if one exists
+      if (search) {
+        const filteredUsers = response.data.filter(user => 
+          user.username.toLowerCase().includes(search.toLowerCase())
+        );
+        setUserList(filteredUsers);
+      } else {
+        setUserList(response.data);
+      }
+    } catch (error) {
+      console.error("Error fetching users:", error);
+    }
   };
 
   const fetchRoles = async () => {
@@ -40,16 +56,22 @@ const User = () => {
     setRoleList(response.data);
   };
 
-  const handleDelete = async (id) => {
-    await axios.delete(`http://localhost:5000/api/user/${id}`);
-    fetchUsers();
+
+  const handleSearchChange = (e) => {
+    setSearchTerm(e.target.value);
   };
 
+
+  const handleSearchSubmit = (e) => {
+    e.preventDefault();
+    fetchUsers(selectedRole, searchTerm);
+    setCurrentPage(1);
+  };
 
   const handleRoleFilterChange = (e) => {
     const roleId = e.target.value;
     setSelectedRole(roleId);
-    fetchUsers(roleId);
+    fetchUsers(roleId, searchTerm);
     setCurrentPage(1); 
   };
 
@@ -137,6 +159,27 @@ const User = () => {
         <h1 className="text-4xl font-bold text-gray-700">User Management</h1>
         
         <div className="flex items-center space-x-4">
+
+        <form onSubmit={handleSearchSubmit} className="flex">
+        <input
+            type="text"
+            placeholder="Search by username..."
+            value={searchTerm}
+            onChange={(e) => {
+              setSearchTerm(e.target.value);
+              fetchUsers(selectedRole, e.target.value);
+              setCurrentPage(1);
+            }}
+            className="border p-2 rounded-lg text-lg bg-white shadow-sm dark:bg-gray-700 dark:text-white dark:border-gray-600"
+          />
+    {/* <button 
+      type="submit"
+      className="ml-2 bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg font-semibold transition"
+    >
+      Search
+    </button> */}
+  </form>
+
           <select
             value={selectedRole}
             onChange={handleRoleFilterChange}

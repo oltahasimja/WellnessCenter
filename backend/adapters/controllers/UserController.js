@@ -121,6 +121,10 @@ const getUsersByRole = async (req, res) => {
 
 const updateUser = async (req, res) => {
   try {
+    if (req.body.profileImage) {
+      req.body.profileImage = req.body.profileImage;
+    }
+    
     const updatedResource = await UseCase.update(req.params.id, req.body);
     if (updatedResource) {
       res.json(updatedResource);

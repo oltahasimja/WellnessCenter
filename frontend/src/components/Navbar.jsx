@@ -1,7 +1,42 @@
-import React from "react";
-import ThemeSwitcher from "../components/ThemeSwitcher"; 
+import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import ThemeSwitcher from "../components/ThemeSwitcher";
+import axios from "axios";
 
 function Navbar({ setTheme }) {
+  const [userData, setUserData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        const response = await axios.get('http://localhost:5000/user', {
+          withCredentials: true
+        });
+        
+        if (response.data.user) {
+          setUserData(response.data.user);
+        }
+      } catch (err) {
+        console.error('Error fetching user data:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUserData();
+  }, []);
+
+  // Krijo inicialet nga emri dhe mbiemri
+  const initials = userData 
+    ? `${userData.name?.charAt(0) || ''}${userData.lastName?.charAt(0) || ''}`
+    : '';
+
+  const handleProfileClick = () => {
+    navigate('/profile');
+  };
+
   return (
     <nav className="flex items-center justify-end px-3 rounded-md py-2 bg-white shadow-md dark:bg-gray-900 w-[13rem] fixed top-0 right-0 mt-4 mr-4 z-50">
       {/* Seksioni i kërkimit */}
@@ -33,14 +68,26 @@ function Navbar({ setTheme }) {
         </button>
 
         {/* Foto e profilit */}
-        <img
-          src="https://img.freepik.com/premium-vector/avatar-profile-icon-flat-style-male-user-profile-vector-illustration-isolated-background-man-profile-sign-business-concept_157943-38764.jpg?semt=ais_hybrid"
-          alt="Profile"
-          className="w-10 h-10 rounded-full"
-        />
+        <div className="cursor-pointer" onClick={handleProfileClick}>
+          {loading ? (
+            <div className="w-10 h-10 rounded-full bg-gray-200 dark:bg-gray-700 animate-pulse"></div>
+          ) : userData?.profileImage ? (
+            <img
+              src={userData.profileImage}
+              alt="Profile"
+              className="w-10 h-10 rounded-full object-cover border-2 border-blue-500 hover:border-blue-600 transition-colors"
+            />
+          ) : (
+            <div className="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center hover:bg-blue-200 dark:hover:bg-blue-800 transition-colors">
+              <span className="text-blue-600 dark:text-blue-300 font-bold">
+                {initials}
+              </span>
+            </div>
+          )}
+        </div>
 
         {/* Switcher për Dark Mode / Light Mode */}
-        <ThemeSwitcher />
+        <ThemeSwitcher setTheme={setTheme} />
       </div>
     </nav>
   );
