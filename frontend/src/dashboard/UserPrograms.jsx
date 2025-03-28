@@ -30,16 +30,37 @@ const UserPrograms = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (formData.id) {
-      await axios.put(
-        `http://localhost:5000/api/userprograms/${formData.id}`,
-        formData
-      );
-    } else {
-      await axios.post("http://localhost:5000/api/userprograms", formData);
+    try {
+      // Validate required fields
+      if (!formData.userId || !formData.programId) {
+        throw new Error('Please select both a user and a program');
+      }
+  
+      // Prepare the data to send
+      const submissionData = {
+        userId: formData.userId,
+        programId: formData.programId
+      };
+  
+      // If editing, include the ID
+      if (formData.id) {
+        submissionData.id = formData.id;
+      }
+  
+      if (formData.id) {
+        await axios.put(
+          `http://localhost:5000/api/userprograms/${formData.id}`,
+          submissionData
+        );
+      } else {
+        await axios.post("http://localhost:5000/api/userprograms", submissionData);
+      }
+      
+      fetchUserPrograms();
+      setFormData({});
+    } catch (error) {
+      alert(error.response?.data?.message || error.message || 'Error saving user program');
     }
-    fetchUserPrograms();
-    setFormData({});
   };
 
   const handleEdit = (item) => {
@@ -75,7 +96,7 @@ const UserPrograms = () => {
               User
             </label>
             <select
-              value={formData.userId || ""}
+              value={formData.userId}
               onChange={(e) =>
                 setFormData({ ...formData, userId: e.target.value })
               }
@@ -85,7 +106,7 @@ const UserPrograms = () => {
                 Select User
               </option>
               {userList.map((item) => (
-                <option key={item.mysqlId} value={item.mysqlId}>
+                <option key={item.mysqlId || item.id} value={item.mysqlId || item.id}>
                   {item.name}
                 </option>
               ))}
@@ -97,7 +118,7 @@ const UserPrograms = () => {
               Program
             </label>
             <select
-              value={formData.programId || ""}
+              value={formData.programId}
               onChange={(e) =>
                 setFormData({ ...formData, programId: e.target.value })
               }
@@ -107,7 +128,7 @@ const UserPrograms = () => {
                 Select Program
               </option>
               {programList.map((item) => (
-                <option key={item.mysqlId} value={item.mysqlId}>
+                <option key={item.mysqlId || item.id} value={item.mysqlId || item.id}>
                   {item.title}
                 </option>
               ))}
@@ -141,10 +162,10 @@ const UserPrograms = () => {
                     className="border-b border-gray-200 hover:bg-gray-100"
                   >
                     <td className="py-3 px-6 text-left">
-                      {item.userId?.name || ""}
+                      {item.userId.name || ""}
                     </td>
                     <td className="py-3 px-6 text-left">
-                      {item.programId?.title || ""}
+                      {item.programId.title || ""}
                     </td>
                     <td className="py-3 px-6 text-left">
                       {getInviterName(item.invitedById)}

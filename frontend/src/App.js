@@ -9,6 +9,7 @@ import Register from './pages/Register';
 import Dashboard from './dashboard/Dashboard';
 import Program from './dashboard/Program';
 import CreateUser from './dashboard/CreateUser';
+import UserProgram from './dashboard/UserPrograms'
 
 const App = () => {
     return (
@@ -19,7 +20,7 @@ const App = () => {
                 <Routes>
 
                 {/* <Route path="/" element={<Home />} /> */}
-                <Route path="/" element={<Login />} />
+                <Route path="/" element={<UserProgram />} />
                 <Route path="/login" element={<Login />} />
                 <Route path="/Register" element={<Register />} />
                 <Route path="/dashboard" element={<Dashboard />} />
