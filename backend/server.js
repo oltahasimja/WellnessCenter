@@ -16,12 +16,15 @@ const path = require('path');
 const sequelize = require('./config/database');
 
 const mongoose = require('mongoose')
+const trainingRoutes = require('./routes/TrainingRoutes');
+
 
 //
 
 const app = express();
 
-
+// TrainingRoutes
+app.use('/api/trainings', trainingRoutes);
 
 // Middleware setup
 app.use(cookieParser());

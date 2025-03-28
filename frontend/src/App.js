@@ -10,6 +10,7 @@ import Dashboard from './dashboard/Dashboard';
 import Program from './dashboard/Program';
 import CreateUser from './dashboard/CreateUser';
 import UserProgram from './dashboard/UserPrograms'
+import Training from './dashboard/Training';
 
 const App = () => {
     return (
@@ -29,6 +30,8 @@ const App = () => {
                 <Route path="/user" element={<User />} />
                 <Route path="/createuser" element={<CreateUser />} />
                 <Route path="/role" element={<Role />} />
+
+                <Route path="/training" element={<Training/>}/>
 
              
                 </Routes>
