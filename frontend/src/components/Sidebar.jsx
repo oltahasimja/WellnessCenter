@@ -90,7 +90,7 @@ const Sidebar = () => {
           <MenuItem icon={Calendar} label="Program" onClick={() => navigate("/program")}   />
 
 
-          <MenuItem icon={UserCircle2} label="User Profile" />
+          <MenuItem icon={UserCircle2} label="User Profile" onClick={() => navigate("/profile")}  />
           <MenuItem icon={CheckSquare} label="Task" hasDropdown>
             <div className="space-y-2">
               <button className="w-full text-left text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 px-2 py-1 rounded-md">Task 1</button>

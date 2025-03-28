@@ -33,6 +33,9 @@ const userSchema = new Schema({
     type: String,
     required: true,
   },
+  profileImage: {
+    type: String, 
+  },
 
   roleId: { type: mongoose.Schema.Types.ObjectId, ref: 'RoleMongo' }, // Referenca e saktë
 

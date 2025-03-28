@@ -59,7 +59,8 @@ function DeleteConfirmation({ isOpen, onClose, onConfirm, itemName }) {
           <div className="px-6 py-4">
             <p className="text-gray-700 dark:text-gray-300">
               Are you sure you want to delete <span className="font-semibold text-gray-900 dark:text-white">"{itemName}"</span>? 
-              All data will be permanently removed.
+            </p>
+            <p>              All data will be permanently removed.
             </p>
           </div>
           
