@@ -133,7 +133,11 @@ app.get('/user', isAuthenticated, async (req, res) => {
               number: user.number,
               username: user.username,
               role: user.Role ? user.Role.name : 'User',
-              profileImage: user.profileImage
+              profileImage: user.profileImage,
+              country: user.country,
+              city: user.city,
+              gender: user.gender,
+              birthday: user.birthday
           }
       });
   } catch (error) {

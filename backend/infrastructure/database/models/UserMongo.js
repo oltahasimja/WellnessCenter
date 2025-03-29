@@ -33,6 +33,20 @@ const userSchema = new Schema({
     type: String,
     required: true,
   },
+  gender: {
+    type: String,
+  },
+  birthday: {
+    type: Date,
+  },
+  
+  country: {
+    type: String, 
+  },
+  city: {
+    type: String, 
+  },
+
   profileImage: {
     type: String, 
   },

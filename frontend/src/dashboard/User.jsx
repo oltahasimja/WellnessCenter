@@ -103,6 +103,10 @@ const User = () => {
       number: user.number,
       email: user.email,
       username: user.username,
+      country: user.country,
+      city: user.city,
+      birthday: user.birthday,
+      gender: user.gender,
       roleId: user.roleId?.mysqlId || user.roleId
     });
   };
@@ -203,23 +207,27 @@ const User = () => {
               </div>
 
               <div className="overflow-x-auto">
-                <table className="w-full border-collapse shadow-md rounded-lg bg-white">
-                  <thead>
+              <table className="w-full border-collapse shadow-md rounded-lg bg-white" style={{ tableLayout: 'fixed' }}>
+              <thead>
                     <tr className="bg-gray-300 text-gray-700 uppercase text-lg leading-normal">
-                      <th className="py-4 px-6 text-left">Name</th>
-                      <th className="py-4 px-6 text-left">Last Name</th>
-                      <th className="py-4 px-6 text-left">Number</th>
-                      <th className="py-4 px-6 text-left">Email</th>
-                      <th className="py-4 px-6 text-left">Username</th>
-                      <th className="py-4 px-6 text-left">Role</th>
-                      <th className="py-4 px-6 text-center">Actions</th>
-                    </tr>
+                    <th className="py-4 px-6 text-left" style={{ width: '100px' }}>Name</th>
+                    <th className="py-4 px-6 text-left" style={{ width: '100px' }}>Lastname</th>
+                    <th className="py-4 px-6 text-left" style={{ width: '100px' }}>Number</th>
+                    <th className="py-4 px-6 text-left" style={{ width: '150px' }}>Email</th>
+                    <th className="py-4 px-6 text-left" style={{ width: '100px' }}>Username</th>
+                    <th className="py-4 px-6 text-left" style={{ width: '120px' }}>Birthdate</th>
+                    <th className="py-4 px-6 text-left" style={{ width: '100px' }}>Gender</th>
+                    <th className="py-4 px-6 text-left" style={{ width: '100px' }}>Country</th>
+                    <th className="py-4 px-6 text-left" style={{ width: '100px' }}>City</th>
+                    <th className="py-4 px-6 text-left" style={{ width: '150px' }}>Role</th>
+                    <th className="py-4 px-6 text-center" style={{ width: '150px' }}>Actions</th>
+                                </tr>
                   </thead>
                   <tbody className="text-gray-800 text-lg font-medium">
                     {currentUsers.length > 0 ? (
                       currentUsers.map((item) => (
                         <tr key={item.mysqlId || item.id} className="border-b border-gray-200 hover:bg-gray-100">
-                          <td className="py-4 px-6">
+                          <td className="py-4 px-6 truncated">
                             {editingId === (item.mysqlId || item.id) ? (
                               <input
                                 type="text"
@@ -232,7 +240,7 @@ const User = () => {
                               item.name
                             )}
                           </td>
-                          <td className="py-4 px-6">
+                          <td className="py-4 px-6 truncated" >
                             {editingId === (item.mysqlId || item.id) ? (
                               <input
                                 type="text"
@@ -245,7 +253,7 @@ const User = () => {
                               item.lastName
                             )}
                           </td>
-                          <td className="py-4 px-6">
+                          <td className="py-4 px-6 truncated">
                             {editingId === (item.mysqlId || item.id) ? (
                               <input
                                 type="text"
@@ -258,7 +266,7 @@ const User = () => {
                               item.number
                             )}
                           </td>
-                          <td className="py-4 px-6">
+                          <td className="py-4 px-6 truncated">
                             {editingId === (item.mysqlId || item.id) ? (
                               <input
                                 type="email"
@@ -271,7 +279,7 @@ const User = () => {
                               item.email
                             )}
                           </td>
-                          <td className="py-4 px-6">
+                          <td className="py-4 px-6 truncated">
                             {editingId === (item.mysqlId || item.id) ? (
                               <input
                                 type="text"
@@ -284,7 +292,61 @@ const User = () => {
                               item.username
                             )}
                           </td>
-                          <td className="py-4 px-6">
+                          <td className="py-4 px-6 truncated">
+                            {editingId === (item.mysqlId || item.id) ? (
+                              <input
+                                type="date"
+                                name="birthday"
+                                value={editFormData.birthday}
+                                onChange={handleEditFormChange}
+                                className="border p-2 rounded w-full"
+                              />
+                            ) : (
+                              item.birthday ? item.birthday.split("T")[0] : ""
+                            )}
+                          </td>
+
+                          <td className="py-4 px-6 truncated">
+                            {editingId === (item.mysqlId || item.id) ? (
+                              <input
+                                type="text"
+                                name="gender"
+                                value={editFormData.gender}
+                                onChange={handleEditFormChange}
+                                className="border p-2 rounded w-full"
+                              />
+                            ) : (
+                              item.gender
+                            )}
+                          </td>
+
+                          <td className="py-4 px-6 truncated">
+                            {editingId === (item.mysqlId || item.id) ? (
+                              <input
+                                type="text"
+                                name="country"
+                                value={editFormData.country}
+                                onChange={handleEditFormChange}
+                                className="border p-2 rounded w-full"
+                              />
+                            ) : (
+                              item.country
+                            )}
+                          </td>
+                          <td className="py-4 px-6 truncated">
+                            {editingId === (item.mysqlId || item.id) ? (
+                              <input
+                                type="text"
+                                name="city"
+                                value={editFormData.city}
+                                onChange={handleEditFormChange}
+                                className="border p-2 rounded w-full"
+                              />
+                            ) : (
+                              item.city
+                            )}
+                          </td>
+                          <td className="py-4 px-6 truncated" >
                             {editingId === (item.mysqlId || item.id) ? (
                               <select
                                 name="roleId"

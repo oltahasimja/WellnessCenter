@@ -182,8 +182,17 @@ function Profile() {
                     <p className="text-gray-500">Last Name</p>
                     <p className="font-medium text-gray-800">{userData.lastName}</p>
                   </div>
+                  <div>
+                    <p className="text-gray-500">Birthday</p>
+                    <p className="font-medium text-gray-800">{userData.birthday}</p>
+                  </div>
+                  
                 </div>
                 <div className="space-y-4">
+                <div>
+                    <p className="text-gray-500">Gender</p>
+                    <p className="font-medium text-gray-800">{userData.gender}</p>
+                  </div>
                   <div>
                     <p className="text-gray-500">Email address</p>
                     <p className="font-medium text-gray-800">{userData.email}</p>
@@ -207,11 +216,11 @@ function Profile() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <p className="text-gray-500">Country</p>
-                  <p className="font-medium text-gray-800">Kosova</p>
-                </div>
+                  <p className="font-medium text-gray-800">{userData.country}</p>
+                  </div>
                 <div>
                   <p className="text-gray-500">City/State</p>
-                  <p className="font-medium text-gray-800">Lipjan</p>
+                  <p className="font-medium text-gray-800">{userData.city}</p>
                 </div>
               </div>
             </div>
