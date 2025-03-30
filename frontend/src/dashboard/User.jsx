@@ -15,8 +15,11 @@ const User = () => {
   const [usersPerPage] = useState(5);
   const [selectedRole, setSelectedRole] = useState("all");
   const [searchTerm, setSearchTerm] = useState("");
-
-
+  const [countryList, setCountryList] = useState([]);
+  const [cityList, setCityList] = useState([]);
+  const [selectedCountry, setSelectedCountry] = useState("");
+  const [selectedCity, setSelectedCity] = useState("");
+  const [formData, setFormData] = useState({});
 
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [itemToDelete, setItemToDelete] = useState(null);
@@ -93,6 +96,44 @@ const User = () => {
     setDeleteModalOpen(false);
     setItemToDelete(null);
   };
+    const fetchCountries = async () => {
+      try {
+        const response = await axios.get("https://countriesnow.space/api/v0.1/countries");
+        setCountryList(response.data.data);
+      } catch (error) {
+        console.error("Error fetching countries:", error);
+      }
+    };
+  
+    const handleCountryChange = (e) => {
+      const country = e.target.value;
+      setSelectedCountry(country);
+      setFormData((prev) => ({ ...prev, country })); 
+    
+      if (country === "Kosovo") {
+        setCityList([
+          "Prishtina", "Prizreni", "Peja", "Gjakova", "Ferizaj", "Gjilani", "Mitrovica",
+          "Podujeva", "Vushtrria", "Suhareka", "Rahoveci", "Malisheva", "Drenasi", "Skenderaj",
+          "Kamenica", "Istogu", "Deçani", "Dragashi", "Klinë", "Leposaviq", "Zubin Potok", "Zveçan",
+          "Shtime", "Fushë Kosova", "Lipjan", "Obiliq", "Novobërda", "Junik", "Hani i Elezit",
+          "Kaçaniku", "Mamushë", "Graçanica", "Ranillug", "Partesh", "Kllokot"
+        ]);
+      } else {
+        const countryData = countryList.find((c) => c.country === country);
+        setCityList(countryData ? countryData.cities : []);
+      }
+    
+      setSelectedCity(""); 
+      setFormData((prev) => ({ ...prev, city: "" })); 
+    };
+    
+    const handleCityChange = (e) => {
+      const city = e.target.value;
+      setSelectedCity(city);
+      setFormData((prev) => ({ ...prev, city })); 
+    };
+    
+  
 
 
   const handleEditClick = (user) => {
@@ -317,35 +358,75 @@ const User = () => {
                               />
                             ) : (
                               item.gender
-                            )}
-                          </td>
+                            )}</td>
+     <div>
+  {/* Country Selection */}
+  {editingId === (item.mysqlId || item.id) ? (
+    <div>
+      <label className="block text-lg font-medium text-gray-700 mb-2">Country</label>
+      <select
+        value={selectedCountry}
+        onChange={handleCountryChange}
+        className="border p-4 text-lg rounded-lg w-full focus:ring-2 focus:ring-blue-500 outline-none"
+        required
+      >
+        <option value="" disabled>Select Country</option>
+        {countryList.map((country) => (
+          <option key={country.country} value={country.country}>
+            {country.country}
+          </option>
+        ))}
+      </select>
+    </div>
+  ) : (
+    <span>{item.country}</span>
+  )}
+</div>
 
-                          <td className="py-4 px-6 truncated">
-                            {editingId === (item.mysqlId || item.id) ? (
-                              <input
-                                type="text"
-                                name="country"
-                                value={editFormData.country}
-                                onChange={handleEditFormChange}
-                                className="border p-2 rounded w-full"
-                              />
-                            ) : (
-                              item.country
-                            )}
-                          </td>
-                          <td className="py-4 px-6 truncated">
-                            {editingId === (item.mysqlId || item.id) ? (
-                              <input
-                                type="text"
-                                name="city"
-                                value={editFormData.city}
-                                onChange={handleEditFormChange}
-                                className="border p-2 rounded w-full"
-                              />
-                            ) : (
-                              item.city
-                            )}
-                          </td>
+<div>
+  {/* City Selection */}
+  {editingId === (item.mysqlId || item.id) ? (
+    <div>
+      <label className="block text-lg font-medium text-gray-700 mb-2">City</label>
+      <select
+        value={selectedCity}
+        onChange={(e) => setSelectedCity(e.target.value)}
+        className="border p-4 text-lg rounded-lg w-full focus:ring-2 focus:ring-blue-500 outline-none"
+        required
+        disabled={!cityList.length}
+      >
+        <option value="" disabled>Select City</option>
+        {cityList.map((city) => (
+          <option key={city} value={city}>
+            {city}
+          </option>
+        ))}
+      </select>
+    </div>
+  ) : (
+    <span>{item.city}</span>
+  )}
+</div>
+
+{/* Role Selection */}
+<td className="py-4 px-6 truncated">
+  {editingId === (item.mysqlId || item.id) ? (
+    <select
+      name="roleId"
+      value={editFormData.roleId}
+      onChange={handleEditFormChange}
+      className="border p-2 rounded w-full"
+    >
+      {roleList.map((role) => (
+        <option key={role.mysqlId} value={role.mysqlId}>
+          {role.name}
+        </option>
+      ))}
+    </select>
+  ) : (
+    <span>{item.roleId?.name || ""}</span>
+  )}
+</td>
                           <td className="py-4 px-6 truncated" >
                             {editingId === (item.mysqlId || item.id) ? (
                               <select
