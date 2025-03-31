@@ -3,8 +3,10 @@ import axios from "axios";
 import { useParams, useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import Sidebar from "../components/Sidebar";
+import { useTheme } from "../components/ThemeContext";
 
-const CreateUser = () => {
+const CreateUser = ({ setActiveComponent }) => {
+  const { theme } = useTheme();
   const { id } = useParams();
   const navigate = useNavigate();
   const [formData, setFormData] = useState({});
@@ -15,7 +17,6 @@ const CreateUser = () => {
   const [selectedCity, setSelectedCity] = useState("");
   const [gender, setGender] = useState("");
   const [birthday, setBirthday] = useState("");
-
 
   useEffect(() => {
     fetchRoles();
@@ -84,7 +85,6 @@ const CreateUser = () => {
     setFormData((prev) => ({ ...prev, city })); 
   };
   
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
@@ -102,25 +102,25 @@ const CreateUser = () => {
         await axios.post("http://localhost:5000/api/user", userData);
       }
       
-      console.log("dataaaa:", userData); 
-  
-      navigate("/user");
+      navigate("/dashboard"); 
+      setActiveComponent("user"); 
+
+
+
     } catch (error) {
       console.error("Error saving user:", error);
     }
   };
-  
-  
 
   return (
     <div className="h-screen flex flex-col">
-      <Navbar />
+      {/* <Navbar /> */}
       <div className="flex flex-1 mb-[2rem]">
-        <Sidebar />
-        <div className="p-6 flex-1 bg-gray-100 dark:bg-gray-800">
-          <div className="flex justify-center items-center min-h-screen bg-gray-100">
-            <div className="bg-white shadow-xl rounded-lg p-8 w-full max-w-4xl">
-              <h1 className="text-4xl font-bold text-center mb-8 text-gray-700">
+        {/* <Sidebar /> */}
+        <div className={`p-6 flex-1 ${theme === 'dark' ? 'bg-gray-800' : 'bg-gray-100'}`}>
+          <div className={`flex justify-center items-center min-h-screen ${theme === 'dark' ? 'bg-gray-800' : 'bg-gray-100'}`}>
+            <div className={`shadow-xl rounded-lg p-8 w-full max-w-4xl ${theme === 'dark' ? 'bg-gray-700 text-white' : 'bg-white text-gray-700'}`}>
+              <h1 className={`text-4xl font-bold text-center mb-8 ${theme === 'dark' ? 'text-white' : 'text-gray-700'}`}>
                 {id ? "Edit User" : "Create New User"}
               </h1>
 
@@ -131,7 +131,7 @@ const CreateUser = () => {
                     placeholder="Name"
                     value={formData.name || ""}
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    className="border p-4 text-lg rounded-lg w-full focus:ring-2 focus:ring-blue-500 outline-none"
+                    className={`border p-4 text-lg rounded-lg w-full focus:ring-2 focus:ring-blue-500 outline-none ${theme === 'dark' ? 'bg-gray-600 text-white border-gray-500' : 'bg-white border-gray-300'}`}
                     required
                   />
 
@@ -140,7 +140,7 @@ const CreateUser = () => {
                     placeholder="Last Name"
                     value={formData.lastName || ""}
                     onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
-                    className="border p-4 text-lg rounded-lg w-full focus:ring-2 focus:ring-blue-500 outline-none"
+                    className={`border p-4 text-lg rounded-lg w-full focus:ring-2 focus:ring-blue-500 outline-none ${theme === 'dark' ? 'bg-gray-600 text-white border-gray-500' : 'bg-white border-gray-300'}`}
                     required
                   />
 
@@ -149,7 +149,7 @@ const CreateUser = () => {
                     placeholder="Number"
                     value={formData.number || ""}
                     onChange={(e) => setFormData({ ...formData, number: e.target.value })}
-                    className="border p-4 text-lg rounded-lg w-full focus:ring-2 focus:ring-blue-500 outline-none"
+                    className={`border p-4 text-lg rounded-lg w-full focus:ring-2 focus:ring-blue-500 outline-none ${theme === 'dark' ? 'bg-gray-600 text-white border-gray-500' : 'bg-white border-gray-300'}`}
                     required
                   />
 
@@ -158,7 +158,7 @@ const CreateUser = () => {
                     placeholder="Email"
                     value={formData.email || ""}
                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                    className="border p-4 text-lg rounded-lg w-full focus:ring-2 focus:ring-blue-500 outline-none"
+                    className={`border p-4 text-lg rounded-lg w-full focus:ring-2 focus:ring-blue-500 outline-none ${theme === 'dark' ? 'bg-gray-600 text-white border-gray-500' : 'bg-white border-gray-300'}`}
                     required
                   />
 
@@ -167,17 +167,18 @@ const CreateUser = () => {
                     placeholder="Username"
                     value={formData.username || ""}
                     onChange={(e) => setFormData({ ...formData, username: e.target.value })}
-                    className="border p-4 text-lg rounded-lg w-full focus:ring-2 focus:ring-blue-500 outline-none"
+                    className={`border p-4 text-lg rounded-lg w-full focus:ring-2 focus:ring-blue-500 outline-none ${theme === 'dark' ? 'bg-gray-600 text-white border-gray-500' : 'bg-white border-gray-300'}`}
                     required
                   />
 
-
-<div>
-                    <label className="block text-lg font-medium text-gray-700 mb-2">Gender</label>
+                  <div>
+                    <label className={`block text-lg font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
+                      Gender
+                    </label>
                     <select
                       value={gender}
                       onChange={(e) => setGender(e.target.value)}
-                      className="border p-4 text-lg rounded-lg w-full focus:ring-2 focus:ring-blue-500 outline-none"
+                      className={`border p-4 text-lg rounded-lg w-full focus:ring-2 focus:ring-blue-500 outline-none ${theme === 'dark' ? 'bg-gray-600 text-white border-gray-500' : 'bg-white border-gray-300'}`}
                       required
                     >
                       <option value="" disabled>Select Gender</option>
@@ -187,24 +188,27 @@ const CreateUser = () => {
                     </select>
                   </div>
 
+                  <div>
+                    <label className={`block text-lg font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
+                      Birthday
+                    </label>
+                    <input
+                      type="date"
+                      value={birthday}
+                      onChange={(e) => setBirthday(e.target.value)}
+                      className={`border p-4 text-lg rounded-lg w-full focus:ring-2 focus:ring-blue-500 outline-none ${theme === 'dark' ? 'bg-gray-600 text-white border-gray-500' : 'bg-white border-gray-300'}`}
+                      required
+                    />
+                  </div>
 
                   <div>
-                  <label className="block text-lg font-medium text-gray-700 mb-2">Birthday</label>
-                  <input
-                    type="date"
-                    value={birthday}
-                    onChange={(e) => setBirthday(e.target.value)}
-                    className="border p-4 text-lg rounded-lg w-full focus:ring-2 focus:ring-blue-500 outline-none"
-                    required
-                  />
-                </div>
-
-                  <div>
-                    <label className="block text-lg font-medium text-gray-700 mb-2">Role</label>
+                    <label className={`block text-lg font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
+                      Role
+                    </label>
                     <select
                       value={formData.roleId || ""}
                       onChange={(e) => setFormData({ ...formData, roleId: e.target.value })}
-                      className="border p-4 text-lg rounded-lg w-full focus:ring-2 focus:ring-blue-500 outline-none"
+                      className={`border p-4 text-lg rounded-lg w-full focus:ring-2 focus:ring-blue-500 outline-none ${theme === 'dark' ? 'bg-gray-600 text-white border-gray-500' : 'bg-white border-gray-300'}`}
                       required
                     >
                       <option value="" disabled>Select Role</option>
@@ -216,13 +220,14 @@ const CreateUser = () => {
                     </select>
                   </div>
 
-                  {/* Country Dropdown */}
                   <div>
-                    <label className="block text-lg font-medium text-gray-700 mb-2">Country</label>
+                    <label className={`block text-lg font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
+                      Country
+                    </label>
                     <select
                       value={selectedCountry}
                       onChange={handleCountryChange}
-                      className="border p-4 text-lg rounded-lg w-full focus:ring-2 focus:ring-blue-500 outline-none"
+                      className={`border p-4 text-lg rounded-lg w-full focus:ring-2 focus:ring-blue-500 outline-none ${theme === 'dark' ? 'bg-gray-600 text-white border-gray-500' : 'bg-white border-gray-300'}`}
                       required
                     >
                       <option value="" disabled>Select Country</option>
@@ -234,13 +239,14 @@ const CreateUser = () => {
                     </select>
                   </div>
 
-                  {/* City Dropdown */}
                   <div>
-                    <label className="block text-lg font-medium text-gray-700 mb-2">City</label>
+                    <label className={`block text-lg font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
+                      City
+                    </label>
                     <select
                       value={selectedCity}
-                      onChange={(e) => setSelectedCity(e.target.value)}
-                      className="border p-4 text-lg rounded-lg w-full focus:ring-2 focus:ring-blue-500 outline-none"
+                      onChange={handleCityChange}
+                      className={`border p-4 text-lg rounded-lg w-full focus:ring-2 focus:ring-blue-500 outline-none ${theme === 'dark' ? 'bg-gray-600 text-white border-gray-500' : 'bg-white border-gray-300'}`}
                       required
                       disabled={!cityList.length}
                     >

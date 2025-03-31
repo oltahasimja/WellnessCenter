@@ -3,8 +3,10 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import Sidebar from "../components/Sidebar";
 import Navbar from '../components/Navbar';
+import { useTheme } from "../components/ThemeContext";
 
 function Profile() {
+  const { theme } = useTheme();
   const [userData, setUserData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -81,8 +83,8 @@ function Profile() {
         <Navbar />
         <div className="flex flex-1 mb-[2rem]">
           <Sidebar />
-          <div className="p-6 flex-1 bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
-            <div className="text-lg">Loading...</div>
+          <div className={`p-6 flex-1 ${theme === 'dark' ? 'bg-gray-800' : 'bg-gray-100'} flex items-center justify-center`}>
+            <div className={`text-lg ${theme === 'dark' ? 'text-white' : 'text-gray-800'}`}>Loading...</div>
           </div>
         </div>
       </div>
@@ -95,7 +97,7 @@ function Profile() {
         <Navbar />
         <div className="flex flex-1 mb-[2rem]">
           <Sidebar />
-          <div className="p-6 flex-1 bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
+          <div className={`p-6 flex-1 ${theme === 'dark' ? 'bg-gray-800' : 'bg-gray-100'} flex items-center justify-center`}>
             <div className="text-lg text-red-500">{error}</div>
           </div>
         </div>
@@ -108,23 +110,23 @@ function Profile() {
 
   return (
     <div className="h-screen flex flex-col">
-      <Navbar />
+      {/* <Navbar /> */}
       <div className="flex flex-1 mb-[2rem]">
-        <Sidebar />
-        <div className="p-6 flex-1 bg-gray-100 dark:bg-gray-800">
-          <div className="max-w-10xl mx-auto p-6 bg-white rounded-lg shadow-md">
+        {/* <Sidebar /> */}
+        <div className={`p-6 flex-1 ${theme === 'dark' ? 'bg-gray-800' : 'bg-gray-100'}`}>
+          <div className={`max-w-10xl mx-auto p-6 rounded-lg shadow-md ${theme === 'dark' ? 'bg-gray-700' : 'bg-white'}`}>
             {/* Header */}
             <div className="mb-8">
-              <h1 className="text-3xl font-bold text-gray-800 mb-2">Profile</h1>
-              <div className="border-b border-gray-200"></div>
+              <h1 className={`text-3xl font-bold mb-2 ${theme === 'dark' ? 'text-white' : 'text-gray-800'}`}>Profile</h1>
+              <div className={`border-b ${theme === 'dark' ? 'border-gray-600' : 'border-gray-200'}`}></div>
             </div>
 
             {/* Profile Section */}
             <div className="mb-8">
-              <h2 className="text-2xl font-semibold text-gray-700 mb-4">Profile</h2>
+              <h2 className={`text-2xl font-semibold mb-4 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>Profile</h2>
               <div className="flex items-center mb-6">
                 <div className="relative group">
-                  <div className="w-24 h-24 rounded-full bg-blue-100 flex items-center justify-center overflow-hidden shadow-md">
+                  <div className={`w-24 h-24 rounded-full flex items-center justify-center overflow-hidden shadow-md ${theme === 'dark' ? 'bg-blue-900' : 'bg-blue-100'}`}>
                     {userData.profileImage ? (
                       <img 
                         src={userData.profileImage} 
@@ -132,7 +134,7 @@ function Profile() {
                         className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                       />
                     ) : (
-                      <span className="text-blue-600 text-3xl font-bold">
+                      <span className={`text-3xl font-bold ${theme === 'dark' ? 'text-blue-300' : 'text-blue-600'}`}>
                         {initials}
                       </span>
                     )}
@@ -158,69 +160,72 @@ function Profile() {
                   </div>
                 </div>
                 <div className="ml-6">
-                  <h3 className="text-2xl font-bold text-gray-800">{userData.name} {userData.lastName}</h3>
-                  <p className="text-gray-600 text-lg">{userData.role} | Lab Course.</p>
+                  <h3 className={`text-2xl font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-800'}`}>
+                    {userData.name} {userData.lastName}
+                  </h3>
+                  <p className={`text-lg ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
+                    {userData.role} | Lab Course.
+                  </p>
                 </div>
               </div>
-              <div className="border-b border-gray-200"></div>
+              <div className={`border-b ${theme === 'dark' ? 'border-gray-600' : 'border-gray-200'}`}></div>
             </div>
 
             {/* Personal Information */}
             <div className="mb-8">
-              <h2 className="text-xl font-semibold text-gray-700 mb-4">Personal Information</h2>
+              <h2 className={`text-xl font-semibold mb-4 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>Personal Information</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                 <div className="space-y-4">
                   <div>
-                    <p className="text-gray-500">Username</p>
-                    <p className="font-medium text-gray-800">{userData.username}</p>
+                    <p className={`${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>Username</p>
+                    <p className={`font-medium ${theme === 'dark' ? 'text-white' : 'text-gray-800'}`}>{userData.username}</p>
                   </div>
                   <div>
-                    <p className="text-gray-500">First Name</p>
-                    <p className="font-medium text-gray-800">{userData.name}</p>
+                    <p className={`${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>First Name</p>
+                    <p className={`font-medium ${theme === 'dark' ? 'text-white' : 'text-gray-800'}`}>{userData.name}</p>
                   </div>
                   <div>
-                    <p className="text-gray-500">Last Name</p>
-                    <p className="font-medium text-gray-800">{userData.lastName}</p>
+                    <p className={`${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>Last Name</p>
+                    <p className={`font-medium ${theme === 'dark' ? 'text-white' : 'text-gray-800'}`}>{userData.lastName}</p>
                   </div>
                   <div>
-                    <p className="text-gray-500">Birthday</p>
-                    <p className="font-medium text-gray-800">{userData.birthday}</p>
+                    <p className={`${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>Birthday</p>
+                    <p className={`font-medium ${theme === 'dark' ? 'text-white' : 'text-gray-800'}`}>{userData.birthday}</p>
                   </div>
-                  
                 </div>
                 <div className="space-y-4">
-                <div>
-                    <p className="text-gray-500">Gender</p>
-                    <p className="font-medium text-gray-800">{userData.gender}</p>
+                  <div>
+                    <p className={`${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>Gender</p>
+                    <p className={`font-medium ${theme === 'dark' ? 'text-white' : 'text-gray-800'}`}>{userData.gender}</p>
                   </div>
                   <div>
-                    <p className="text-gray-500">Email address</p>
-                    <p className="font-medium text-gray-800">{userData.email}</p>
+                    <p className={`${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>Email address</p>
+                    <p className={`font-medium ${theme === 'dark' ? 'text-white' : 'text-gray-800'}`}>{userData.email}</p>
                   </div>
                   <div>
-                    <p className="text-gray-500">Phone</p>
-                    <p className="font-medium text-gray-800">{userData.number}</p>
+                    <p className={`${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>Phone</p>
+                    <p className={`font-medium ${theme === 'dark' ? 'text-white' : 'text-gray-800'}`}>{userData.number}</p>
                   </div>
                   <div className="mb-4">
-                    <p className="text-gray-500">Bio</p>
-                    <p className="font-medium text-gray-800">{userData.role}</p>
+                    <p className={`${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>Bio</p>
+                    <p className={`font-medium ${theme === 'dark' ? 'text-white' : 'text-gray-800'}`}>{userData.role}</p>
                   </div>
                 </div>
               </div>
-              <div className="border-b border-gray-200"></div>
+              <div className={`border-b ${theme === 'dark' ? 'border-gray-600' : 'border-gray-200'}`}></div>
             </div>
 
             {/* Address */}
             <div>
-              <h2 className="text-xl font-semibold text-gray-700 mb-4">Address</h2>
+              <h2 className={`text-xl font-semibold mb-4 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>Address</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <p className="text-gray-500">Country</p>
-                  <p className="font-medium text-gray-800">{userData.country}</p>
-                  </div>
+                  <p className={`${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>Country</p>
+                  <p className={`font-medium ${theme === 'dark' ? 'text-white' : 'text-gray-800'}`}>{userData.country}</p>
+                </div>
                 <div>
-                  <p className="text-gray-500">City/State</p>
-                  <p className="font-medium text-gray-800">{userData.city}</p>
+                  <p className={`${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>City/State</p>
+                  <p className={`font-medium ${theme === 'dark' ? 'text-white' : 'text-gray-800'}`}>{userData.city}</p>
                 </div>
               </div>
             </div>

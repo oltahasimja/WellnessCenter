@@ -63,10 +63,10 @@ const Program = () => {
   return (
     <div className="h-screen flex flex-col">
     {/* Navbar lart */}
-    <Navbar />
+    {/* <Navbar /> */}
     <div className="flex flex-1 mb-[2rem]">
       {/* Sidebar në të majtë */}
-      <Sidebar />
+      {/* <Sidebar /> */}
       {/* Përmbajtja e Dashboard-it */}
       
       <div className="p-6 flex-1 bg-gray-100 dark:bg-gray-800">

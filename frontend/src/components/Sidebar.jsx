@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useTheme } from "../components/ThemeContext"; // Importo kontekstin e temës
+import { useTheme } from "../components/ThemeContext";
 import axios from 'axios';
 import { 
   LayoutDashboard, 
@@ -19,11 +19,11 @@ import {
   LogOut 
 } from 'lucide-react';
 
-const Sidebar = () => {
+const Sidebar = ({ setActiveComponent }) => {
   const [isOpen, setIsOpen] = useState(true);
   const [openDropdown, setOpenDropdown] = useState(null);
   const navigate = useNavigate();
-  const { theme } = useTheme(); // Merr temën nga konteksti
+  const { theme } = useTheme();
 
   const toggleSidebar = () => setIsOpen(!isOpen);
   const toggleDropdown = (label) => {
@@ -41,15 +41,15 @@ const Sidebar = () => {
     }
   };
 
-  const MenuItem = ({ icon: Icon, label, active, hasDropdown, children, onClick }) => (
+  const MenuItem = ({ icon: Icon, label, hasDropdown, onClick }) => (
     <div 
       className={`relative flex flex-col items-start ${isOpen ? 'px-4' : ''} py-2 cursor-pointer text-lg
-        ${active ? 'bg-blue-100 dark:bg-blue-800 text-blue-700 dark:text-white' : 'hover:bg-blue-50 dark:hover:bg-gray-700 hover:text-blue-700'}`}
+        hover:bg-blue-50 dark:hover:bg-gray-700 hover:text-blue-700`}
       onClick={onClick || (() => hasDropdown && toggleDropdown(label))}
     >
       <div className="flex items-center justify-between w-full">
         <div className={`flex items-center space-x-3 ${isOpen ? 'justify-start' : 'justify-center'} w-full`}>
-          <Icon className={`w-6 h-6 ${active ? 'text-blue-600 dark:text-white' : 'text-gray-500 dark:text-gray-300'} group-hover:text-blue-700`} />
+          <Icon className="w-6 h-6 text-gray-500 dark:text-gray-300 group-hover:text-blue-700" />
           {isOpen && <span className="font-medium">{label}</span>}
         </div>
         {isOpen && hasDropdown && (
@@ -58,22 +58,11 @@ const Sidebar = () => {
           />
         )}
       </div>
-      {isOpen && hasDropdown && openDropdown === label && (
-        <div className="absolute left-0 top-full mt-2 w-full bg-white dark:bg-gray-800 shadow-lg z-10">
-          <div className="py-2 px-4">
-            {children}
-          </div>
-        </div>
-      )}
     </div>
   );
-  
+
   return (
-    <div className={`${isOpen ? 'w-64' : 'w-20'} 
-      bg-white dark:bg-gray-900 dark:text-white border-r h-screen overflow-hidden 
-      transition-all duration-300 ease-in-out shadow-md flex flex-col justify-between`}>
-      
-      {/* Header */}
+    <div className={`${isOpen ? 'w-64' : 'w-20'} bg-white dark:bg-gray-900 dark:text-white border-r h-screen transition-all duration-300 shadow-md flex flex-col justify-between`}>
       <div>
         <div className="px-4 py-4 border-b flex items-center justify-between">
           {isOpen && <span className="text-xl font-semibold">Wellness</span>}
@@ -82,71 +71,32 @@ const Sidebar = () => {
           </button>
         </div>
 
-        {/* Menu */}
         <div className="py-2">
           {isOpen && <div className="text-sm text-gray-400 px-4 py-2">MENU</div>}
-          <MenuItem icon={LayoutDashboard} label="Dashboard" active />
-          <MenuItem icon={Calendar} label="Calendar" />
-          <MenuItem icon={Calendar} label="Program" onClick={() => navigate("/program")}   />
-
-
-          <MenuItem icon={UserCircle2} label="User Profile" onClick={() => navigate("/profile")}  />
-          <MenuItem icon={CheckSquare} label="Task" hasDropdown>
-            <div className="space-y-2">
-              <button className="w-full text-left text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 px-2 py-1 rounded-md">Task 1</button>
-              <button className="w-full text-left text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 px-2 py-1 rounded-md">Task 2</button>
-              <button className="w-full text-left text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 px-2 py-1 rounded-md">Task 3</button>
-            </div>
-          </MenuItem>
-
-          <MenuItem icon={Table} label="Tabels" hasDropdown>
-            <div className="space-y-2">
-              <button  onClick={() => navigate("/user")} className="w-full text-left text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 px-2 py-1 rounded-md">User</button>
-              {/* <button className="w-full text-left text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 px-2 py-1 rounded-md">Task 2</button> */}
-              {/* <button className="w-full text-left text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 px-2 py-1 rounded-md">Task 3</button> */}
-            </div>
-          </MenuItem>
-
-
-
-
-
-          <MenuItem icon={FileText} label="Forms" hasDropdown>
-            <div className="space-y-2">
-              <button onClick={() => navigate("/createuser")} className="w-full text-left text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 px-2 py-1 rounded-md">Create User</button>
-            </div>
-          </MenuItem>
-
-
-
-
-          
-          <MenuItem icon={FileInput} label="Pages" hasDropdown />
+          <MenuItem icon={LayoutDashboard} label="Dashboard" onClick={() => setActiveComponent('dashboard')} />
+          <MenuItem icon={Calendar} label="Program" onClick={() => setActiveComponent('program')} />
+          <MenuItem icon={UserCircle2} label="User Profile" onClick={() => setActiveComponent('profile')} />
+          <MenuItem icon={Table} label="Users" onClick={() => setActiveComponent('user')} />
+          <MenuItem icon={FileText} label="Roles" onClick={() => setActiveComponent('role')} />
+          <MenuItem icon={FileInput} label="Create User" onClick={() => setActiveComponent('createuser')} />
+          <MenuItem icon={CheckSquare} label="Training" onClick={() => setActiveComponent('training')} />
         </div>
-        
-        {/* Support Section */}
+
         <div className="py-2 border-t">
           {isOpen && <div className="text-sm text-gray-400 px-4 py-2">SUPPORT</div>}
-          <MenuItem icon={MessageCircle} label="Chat" hasDropdown />
-          <MenuItem icon={Mail} label="Email" hasDropdown />
-          <MenuItem icon={FileInput} label="Invoice" hasDropdown />
           <MenuItem 
-              icon={Github} 
-              label="Repository" 
-              onClick={() => window.open("https://github.com/oltahasimja/WellnessCenter", "_blank")} 
-            />
-              <MenuItem 
-              icon={Trello} 
-              label="Trello" 
-              onClick={() => window.open("https://trello.com/b/EmwZHmbt/wellness-center", "_blank")} 
-            />
+            icon={Github} 
+            label="Repository" 
+            onClick={() => window.open("https://github.com/oltahasimja/WellnessCenter", "_blank")} 
+          />
+          <MenuItem 
+            icon={Trello} 
+            label="Trello" 
+            onClick={() => window.open("https://trello.com/b/EmwZHmbt/wellness-center", "_blank")} 
+          />
         </div>
-        
-
-
       </div>
 
-      {/* Logout Button */}
       <div className="p-4 border-t">
         <button 
           onClick={handleLogout} 

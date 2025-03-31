@@ -1,43 +1,42 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import Sidebar from "../components/Sidebar";
 import Navbar from '../components/Navbar';
+import useAuthCheck from '../hook/useAuthCheck'; 
+
+
+import User from './User';
+import Profile from './Profile';
+import Program from './Program';
+import CreateUser from './CreateUser';
 
 function Dashboard() {
-  const navigate = useNavigate();
-  
+  useAuthCheck();
 
-  useEffect(() => {
-    const checkLoginStatus = async () => {
-      try {
-        const response = await axios.get('http://localhost:5000/user', { withCredentials: true });
-        if (!response.data.user) {
-          navigate('/login');
-        }
-      } catch (error) {
-        console.log('Përdoruesi nuk është i kyçur.');
-        navigate('/login');
-      }
-    };
-    checkLoginStatus();
-  }, [navigate]);
+  // const navigate = useNavigate();
+  const [activeComponent, setActiveComponent] = useState("dashboard");
+
+
+
+  const renderComponent = () => {
+    switch (activeComponent) {
+      case "user": return <User />;
+      case "profile": return <Profile />;
+      case "program": return <Program />;
+      case "createuser": return <CreateUser setActiveComponent={setActiveComponent} />; 
+      default:
+        return <h1 className="text-2xl font-bold">Mirë se vini në Dashboard</h1>;
+    }
+  };
 
   return (
     <div className="h-screen flex flex-col">
-      {/* Navbar lart */}
       <Navbar />
-      <div className="flex flex-1 mb-[2rem]">
-        {/* Sidebar në të majtë */}
-        <Sidebar />
-        {/* Përmbajtja e Dashboard-it */}
+      <div className="flex flex-1">
+        <Sidebar setActiveComponent={setActiveComponent} />
         <div className="p-6 flex-1 bg-gray-100 dark:bg-gray-800">
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Dashboard</h1>
-          <p className="text-gray-700 dark:text-gray-300 mt-4">
-            Mirë se vini në panelin tuaj! Këtu mund të menaxhoni të gjitha funksionet.
-          </p>
-
-          
+          {renderComponent()}
         </div>
       </div>
     </div>
