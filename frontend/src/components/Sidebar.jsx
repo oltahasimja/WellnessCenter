@@ -16,7 +16,8 @@ import {
   ChevronDown, 
   Github,
   Trello,
-  LogOut 
+  LogOut, 
+  ListCheck
 } from 'lucide-react';
 
 const Sidebar = ({ setActiveComponent }) => {
@@ -80,6 +81,8 @@ const Sidebar = ({ setActiveComponent }) => {
           <MenuItem icon={FileText} label="Roles" onClick={() => setActiveComponent('role')} />
           <MenuItem icon={FileInput} label="Create User" onClick={() => setActiveComponent('createuser')} />
           <MenuItem icon={CheckSquare} label="Training" onClick={() => setActiveComponent('training')} />
+          <MenuItem icon={ListCheck} label="List" onClick={() => setActiveComponent('list')} />
+          <MenuItem icon={ListCheck} label="UserPrograms" onClick={() => setActiveComponent('userprograms')} />
         </div>
 
         <div className="py-2 border-t">

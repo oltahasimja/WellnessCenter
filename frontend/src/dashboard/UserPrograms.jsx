@@ -106,7 +106,7 @@ const UserPrograms = () => {
                 Select User
               </option>
               {userList.map((item) => (
-                <option key={item.mysqlId || item.id} value={item.mysqlId || item.id}>
+                <option key={item.mysqlId} value={item.mysqlId}>
                   {item.name}
                 </option>
               ))}
@@ -128,7 +128,7 @@ const UserPrograms = () => {
                 Select Program
               </option>
               {programList.map((item) => (
-                <option key={item.mysqlId || item.id} value={item.mysqlId || item.id}>
+                <option key={item.mysqlId } value={item.mysqlId}>
                   {item.title}
                 </option>
               ))}
@@ -158,7 +158,7 @@ const UserPrograms = () => {
               {userprogramsList.length > 0 ? (
                 userprogramsList.map((item) => (
                   <tr
-                    key={item.mysqlId || item.id}
+                    key={item.mysqlId}
                     className="border-b border-gray-200 hover:bg-gray-100"
                   >
                     <td className="py-3 px-6 text-left">
@@ -178,7 +178,7 @@ const UserPrograms = () => {
                         Edit
                       </button>
                       <button
-                        onClick={() => handleDelete(item.mysqlId || item.id)}
+                        onClick={() => handleDelete(item.mysqlId )}
                         className="bg-red-500 hover:bg-red-600 text-white py-1 px-3 rounded-md text-sm"
                       >
                         Delete

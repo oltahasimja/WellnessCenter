@@ -4,8 +4,8 @@ import axios from 'axios';
 import Sidebar from "../components/Sidebar";
 import Navbar from '../components/Navbar';
 import useAuthCheck from '../hook/useAuthCheck'; 
-
-
+import List from './List';
+import UserPrograms from './UserPrograms';
 import User from './User';
 import Profile from './Profile';
 import Program from './Program';
@@ -25,7 +25,9 @@ function Dashboard() {
       case "profile": return <Profile setActiveComponent={setActiveComponent} />;
       case "program": return <Program />;
       case "createuser": return <CreateUser setActiveComponent={setActiveComponent} />; 
-      default:
+      case "userprograms": return <UserPrograms />;
+      case "list": return <List/>
+      default: 
         return <h1 className="text-2xl font-bold">Mirë se vini në Dashboard</h1>;
     }
   };
