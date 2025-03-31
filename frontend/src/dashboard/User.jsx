@@ -8,7 +8,7 @@ import DeleteConfirmation from "../components/DeleteConfirmation";
 import * as XLSX from 'xlsx';
 import { saveAs } from 'file-saver';
 
-const User = () => {
+const User = ({ setActiveComponent }) => {
   const { theme } = useTheme();
   const [userList, setUserList] = useState([]);
   const [roleList, setRoleList] = useState([]);
@@ -258,7 +258,8 @@ const User = () => {
                   </select>
 
                   <Link 
-                    to="/createuser" 
+                    to="/dashboard"
+                    onClick={() => setActiveComponent("createuser")}
                     className="bg-blue-600 hover:bg-blue-700 text-white py-3 px-6 rounded-lg font-semibold transition"
                   >
                     Add New User

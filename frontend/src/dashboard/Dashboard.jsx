@@ -21,8 +21,8 @@ function Dashboard() {
 
   const renderComponent = () => {
     switch (activeComponent) {
-      case "user": return <User />;
-      case "profile": return <Profile />;
+      case "user": return <User setActiveComponent={setActiveComponent} />;
+      case "profile": return <Profile setActiveComponent={setActiveComponent} />;
       case "program": return <Program />;
       case "createuser": return <CreateUser setActiveComponent={setActiveComponent} />; 
       default:
@@ -32,7 +32,7 @@ function Dashboard() {
 
   return (
     <div className="h-screen flex flex-col">
-      <Navbar />
+<Navbar setActiveComponent={setActiveComponent} />
       <div className="flex flex-1">
         <Sidebar setActiveComponent={setActiveComponent} />
         <div className="p-6 flex-1 bg-gray-100 dark:bg-gray-800">

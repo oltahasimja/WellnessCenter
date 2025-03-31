@@ -48,19 +48,31 @@ const CreateUser = ({ setActiveComponent }) => {
     }
   };
 
-  const fetchCountries = async () => {
-    try {
-      const response = await axios.get("https://countriesnow.space/api/v0.1/countries");
-      setCountryList(response.data.data);
-    } catch (error) {
-      console.error("Error fetching countries:", error);
+  const fetchCountries = async (retryCount = 3) => {
+    for (let i = 0; i < retryCount; i++) {
+      try {
+        const response = await axios.get("https://countriesnow.space/api/v0.1/countries");
+        if (response.data && response.data.data) {
+          setCountryList(response.data.data);
+          return;
+        }
+      } catch (error) {
+        console.error(`Tentativa ${i + 1} për të marrë shtetet dështoi:`, error);
+      }
     }
   };
+  
 
   const handleCountryChange = (e) => {
     const country = e.target.value;
     setSelectedCountry(country);
     setFormData((prev) => ({ ...prev, country })); 
+  
+    if (!countryList.length) {
+      console.warn("Lista e shteteve është bosh, duke rifreskuar...");
+      fetchCountries();
+      return;
+    }
   
     if (country === "Kosovo") {
       setCityList([
@@ -78,6 +90,7 @@ const CreateUser = ({ setActiveComponent }) => {
     setSelectedCity(""); 
     setFormData((prev) => ({ ...prev, city: "" })); 
   };
+  
   
   const handleCityChange = (e) => {
     const city = e.target.value;

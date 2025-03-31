@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import ThemeSwitcher from "../components/ThemeSwitcher";
 import axios from "axios";
 
-function Navbar({ setTheme }) {
+function Navbar({ setTheme, setActiveComponent }) {
   const [userData, setUserData] = useState(null);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
@@ -34,8 +34,8 @@ function Navbar({ setTheme }) {
     : '';
 
   const handleProfileClick = () => {
-    navigate('/profile');
-  };
+    navigate("/dashboard"); 
+    setActiveComponent("profile");   };
 
   return (
     <nav className="flex items-center justify-end px-3 rounded-md py-2 bg-white shadow-md dark:bg-gray-900 w-[13rem] fixed top-0 right-0 mt-4 mr-4 z-50">

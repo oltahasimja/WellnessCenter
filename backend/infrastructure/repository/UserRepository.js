@@ -89,49 +89,49 @@ class UserRepository {
   }
 
   
-  async update(id, data) {
-    try {
-      // Update in MySQL
-      const [updatedCount] = await User.update(
-        { ...data },
-        { where: { id } }
-      );
-  
-      if (updatedCount === 0) {
-        throw new Error("User not found in MySQL");
-      }
-      
-      // Prepare update data for MongoDB
-      const mongoUpdateData = { ...data };
-      
-      // Handle foreign keys - convert MySQL IDs to MongoDB references
-      
-      if (data.roleId) {
-        // Find the related document in MongoDB
-        const role = await RoleMongo.findOne({ mysqlId: data.roleId.toString() });
-        if (!role) {
-          throw new Error(`Role with MySQL ID ${data.roleId} not found in MongoDB`);
-        }
-        mongoUpdateData.roleId = new ObjectId(role._id.toString());
-      }
-      
-      // Update in MongoDB
-      const updatedMongoDB = await UserMongo.updateOne(
-        { mysqlId: id },
-        { $set: mongoUpdateData }
-      );
-  
-      if (updatedMongoDB.modifiedCount === 0) {
-        console.warn("User not found in MongoDB or no changes made");
-      }
-  
-      // Return the updated resource with populated relationships
-      return this.findById(id);
-    } catch (error) {
-      console.error("Error updating User:", error);
-      throw new Error('Error updating User: ' + error.message);
+ async update(id, data) {
+  try {
+    // First check if user exists in MySQL
+    const mysqlUser = await User.findOne({ where: { id } });
+    if (!mysqlUser) {
+      throw new Error("User not found in MySQL");
     }
+
+    // Update in MySQL
+    await User.update(
+      { ...data },
+      { where: { id } }
+    );
+    
+    // Prepare update data for MongoDB
+    const mongoUpdateData = { ...data };
+    
+    // Handle foreign keys - convert MySQL IDs to MongoDB references
+    if (data.roleId) {
+      const role = await RoleMongo.findOne({ mysqlId: data.roleId.toString() });
+      if (!role) {
+        throw new Error(`Role with MySQL ID ${data.roleId} not found in MongoDB`);
+      }
+      mongoUpdateData.roleId = new ObjectId(role._id.toString());
+    }
+    
+    // Update in MongoDB using mysqlId as the reference
+    const updatedMongoDB = await UserMongo.updateOne(
+      { mysqlId: id.toString() }, // Ensure this matches your MongoDB schema
+      { $set: mongoUpdateData }
+    );
+
+    if (updatedMongoDB.modifiedCount === 0) {
+      console.warn("User not found in MongoDB or no changes made");
+    }
+
+    // Return the updated resource with populated relationships
+    return this.findById(id);
+  } catch (error) {
+    console.error("Error updating User:", error);
+    throw new Error('Error updating User: ' + error.message);
   }
+}
   
   async delete(id) {
     try {

@@ -5,39 +5,150 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const passport = require('passport');
 const nodemailer = require('nodemailer');
+const sequelize  = require('../../config/database');
+
+const { OAuth2Client } = require('google-auth-library');
+const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 const Role = require('../../infrastructure/database/models/Role')
 
 const User = require('../../infrastructure/database/models/User')
+const UserMongo = require('../../infrastructure/database/models/UserMongo')
+const RoleMongo = require('../../infrastructure/database/models/RoleMongo')
 
-const registerUserForm = async (req, res) => {
-    const { name, lastName, number, email, username, password } = req.body;
+
+const googleAuth = async (req, res) => {
+  const { token } = req.body;
+  let mysqlTransaction;
   
-    try {
-      const userRole = await Role.findOne({ where: { name: 'User' } });
-  
-      if (!userRole) {
-        return res.status(500).json({ error: "Roli 'User' nuk ekziston në databazë" });
-      }
-  
-      const hash = await bcrypt.hash(password, 10);
-      const user = await User.create({
-        name,
-        lastName,
-        number,
-        email,
-        username,
-        password: hash,
-        roleId: userRole.id, 
+  try {
+      // Verify Google token
+      const ticket = await client.verifyIdToken({
+          idToken: token,
+          audience: process.env.GOOGLE_CLIENT_ID,
       });
-  
-      res.status(201).json(user);
-    } catch (err) {
-      res.status(500).json({ error: err.message });
-    }
-  };
-  
-  
+      
+      const payload = ticket.getPayload();
+      const { email, given_name, family_name, sub, picture } = payload;
+
+      // Start transaction
+      mysqlTransaction = await sequelize.transaction();
+
+      try {
+          // Check if user exists
+          let mysqlUser = await User.findOne({ 
+              where: { email },
+              transaction: mysqlTransaction
+          });
+          
+          if (!mysqlUser) {
+              const userRole = await Role.findOne({ 
+                  where: { name: 'User' },
+                  transaction: mysqlTransaction
+              });
+
+              if (!userRole) {
+                  await mysqlTransaction.rollback();
+                  return res.status(500).json({ error: 'User role not found' });
+              }
+
+              // Create user in MySQL
+              mysqlUser = await User.create({
+                  name: given_name,
+                  lastName: family_name || '',
+                  email,
+                  number: '12345',
+                  username: email.split('@')[0],
+                  password: sub,
+                  roleId: userRole.id,
+                  isGoogleAuth: true,
+                
+              }, { transaction: mysqlTransaction });
+
+              // Create user in MongoDB
+              try {
+                  const mongoRole = await RoleMongo.findOne({ name: 'User' });
+                  if (!mongoRole) {
+                      await mysqlTransaction.rollback();
+                      return res.status(500).json({ error: 'MongoDB role not found' });
+                  }
+
+                  const mongoUser = new UserMongo({
+                      mysqlId: mysqlUser.id.toString(),
+                      name: given_name,
+                      lastName: family_name || '',
+                      email,
+                      number: '12345',
+                      username: email.split('@')[0],
+                      password: sub,
+                      roleId: mongoRole._id,
+                      isGoogleAuth: true,
+                      // avatar: picture
+                  });
+
+                  await mongoUser.save();
+              } catch (mongoError) {
+                  await mysqlTransaction.rollback();
+                  console.error('MongoDB error:', mongoError);
+                  return res.status(500).json({ error: 'Failed to create MongoDB user' });
+              }
+          }
+
+          // Commit transaction if everything succeeded
+          await mysqlTransaction.commit();
+
+          // Generate tokens
+          const accessToken = jwt.sign(
+              { id: mysqlUser.id, username: mysqlUser.username, role: mysqlUser.role },
+              process.env.JWT_SECRET,
+              { expiresIn: '1d' }
+          );
+
+          const refreshToken = jwt.sign(
+              { id: mysqlUser.id },
+              process.env.REFRESH_SECRET,
+              { expiresIn: '7d' }
+          );
+
+          // Set cookies
+          res.cookie('refreshToken', refreshToken, {
+              httpOnly: true,
+              secure: process.env.NODE_ENV === 'production',
+              sameSite: 'Strict',
+              maxAge: 7 * 24 * 60 * 60 * 1000,
+          });
+
+          res.cookie('ubtsecured', accessToken, {
+              httpOnly: true,
+              secure: process.env.NODE_ENV === 'production',
+              sameSite: 'Strict',
+              maxAge: 15 * 60 * 1000,
+          });
+
+          return res.status(200).json({ 
+              message: 'Google authentication successful', 
+              user: {
+                  id: mysqlUser.id,
+                  name: mysqlUser.name,
+                  email: mysqlUser.email
+              },
+              accessToken,
+              refreshToken
+          });
+
+      } catch (dbError) {
+          if (mysqlTransaction) await mysqlTransaction.rollback();
+          console.error('Database error:', dbError);
+          return res.status(500).json({ error: 'Database operation failed' });
+      }
+
+  } catch (error) {
+      console.error('Google auth error:', error);
+      return res.status(500).json({ error: 'Google authentication failed' });
+  }
+};
+
+
   
   const loginUser = (req, res, next) => {
     passport.authenticate('local', async (err, user, info) => {
@@ -53,13 +164,13 @@ const registerUserForm = async (req, res) => {
         const accessToken = jwt.sign(
           { id: user.id, username: user.username, role: user.role },
           process.env.JWT_SECRET,
-          { expiresIn: '1d' } // Access token skadon për 15 min
+          { expiresIn: '1d' } 
         );
   
         const refreshToken = jwt.sign(
           { id: user.id },
           process.env.REFRESH_SECRET,
-          { expiresIn: '7d' } // Refresh token skadon për 7 ditë
+          { expiresIn: '7d' } 
         );
   
         // Ruaj refresh token-in në cookie
@@ -95,4 +206,4 @@ const registerUserForm = async (req, res) => {
   };
   
 
-  module.exports = {loginUser, registerUserForm, getByUsername };
+  module.exports = {loginUser, getByUsername, googleAuth  };
