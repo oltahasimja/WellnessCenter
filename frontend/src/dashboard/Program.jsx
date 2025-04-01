@@ -120,7 +120,7 @@ const Program = () => {
         <tr key={item.mysqlId || item.id} className="border-b border-gray-200 hover:bg-gray-100">
           <td className="py-3 px-6 text-left">
             <Link 
-              to={`/progams/${item.mysqlId || item.id}`}
+              to={`/programs/${item.mysqlId || item.id}`}
               className="text-blue-500 hover:underline"
             >
               {item.title}
