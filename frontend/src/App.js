@@ -8,7 +8,7 @@ import Dashboard from './dashboard/Dashboard';
 import Program from './dashboard/Program';
 import List from './dashboard/List';
 import UserProgram from './dashboard/UserPrograms'
-
+import ProgramDetail from './dashboard/ProgramDetail'; 
 import Training from './dashboard/Training';
 
 
@@ -28,10 +28,10 @@ const App = () => {
                 <Route path="/Register" element={<Register />} />
                 <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/list" element={<List/>} />
-                <Route path="/program" element={<Program/>}/>
                 <Route path="/training" element={<Training/>}/>
                 <Route path="/userprograms" element={<UserProgram/>}/>
-             
+                <Route path="/programs" element={<Program />} />
+                <Route path="/programs/:id" element={<ProgramDetail />} />
                 </Routes>
             </Router>
         </ThemeProvider>

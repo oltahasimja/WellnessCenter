@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import Sidebar from "../components/Sidebar";
 import Navbar from '../components/Navbar';
-
+import { Link } from 'react-router-dom';
 const Program = () => {
   const [formData, setFormData] = useState({});
   const [programList, setProgramList] = useState([]);
@@ -104,37 +104,58 @@ const Program = () => {
 
         {/* Tabela e të dhënave */}
         <div className="overflow-x-auto">
-          <table className="w-full border-collapse shadow-md rounded-md bg-white">
-            <thead>
-              <tr className="bg-gray-200 text-gray-600 uppercase text-sm leading-normal">
-                <th className="py-3 px-6 text-left">Title</th>
-                <th className="py-3 px-6 text-left">Description</th>
-                <th className="py-3 px-6 text-left">Created By</th>
-                <th className="py-3 px-6 text-left">Created At</th>
-                <th className="py-3 px-6 text-center">Veprime</th>
-              </tr>
-            </thead>
-            <tbody className="text-gray-700 text-sm font-light">
-              {programList.length > 0 ? (
-                programList.map((item) => (
-                  <tr key={item.mysqlId || item.id} className="border-b border-gray-200 hover:bg-gray-100">
-                    <td className="py-3 px-6 text-left">{item.title}</td>
-                    <td className="py-3 px-6 text-left">{item.description}</td>
-                    <td className="py-3 px-6 text-left">{item.createdById.name}</td>
-                    <td className="py-3 px-6 text-left">{item.createdAt}</td>
-                    <td className="py-3 px-6 flex justify-center space-x-2">
-                      <button onClick={() => handleEdit(item)} className="bg-yellow-500 hover:bg-yellow-600 text-white py-1 px-3 rounded-md text-sm">Edit</button>
-                      <button onClick={() => handleDelete(item.mysqlId || item.id)} className="bg-red-500 hover:bg-red-600 text-white py-1 px-3 rounded-md text-sm">Delete</button>
-                    </td>
-                  </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan="5" className="text-center text-gray-500 py-4">Nuk ka të dhëna</td>
-                </tr>
-              )}
-            </tbody>
-          </table>
+        <table className="w-full border-collapse shadow-md rounded-md bg-white">
+  <thead>
+    <tr className="bg-gray-200 text-gray-600 uppercase text-sm leading-normal">
+      <th className="py-3 px-6 text-left">Title</th>
+      <th className="py-3 px-6 text-left">Description</th>
+      <th className="py-3 px-6 text-left">Created By</th>
+      <th className="py-3 px-6 text-left">Created At</th>
+      <th className="py-3 px-6 text-center">Veprime</th>
+    </tr>
+  </thead>
+  <tbody className="text-gray-700 text-sm font-light">
+    {programList.length > 0 ? (
+      programList.map((item) => (
+        <tr key={item.mysqlId || item.id} className="border-b border-gray-200 hover:bg-gray-100">
+          <td className="py-3 px-6 text-left">
+            <Link 
+              to={`/progams/${item.mysqlId || item.id}`}
+              className="text-blue-500 hover:underline"
+            >
+              {item.title}
+            </Link>
+          </td>
+          <td className="py-3 px-6 text-left">{item.description}</td>
+          <td className="py-3 px-6 text-left">
+            {item.createdById?.name || 'N/A'}
+          </td>
+          <td className="py-3 px-6 text-left">
+            {new Date(item.createdAt).toLocaleDateString()}
+          </td>
+          <td className="py-3 px-6 flex justify-center space-x-2">
+            <button 
+              onClick={() => handleEdit(item)} 
+              className="bg-yellow-500 hover:bg-yellow-600 text-white py-1 px-3 rounded-md text-sm"
+            >
+              Edit
+            </button>
+            <button 
+              onClick={() => handleDelete(item.mysqlId || item.id)} 
+              className="bg-red-500 hover:bg-red-600 text-white py-1 px-3 rounded-md text-sm"
+            >
+              Delete
+            </button>
+          </td>
+        </tr>
+      ))
+    ) : (
+      <tr>
+        <td colSpan="5" className="text-center text-gray-500 py-4">Nuk ka të dhëna</td>
+      </tr>
+    )}
+  </tbody>
+</table>
         </div>
       </div>
     </div>

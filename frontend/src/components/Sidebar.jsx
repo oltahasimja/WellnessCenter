@@ -17,7 +17,8 @@ import {
   Github,
   Trello,
   LogOut, 
-  ListCheck
+  ListCheck,
+  Antenna
 } from 'lucide-react';
 
 const Sidebar = ({ setActiveComponent }) => {
@@ -83,6 +84,7 @@ const Sidebar = ({ setActiveComponent }) => {
           <MenuItem icon={CheckSquare} label="Training" onClick={() => setActiveComponent('training')} />
           <MenuItem icon={ListCheck} label="List" onClick={() => setActiveComponent('list')} />
           <MenuItem icon={ListCheck} label="UserPrograms" onClick={() => setActiveComponent('userprograms')} />
+          <MenuItem icon={Antenna} label="Board" onClick={() => setActiveComponent('board')} />
         </div>
 
         <div className="py-2 border-t">
