@@ -8,11 +8,7 @@ const ProgramDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [program, setProgram] = useState(null);
-  const [lists, setLists] = useState([
-    { id: "todo", title: "To Do", cards: [] },
-    { id: "in-progress", title: "In Progress", cards: [] },
-    { id: "done", title: "Done", cards: [] },
-  ]);
+  const [lists, setLists] = useState([]);
   const [newCardText, setNewCardText] = useState("");
   const [members, setMembers] = useState([]);
   const [newMemberEmail, setNewMemberEmail] = useState('');
@@ -20,9 +16,10 @@ const ProgramDetail = () => {
   const [error, setError] = useState(null);
   const [currentUser, setCurrentUser] = useState(null);
   const [isMember, setIsMember] = useState(false);
-
-
-
+  const [newListName, setNewListName] = useState('');
+  const [showListForm, setShowListForm] = useState(false);
+  const [editingListId, setEditingListId] = useState(null);
+  const [editedListName, setEditedListName] = useState('');
   useEffect(() => {
     const checkLoginStatus = async () => {
       try {
@@ -88,6 +85,22 @@ const ProgramDetail = () => {
         }));
         
         setMembers(membersList);
+
+        const listsRes = await axios.get('http://localhost:5000/api/list');
+        const programLists = listsRes.data.filter(list => 
+          list.programId._id === id || list.programId.mysqlId === id
+        );
+        
+        // Transform lists into the format needed for the board
+        const boardLists = programLists.map(list => ({
+          id: list.mysqlId || list._id,
+          title: list.name,
+          cards: [], // Initialize with empty array
+          inputText: '' // Initialize with empty string
+        }));
+        
+        
+        setLists(boardLists);
         
       } catch (error) {
         console.error("Error fetching program data:", error);
@@ -101,6 +114,72 @@ const ProgramDetail = () => {
       fetchProgramData();
     }
   }, [id, currentUser]);
+
+  const handleAddList = async () => {
+    if (!newListName.trim()) {
+      alert('Please enter a list name');
+      return;
+    }
+    
+    try {
+      const response = await axios.post('http://localhost:5000/api/list', {
+        name: newListName,
+        programId: id,
+        createdById: currentUser.id
+      });
+      
+      // Add the new list to our state
+      const newList = {
+        id: response.data.mysqlId || response.data._id,
+        title: response.data.name,
+        cards: []
+      };
+      setLists([...lists, newList]);
+      setNewListName('');
+      setShowListForm(false);
+    } catch (error) {
+      console.error('Error creating list:', error);
+      alert('Failed to create list: ' + (error.response?.data?.message || error.message));
+    }
+  };
+  const handleDeleteList = async (listId) => {
+    try {
+      await axios.delete(`http://localhost:5000/api/list/${listId}`);
+      setLists(lists.filter(list => list.id !== listId));
+    } catch (error) {
+      console.error('Error deleting list:', error);
+      alert('Failed to delete list: ' + (error.response?.data?.message || error.message));
+    }
+  };
+  // List editing functions
+const startListEdit = (list) => {
+  setEditingListId(list.id);
+  setEditedListName(list.title);
+};
+
+const cancelListEdit = () => {
+  setEditingListId(null);
+  setEditedListName('');
+};
+
+const saveListEdit = async (listId) => {
+  try {
+    await axios.put(`http://localhost:5000/api/list/${listId}`, {
+      name: editedListName
+    });
+    
+    // Update local state
+    setLists(lists.map(list => 
+      list.id === listId ? { ...list, title: editedListName } : list
+    ));
+    
+    setEditingListId(null);
+    setEditedListName('');
+  } catch (error) {
+    console.error('Error updating list:', error);
+    alert('Failed to update list: ' + (error.response?.data?.message || error.message));
+  }
+};
 
   const handleAddMember = async (e) => {
      e.preventDefault();
@@ -256,17 +335,25 @@ const ProgramDetail = () => {
   };
 
   // Add a new card to the "To Do" list
-  const addCard = () => {
-    if (!newCardText.trim()) return;
-    const updatedLists = lists.map((list) =>
-      list.id === "todo"
-        ? { ...list, cards: [...list.cards, { id: Date.now().toString(), text: newCardText }] }
-        : list
-    );
+  const addCard = (listId) => {
+    const list = lists.find(l => l.id === listId);
+    const cardText = list.inputText;
+    
+    if (!cardText || !cardText.trim()) return;
+    
+    const updatedLists = lists.map((list) => {
+      if (list.id === listId) {
+        return {
+          ...list,
+          cards: [...list.cards, { id: Date.now().toString(), text: cardText }],
+          inputText: '' // Clear the input after adding
+        };
+      }
+      return list;
+    });
+    
     setLists(updatedLists);
-    setNewCardText("");
   };
-
 
   if (loading) return <div className="text-center p-8">Loading program details...</div>;
   if (error) return <div className="text-center p-8 text-red-500">Error: {error}</div>;
@@ -355,56 +442,139 @@ return(
   itemName={deleteModal.memberName}
 />
           
-          {/* Trello-style Board */}
-      <DragDropContext onDragEnd={handleDragEnd}>
-        <div className="flex space-x-4 overflow-x-auto">
-          {lists.map((list) => (
-            <Droppable key={list.id} droppableId={list.id}>
-              {(provided) => (
-                <div
-                  ref={provided.innerRef}
-                  {...provided.droppableProps}
-                  className="bg-gray-100 rounded-lg shadow-md p-4 w-72 min-w-[18rem] flex-shrink-0"
-                >
-                  <h2 className="text-lg font-semibold mb-4">{list.title}</h2>
-                  {list.cards.map((card, index) => (
-                    <Draggable key={card.id} draggableId={card.id} index={index}>
-                      {(provided) => (
-                        <div
-                          ref={provided.innerRef}
-                          {...provided.draggableProps}
-                          {...provided.dragHandleProps}
-                          className="bg-white p-3 rounded-md shadow-md mb-2 cursor-pointer"
-                        >
-                          {card.text}
-                        </div>
-                      )}
-                    </Draggable>
-                  ))}
-                  {provided.placeholder}
-                </div>
-              )}
-            </Droppable>
-          ))}
+         {/* Trello-style Board */}
+      <div className="mt-8">
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-2xl font-bold">Board</h2>
+          <button 
+            onClick={() => setShowListForm(!showListForm)}
+            className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-md"
+          >
+            {showListForm ? 'Cancel' : 'Add List'}
+          </button>
+        </div>
 
-          {/* Add New Card Input */}
-          <div className="w-72 min-w-[18rem] p-4">
+        {showListForm && (
+          <div className="mb-6 p-4 bg-white rounded-lg shadow-md">
             <input
               type="text"
-              className="w-full border rounded-md p-2"
-              placeholder="Add a new task..."
-              value={newCardText}
-              onChange={(e) => setNewCardText(e.target.value)}
+              placeholder="Enter list name"
+              value={newListName}
+              onChange={(e) => setNewListName(e.target.value)}
+              className="w-full border p-2 rounded-md mb-2"
             />
-            <button
-              onClick={addCard}
-              className="mt-2 w-full bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600"
-            >
-              Add Card
-            </button>
+            <div className="flex gap-2">
+              <button
+                onClick={handleAddList}
+                className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md"
+              >
+                Add List
+              </button>
+              <button
+                onClick={() => setShowListForm(false)}
+                className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-md"
+              >
+                Cancel
+              </button>
+            </div>
           </div>
-        </div>
-      </DragDropContext>
+        )}
+
+        <DragDropContext onDragEnd={handleDragEnd}>
+          <div className="flex space-x-4 overflow-x-auto pb-4">
+            {lists.map((list) => (
+              <Droppable key={list.id} droppableId={list.id}>
+                {(provided) => (
+                  <div
+                    ref={provided.innerRef}
+                    {...provided.droppableProps}
+                    className="bg-gray-100 rounded-lg shadow-md p-4 w-72 min-w-[18rem] flex-shrink-0 relative"
+                  >
+                    <div className="flex justify-between items-center mb-4">
+  {editingListId === list.id ? (
+    <div className="flex items-center flex-grow mr-2">
+      <input
+        type="text"
+        value={editedListName}
+        onChange={(e) => setEditedListName(e.target.value)}
+        className="border p-1 rounded-md w-full"
+      />
+      <button 
+        onClick={() => saveListEdit(list.id)}
+        className="ml-2 bg-green-500 hover:bg-green-600 text-white px-2 py-1 rounded-md text-sm"
+      >
+        Save
+      </button>
+      <button 
+        onClick={cancelListEdit}
+        className="ml-1 bg-gray-500 hover:bg-gray-600 text-white px-2 py-1 rounded-md text-sm"
+      >
+        Cancel
+      </button>
+    </div>
+  ) : (
+    <h2 
+      className="text-lg font-semibold cursor-pointer hover:underline flex-grow"
+      onClick={() => startListEdit(list)}
+    >
+      {list.title}
+    </h2>
+  )}
+  <button 
+    onClick={() => handleDeleteList(list.id)}
+    className="text-red-500 hover:text-red-700 text-sm"
+  >
+    Delete
+  </button>
+</div>
+                    
+                    {list.cards.map((card, index) => (
+                      <Draggable key={card.id} draggableId={card.id} index={index}>
+                        {(provided) => (
+                          <div
+                            ref={provided.innerRef}
+                            {...provided.draggableProps}
+                            {...provided.dragHandleProps}
+                            className="bg-white p-3 rounded-md shadow-md mb-2 cursor-pointer"
+                          >
+                            {card.text}
+                          </div>
+                        )}
+                      </Draggable>
+                    ))}
+                    {provided.placeholder}
+                    
+                    <div className="mt-4">
+                      <input
+                        type="text"
+                        className="w-full border rounded-md p-2 mb-2"
+                        placeholder="Add a new task..."
+                        value={list.inputText || ''}
+                        onChange={(e) => {
+                          const updatedLists = lists.map(l => {
+                            if (l.id === list.id) {
+                              return { ...l, inputText: e.target.value };
+                            }
+                            return l;
+                          });
+                          setLists(updatedLists);
+                        }}
+                        onKeyPress={(e) => e.key === 'Enter' && addCard(list.id)}
+                      />
+                     <button
+  onClick={() => addCard(list.id)}
+  className="w-full bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600"
+>
+  Add Card
+</button>
+                    </div>
+                  </div>
+                )}
+              </Droppable>
+            ))}
+          </div>
+        </DragDropContext>
+      </div>
     </div>
   );
 };
