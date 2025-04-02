@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import DeleteConfirmation from "../components/DeleteConfirmation";
@@ -7,12 +8,19 @@ const ProgramDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [program, setProgram] = useState(null);
+  const [lists, setLists] = useState([
+    { id: "todo", title: "To Do", cards: [] },
+    { id: "in-progress", title: "In Progress", cards: [] },
+    { id: "done", title: "Done", cards: [] },
+  ]);
+  const [newCardText, setNewCardText] = useState("");
   const [members, setMembers] = useState([]);
   const [newMemberEmail, setNewMemberEmail] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [currentUser, setCurrentUser] = useState(null);
   const [isMember, setIsMember] = useState(false);
+
 
 
   useEffect(() => {
@@ -214,6 +222,52 @@ const ProgramDetail = () => {
      });
    };
 
+   const handleDragEnd = (result) => {
+    if (!result.destination) return;
+
+    const { source, destination } = result;
+    const sourceList = lists.find((list) => list.id === source.droppableId);
+    const destList = lists.find((list) => list.id === destination.droppableId);
+
+    const sourceCards = [...sourceList.cards];
+    const [movedCard] = sourceCards.splice(source.index, 1);
+
+    if (source.droppableId === destination.droppableId) {
+      // Moving within the same list
+      sourceCards.splice(destination.index, 0, movedCard);
+      setLists(
+        lists.map((list) =>
+          list.id === source.droppableId ? { ...list, cards: sourceCards } : list
+        )
+      );
+    } else {
+      // Moving to a different list
+      const destCards = [...destList.cards];
+      destCards.splice(destination.index, 0, movedCard);
+
+      setLists(
+        lists.map((list) => {
+          if (list.id === source.droppableId) return { ...list, cards: sourceCards };
+          if (list.id === destination.droppableId) return { ...list, cards: destCards };
+          return list;
+        })
+      );
+    }
+  };
+
+  // Add a new card to the "To Do" list
+  const addCard = () => {
+    if (!newCardText.trim()) return;
+    const updatedLists = lists.map((list) =>
+      list.id === "todo"
+        ? { ...list, cards: [...list.cards, { id: Date.now().toString(), text: newCardText }] }
+        : list
+    );
+    setLists(updatedLists);
+    setNewCardText("");
+  };
+
+
   if (loading) return <div className="text-center p-8">Loading program details...</div>;
   if (error) return <div className="text-center p-8 text-red-500">Error: {error}</div>;
   if (!isMember) return <div className="text-center p-8 text-red-500">Access Denied</div>;
@@ -300,7 +354,58 @@ return(
   onConfirm={handleDeleteConfirm}
   itemName={deleteModal.memberName}
 />
+          
+          {/* Trello-style Board */}
+      <DragDropContext onDragEnd={handleDragEnd}>
+        <div className="flex space-x-4 overflow-x-auto">
+          {lists.map((list) => (
+            <Droppable key={list.id} droppableId={list.id}>
+              {(provided) => (
+                <div
+                  ref={provided.innerRef}
+                  {...provided.droppableProps}
+                  className="bg-gray-100 rounded-lg shadow-md p-4 w-72 min-w-[18rem] flex-shrink-0"
+                >
+                  <h2 className="text-lg font-semibold mb-4">{list.title}</h2>
+                  {list.cards.map((card, index) => (
+                    <Draggable key={card.id} draggableId={card.id} index={index}>
+                      {(provided) => (
+                        <div
+                          ref={provided.innerRef}
+                          {...provided.draggableProps}
+                          {...provided.dragHandleProps}
+                          className="bg-white p-3 rounded-md shadow-md mb-2 cursor-pointer"
+                        >
+                          {card.text}
+                        </div>
+                      )}
+                    </Draggable>
+                  ))}
+                  {provided.placeholder}
+                </div>
+              )}
+            </Droppable>
+          ))}
+
+          {/* Add New Card Input */}
+          <div className="w-72 min-w-[18rem] p-4">
+            <input
+              type="text"
+              className="w-full border rounded-md p-2"
+              placeholder="Add a new task..."
+              value={newCardText}
+              onChange={(e) => setNewCardText(e.target.value)}
+            />
+            <button
+              onClick={addCard}
+              className="mt-2 w-full bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600"
+            >
+              Add Card
+            </button>
           </div>
+        </div>
+      </DragDropContext>
+    </div>
   );
 };
 
