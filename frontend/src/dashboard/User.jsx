@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useParams, useNavigate } from 'react-router-dom';
 import axios from "axios";
 import Navbar from "../components/Navbar";
 import Sidebar from "../components/Sidebar";
@@ -22,6 +23,8 @@ const User = ({ setActiveComponent }) => {
   const [itemToDelete, setItemToDelete] = useState(null);
   const [itemNameToDelete, setItemNameToDelete] = useState("");
   const [showDownloadDropdown, setShowDownloadDropdown] = useState(false);
+    const navigate = useNavigate();
+  
 
   useEffect(() => {
     fetchUsers();
@@ -190,9 +193,9 @@ const User = ({ setActiveComponent }) => {
       {/* <Navbar /> */}
       <div className="flex flex-1 mb-[2rem]">
         {/* <Sidebar /> */}
-        <div className={`p-6 flex-1 ${theme === 'dark' ? 'bg-gray-800' : 'bg-gray-100'}`}>
+        <div className={`flex-1 ${theme === 'dark' ? 'bg-gray-800' : 'bg-gray-100'}`}>
           <div className={`flex justify-center items-center min-h-screen ${theme === 'dark' ? 'bg-gray-800' : 'bg-gray-100'}`}>
-            <div className={`shadow-xl rounded-lg p-8 w-full max-w-10xl ${theme === 'dark' ? 'bg-gray-700' : 'bg-white'}`}>
+            <div className={`shadow-xl rounded-lg pt-8 p-2 w-full max-w-10xl ${theme === 'dark' ? 'bg-gray-700' : 'bg-white'}`}>
               <div className="flex justify-between items-center mb-8">
                 <h1 className={`text-4xl font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-700'}`}>User Management</h1>
                 
@@ -267,7 +270,7 @@ const User = ({ setActiveComponent }) => {
                 </div>
               </div>
 
-              <div className="overflow-x-auto">
+              <div className="">
                 <table className={`w-full border-collapse shadow-md rounded-lg ${theme === 'dark' ? 'bg-gray-600' : 'bg-white'}`} style={{ tableLayout: 'fixed' }}>
                   <thead>
                     <tr className={`uppercase text-lg leading-normal ${theme === 'dark' ? 'bg-gray-500 text-white' : 'bg-gray-300 text-gray-700'}`}>
@@ -278,8 +281,8 @@ const User = ({ setActiveComponent }) => {
                       <th className="py-4 px-6 text-left" style={{ width: '100px' }}>Username</th>
                       <th className="py-4 px-6 text-left" style={{ width: '120px' }}>Birthdate</th>
                       <th className="py-4 px-6 text-left" style={{ width: '100px' }}>Gender</th>
-                      <th className="py-4 px-6 text-left" style={{ width: '100px' }}>Country</th>
-                      <th className="py-4 px-6 text-left" style={{ width: '100px' }}>City</th>
+                      {/* <th className="py-4 px-6 text-left" style={{ width: '100px' }}>Country</th> */}
+                      {/* <th className="py-4 px-6 text-left" style={{ width: '100px' }}>City</th> */}
                       <th className="py-4 px-6 text-left" style={{ width: '150px' }}>Role</th>
                       <th className="py-4 px-6 text-center" style={{ width: '150px' }}>Actions</th>
                     </tr>
@@ -382,7 +385,7 @@ const User = ({ setActiveComponent }) => {
                               item.gender
                             )}
                           </td>
-                          <td className="py-4 px-6 truncated">
+                          {/* <td className="py-4 px-6 truncated">
                             {editingId === (item.mysqlId || item.id) ? (
                               <input
                                 type="text"
@@ -407,7 +410,7 @@ const User = ({ setActiveComponent }) => {
                             ) : (
                               item.city
                             )}
-                          </td>
+                          </td> */}
                           <td className="py-4 px-6 truncated">
                             {editingId === (item.mysqlId || item.id) ? (
                               <select
@@ -444,12 +447,18 @@ const User = ({ setActiveComponent }) => {
                               </>
                             ) : (
                               <>
-                                <button
-                                  onClick={() => handleEditClick(item)}
-                                  className="bg-yellow-500 hover:bg-yellow-600 text-white py-2 px-4 rounded-lg text-lg"
-                                >
-                                  Edit
-                                </button>
+                 
+
+                                     <button
+                                    onClick={() => {
+                                      setActiveComponent("edituser");
+                                      localStorage.setItem('editUserId', item.mysqlId || item.id);
+                                    }}
+                                    className="bg-yellow-500 hover:bg-yellow-600 text-white py-2 px-4 rounded-lg text-lg"
+                                  >
+                                    Edit
+                                  </button>
+
                                 <button
                                   onClick={() => handleDeleteClick(item.mysqlId || item.id, item.name)}
                                   className="bg-red-500 hover:bg-red-600 text-white py-2 px-4 rounded-lg text-lg"
