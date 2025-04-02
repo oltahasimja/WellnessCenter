@@ -1,5 +1,7 @@
 
 const express = require('express');
+const router = express.Router();
+
 const { 
   getAllUsers, 
   getUserById, 
@@ -10,7 +12,9 @@ const {
   getUsersByRole
 } = require("../adapters/controllers/UserController");
 
-const router = express.Router();
+const { isAuthenticated } = require('../middlewares/authMiddleware');
+ router.use(isAuthenticated);
+
 
 router.get('/specialists', getSpecialists);
 router.get('/', getAllUsers);

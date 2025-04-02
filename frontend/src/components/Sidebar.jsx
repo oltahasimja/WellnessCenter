@@ -48,7 +48,7 @@ const Sidebar = ({ setActiveComponent }) => {
     localStorage.setItem('activeComponent', componentName);
   };
 
-  const MenuItem = ({ icon: Icon, label, hasDropdown, componentName, externalLink }) => (
+  const MenuItem = ({ icon: Icon, label, hasDropdown, componentName, externalLink, onClick }) => (
     <div 
       className={`relative flex flex-col items-start ${isOpen ? 'px-4' : ''} py-2 cursor-pointer text-lg
         hover:bg-blue-50 dark:hover:bg-gray-700 hover:text-blue-700`}
@@ -96,7 +96,7 @@ const Sidebar = ({ setActiveComponent }) => {
           />
           <MenuItem 
             icon={UserCircle2} 
-            label="User Profile" 
+            label="Profile" 
             componentName="profile"
           />
           <MenuItem 
@@ -137,18 +137,16 @@ const Sidebar = ({ setActiveComponent }) => {
         </div>
 
         <div className="py-2 border-t">
-          {isOpen && <div className="text-sm text-gray-400 px-4 py-2">SUPPORT</div>}
+         {isOpen && <div className="text-sm text-gray-400 px-4 py-2">SUPPORT</div>}
           <MenuItem 
             icon={Github} 
             label="Repository" 
-            externalLink
-            onClick={() => window.open("https://github.com/oltahasimja/WellnessCenter", "_blank")} 
+            onClick={() => window.open("https://github.com/oltahasimja/WellnessCenter", "_blank", "noopener,noreferrer")}
           />
           <MenuItem 
             icon={Trello} 
             label="Trello" 
-            externalLink
-            onClick={() => window.open("https://trello.com/b/EmwZHmbt/wellness-center", "_blank")} 
+            onClick={() => window.open("https://trello.com/b/EmwZHmbt/wellness-center", "_blank", "noopener,noreferrer")}
           />
         </div>
       </div>

@@ -51,10 +51,11 @@ const CreateUser = ({ setActiveComponent }) => {
   const fetchCountries = async (retryCount = 3) => {
     for (let i = 0; i < retryCount; i++) {
       try {
-        const response = await axios.get("https://countriesnow.space/api/v0.1/countries");
-        if (response.data && response.data.data) {
+        const response = await axios.get("https://countriesnow.space/api/v0.1/countries", {
+          withCredentials: false 
+        });
+        if (response.data?.data) {
           setCountryList(response.data.data);
-          return;
         }
       } catch (error) {
         console.error(`Tentativa ${i + 1} për të marrë shtetet dështoi:`, error);
@@ -276,7 +277,10 @@ const CreateUser = ({ setActiveComponent }) => {
                 <div className="flex justify-between">
                   <button
                     type="button"
-                    onClick={() => navigate("/user")}
+                    onClick={() => {
+                      navigate("/dashboard");
+                      setActiveComponent("user");
+                    }}
                     className="bg-gray-500 hover:bg-gray-600 text-white py-3 px-6 rounded-lg font-semibold transition"
                   >
                     Cancel

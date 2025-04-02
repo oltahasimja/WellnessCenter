@@ -1,5 +1,7 @@
 
 const express = require('express');
+const router = express.Router();
+
 const { 
   getAllRoles, 
   getRoleById, 
@@ -7,7 +9,11 @@ const {
   updateRole, 
   deleteRole
 } = require("../adapters/controllers/RoleController");
-const router = express.Router();
+
+
+const { isAuthenticated } = require('../middlewares/authMiddleware');
+ router.use(isAuthenticated);
+
 router.get('/', getAllRoles);
 router.get('/:id', getRoleById);
 router.post('/', createRole);

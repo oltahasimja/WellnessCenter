@@ -34,10 +34,11 @@ function EditUser({ setActiveComponent }) {
   const fetchCountries = async (retryCount = 3) => {
     for (let i = 0; i < retryCount; i++) {
       try {
-        const response = await axios.get("https://countriesnow.space/api/v0.1/countries");
-        if (response.data && response.data.data) {
+        const response = await axios.get("https://countriesnow.space/api/v0.1/countries", {
+          withCredentials: false 
+        });
+        if (response.data?.data) {
           setCountryList(response.data.data);
-          return;
         }
       } catch (error) {
         console.error(`Attempt ${i + 1} to fetch countries failed:`, error);
@@ -48,6 +49,7 @@ function EditUser({ setActiveComponent }) {
   const fetchCities = async (country) => {
     try {
       const response = await axios.post("https://countriesnow.space/api/v0.1/countries/cities", {
+        withCredentials: false,
         country: country
       });
       if (response.data && response.data.data) {

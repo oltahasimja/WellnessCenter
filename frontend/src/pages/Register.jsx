@@ -25,14 +25,12 @@ const Register = () => {
     useEffect(() => {
         const fetchCountries = async () => {
             try {
-                const response = await axios.get("https://countriesnow.space/api/v0.1/countries");
-                let countries = response.data.data;
-
-                countries = countries.map(c => 
-                    c.country === "Kosovo" ? {...c, country: "Kosova" } : c
-                );
-                
-                setCountryList(countries);
+                const response = await axios.get("https://countriesnow.space/api/v0.1/countries", {
+                  withCredentials: false 
+                });
+                if (response.data?.data) {
+                  setCountryList(response.data.data);
+                }
             } catch (error) {
                 console.error("Error fetching countries:", error);
             }
@@ -50,7 +48,7 @@ const Register = () => {
         setSelectedCountry(country);
         setFormData((prev) => ({ ...prev, country })); 
 
-        if (country === "Kosova") {
+        if (country === "Kosovo") {
             setCityList([
                 "Prishtina", "Prizreni", "Peja", "Gjakova", "Ferizaj", "Gjilani", "Mitrovica",
                 "Podujeva", "Vushtrria", "Suhareka", "Rahoveci", "Malisheva", "Drenasi", "Skenderaj",

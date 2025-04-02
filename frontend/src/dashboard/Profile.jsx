@@ -26,12 +26,13 @@ function Profile() {
 
   const fetchCountries = async (retryCount = 3) => {
     for (let i = 0; i < retryCount; i++) {
-      try {
-        const response = await axios.get("https://countriesnow.space/api/v0.1/countries");
-        if (response.data && response.data.data) {
-          setCountryList(response.data.data);
-          return;
-        }
+        try {
+              const response = await axios.get("https://countriesnow.space/api/v0.1/countries", {
+                withCredentials: false 
+              });
+              if (response.data?.data) {
+                setCountryList(response.data.data);
+              }
       } catch (error) {
         console.error(`Attempt ${i + 1} to fetch countries failed:`, error);
       }

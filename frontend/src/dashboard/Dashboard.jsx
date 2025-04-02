@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import axios from 'axios';
 import { useLocation } from 'react-router-dom';
 import Sidebar from "../components/Sidebar";
 import Navbar from '../components/Navbar';
@@ -13,6 +14,9 @@ import EditUser from './EditUser';
 import Role from './Role';
 
 function Dashboard() {
+
+  axios.defaults.withCredentials = true;
+
   useAuthCheck();
   const { pathname } = useLocation();
   

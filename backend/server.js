@@ -15,6 +15,7 @@ const fs = require('fs');
 const path = require('path');
 const sequelize = require('./config/database');
 const trainingRoutes = require('./routes/TrainingRoutes');
+const isAuthenticated = require('./middlewares/authMiddleware').isAuthenticated;
 
 const mongoose = require('mongoose')
 
@@ -102,48 +103,39 @@ passport.deserializeUser(async (id, done) => {
 app.use(passport.initialize());
 app.use(passport.session());
 
-const isAuthenticated = (req, res, next) => {
-    const token = req.cookies['ubtsecured'];
-    if (!token) {
-      return res.status(401).json({ error: 'Kërkohet autentifikimi.' });
-    }
-    jwt.verify(token, process.env.JWT_SECRET || 'supersecret', { ignoreExpiration: false }, (err, user) => {
-      if (err) {
-        return res.status(403).json({ error: 'Token i pavlefshëm.' });
-      }
-      req.user = user;
-      next();
-    });
-};
 
 app.get('/user', isAuthenticated, async (req, res) => {
   try {
-      const user = await User.findByPk(req.user.id, {
-          include: [{ model: Role }] 
-      });
-      
-      if (!user) {
-          return res.status(404).json({ error: 'User not found' });
+    if (!req.isAuthenticated()) {
+      return res.status(200).json({ user: null });
+    }
+    
+    const user = await User.findByPk(req.user.id, {
+      include: [{ model: Role }] 
+    });
+    
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+    
+    res.json({ 
+      user: {
+        id: user.id,
+        name: user.name,
+        lastName: user.lastName,
+        email: user.email,
+        number: user.number,
+        username: user.username,
+        role: user.Role ? user.Role.name : 'User',
+        profileImage: user.profileImage,
+        country: user.country,
+        city: user.city,
+        gender: user.gender,
+        birthday: user.birthday
       }
-      
-      res.json({ 
-          user: {
-              id: user.id,
-              name: user.name,
-              lastName: user.lastName,
-              email: user.email,
-              number: user.number,
-              username: user.username,
-              role: user.Role ? user.Role.name : 'User',
-              profileImage: user.profileImage,
-              country: user.country,
-              city: user.city,
-              gender: user.gender,
-              birthday: user.birthday
-          }
-      });
+    });
   } catch (error) {
-      res.status(500).json({ error: error.message });
+    res.status(500).json({ error: error.message });
   }
 });
 
