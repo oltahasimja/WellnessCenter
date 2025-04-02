@@ -43,11 +43,20 @@ const Sidebar = ({ setActiveComponent }) => {
     }
   };
 
-  const MenuItem = ({ icon: Icon, label, hasDropdown, onClick }) => (
+  const handleMenuItemClick = (componentName) => {
+    setActiveComponent(componentName);
+    localStorage.setItem('activeComponent', componentName);
+  };
+
+  const MenuItem = ({ icon: Icon, label, hasDropdown, componentName, externalLink }) => (
     <div 
       className={`relative flex flex-col items-start ${isOpen ? 'px-4' : ''} py-2 cursor-pointer text-lg
         hover:bg-blue-50 dark:hover:bg-gray-700 hover:text-blue-700`}
-      onClick={onClick || (() => hasDropdown && toggleDropdown(label))}
+      onClick={() => {
+        if (externalLink) return;
+        handleMenuItemClick(componentName);
+        if (hasDropdown) toggleDropdown(label);
+      }}
     >
       <div className="flex items-center justify-between w-full">
         <div className={`flex items-center space-x-3 ${isOpen ? 'justify-start' : 'justify-center'} w-full`}>
@@ -75,16 +84,56 @@ const Sidebar = ({ setActiveComponent }) => {
 
         <div className="py-2">
           {isOpen && <div className="text-sm text-gray-400 px-4 py-2">MENU</div>}
-          <MenuItem icon={LayoutDashboard} label="Dashboard" onClick={() => setActiveComponent('dashboard')} />
-          <MenuItem icon={Calendar} label="Program" onClick={() => setActiveComponent('program')} />
-          <MenuItem icon={UserCircle2} label="User Profile" onClick={() => setActiveComponent('profile')} />
-          <MenuItem icon={Table} label="Users" onClick={() => setActiveComponent('user')} />
-          <MenuItem icon={FileText} label="Roles" onClick={() => setActiveComponent('role')} />
-          <MenuItem icon={FileInput} label="Create User" onClick={() => setActiveComponent('createuser')} />
-          <MenuItem icon={CheckSquare} label="Training" onClick={() => setActiveComponent('training')} />
-          <MenuItem icon={ListCheck} label="List" onClick={() => setActiveComponent('list')} />
-          <MenuItem icon={ListCheck} label="UserPrograms" onClick={() => setActiveComponent('userprograms')} />
-          <MenuItem icon={Antenna} label="Board" onClick={() => setActiveComponent('board')} />
+          <MenuItem 
+            icon={LayoutDashboard} 
+            label="Dashboard" 
+            componentName="dashboard"
+          />
+          <MenuItem 
+            icon={Calendar} 
+            label="Program" 
+            componentName="program"
+          />
+          <MenuItem 
+            icon={UserCircle2} 
+            label="User Profile" 
+            componentName="profile"
+          />
+          <MenuItem 
+            icon={Table} 
+            label="Users" 
+            componentName="user"
+          />
+          <MenuItem 
+            icon={FileText} 
+            label="Roles" 
+            componentName="role"
+          />
+          <MenuItem 
+            icon={FileInput} 
+            label="Create User" 
+            componentName="createuser"
+          />
+          <MenuItem 
+            icon={CheckSquare} 
+            label="Training" 
+            componentName="training"
+          />
+          <MenuItem 
+            icon={ListCheck} 
+            label="List" 
+            componentName="list"
+          />
+          <MenuItem 
+            icon={ListCheck} 
+            label="UserPrograms" 
+            componentName="userprograms"
+          />
+          <MenuItem 
+            icon={Antenna} 
+            label="Board" 
+            componentName="board"
+          />
         </div>
 
         <div className="py-2 border-t">
@@ -92,11 +141,13 @@ const Sidebar = ({ setActiveComponent }) => {
           <MenuItem 
             icon={Github} 
             label="Repository" 
+            externalLink
             onClick={() => window.open("https://github.com/oltahasimja/WellnessCenter", "_blank")} 
           />
           <MenuItem 
             icon={Trello} 
             label="Trello" 
+            externalLink
             onClick={() => window.open("https://trello.com/b/EmwZHmbt/wellness-center", "_blank")} 
           />
         </div>

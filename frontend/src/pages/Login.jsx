@@ -12,6 +12,27 @@ const Login = () => {
     const navigate = useNavigate();
 
     axios.defaults.withCredentials = true;
+
+
+
+    useEffect(() => {
+      const checkLoginStatus = async () => {
+        try {
+          const response = await axios.get("http://localhost:5000/user", { 
+            withCredentials: true 
+          });
+          
+          if (response.data.user) {
+            navigate("/dashboard");
+          }
+        } catch (error) {
+          console.log("Përdoruesi nuk është i kyçur.");
+        }
+      };
+    
+      checkLoginStatus();
+    }, [navigate]);
+
         
 
     const handleSubmit = async (e) => {
