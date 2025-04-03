@@ -12,7 +12,7 @@ import Program from './Program';
 import CreateUser from './CreateUser';
 import EditUser from './EditUser';
 import Role from './Role';
-
+import Card from './Card';
 function Dashboard() {
 
   axios.defaults.withCredentials = true;
@@ -46,6 +46,7 @@ function Dashboard() {
       case "userprograms": return <UserPrograms />;
       case "list": return <List />;
       case "role": return <Role />;
+      case "card": return <Card />;
       // case "training": return <Training />;
       // case "board": return <Board />;
       default: 

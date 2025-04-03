@@ -10,6 +10,7 @@ import List from './dashboard/List';
 import UserProgram from './dashboard/UserPrograms'
 import ProgramDetail from './dashboard/ProgramDetail'; 
 import Training from './dashboard/Training';
+import Card from './dashboard/Card';
 
 
 
@@ -32,6 +33,7 @@ const App = () => {
                 <Route path="/userprograms" element={<UserProgram/>}/>
                 <Route path="/programs" element={<Program />} />
                 <Route path="/programs/:id" element={<ProgramDetail />} />
+                <Route path="/card" element={<Card/>}/>
                 </Routes>
             </Router>
         </ThemeProvider>
