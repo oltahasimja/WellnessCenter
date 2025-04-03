@@ -12,7 +12,10 @@ import Program from './Program';
 import CreateUser from './CreateUser';
 import EditUser from './EditUser';
 import Role from './Role';
+
 import Card from './Card';
+import Schedule from './Schedule';
+
 function Dashboard() {
 
   axios.defaults.withCredentials = true;
@@ -46,7 +49,11 @@ function Dashboard() {
       case "userprograms": return <UserPrograms />;
       case "list": return <List />;
       case "role": return <Role />;
+
       case "card": return <Card />;
+
+      case "schedule": return <Schedule />;
+
       // case "training": return <Training />;
       // case "board": return <Board />;
       default: 
@@ -56,14 +63,17 @@ function Dashboard() {
 
   return (
     <div className="h-screen flex flex-col">
-      <Navbar setActiveComponent={setActiveComponent} />
-      <div className="flex flex-1">
+    <Navbar setActiveComponent={setActiveComponent} />
+    <div className="flex flex-1">
+      <div className="h-screen">
         <Sidebar setActiveComponent={setActiveComponent} />
-        <div className="p-6 flex-1 bg-gray-100 dark:bg-gray-800">
-          {renderComponent()}
-        </div>
+      </div>
+      
+      <div className="p-6 flex-1 bg-gray-100 dark:bg-gray-800 overflow-auto h-screen">
+        {renderComponent()}
       </div>
     </div>
+  </div>
   );
 }
 
