@@ -7,28 +7,60 @@ const User = require("../database/models/User");
 const UserMongo = require("../database/models/UserMongo");
 const List = require("../database/models/List");
 const ListMongo = require("../database/models/ListMongo");
+const AttachmentMongo = require("../database/models/AttachmentMongo"); // Assuming you have an Attachment model for MongoDB
 
 class CardRepository {
   // Read operations - Get from MongoDB with fallback to MySQL
   async findAll() {
     try {
-      // Get all from MongoDB with populated relationships
-      return await CardMongo.find().populate([{ path: 'createdById', model: 'UserMongo' }, { path: 'listId', model: 'ListMongo' }]).lean();
+      return await CardMongo.find()
+        .populate([
+          { path: 'createdById', model: 'UserMongo' },
+          { path: 'listId', model: 'ListMongo' },
+          { 
+            path: 'attachments', 
+            model: 'AttachmentMongo',
+            select: 'name type size data' // Explicitly select the fields you need
+          }
+        ])
+        .lean();
     } catch (error) {
-      // Fallback to MySQL if MongoDB fails
-      console.error("MongoDB findAll failed, falling back to MySQL:", error);
-      // return await Card.findAll({ include: [{ model: User }, { model: List }] });
+      console.error("MongoDB findAll failed:", error);
+      throw error;
     }
   }
   
   async findById(id) {
     try {
-      // Get from MongoDB with populated relationships
-      return await CardMongo.findOne({ mysqlId: id }).populate([{ path: 'createdById', model: 'UserMongo' }, { path: 'listId', model: 'ListMongo' }]).lean();
+      // First fetch the card with basic information
+      const card = await CardMongo.findOne({ mysqlId: id })
+        .populate([
+          { path: 'createdById', model: 'UserMongo' },
+          { path: 'listId', model: 'ListMongo' }
+        ])
+        .lean();
+      
+      if (!card) {
+        console.warn(`Card with ID ${id} not found in MongoDB`);
+        return null;
+      }
+      
+      // Now specifically fetch the attachments
+      // Note: I'm using 'Attachment' model name here - adjust if your model name is different
+      const attachments = await mongoose.model('Attachment').find(
+        { cardId: card._id },
+        'name type size data' // Explicitly select needed fields
+      ).lean();
+      
+      console.log(`Found ${attachments.length} attachments for card ${id}`);
+      
+      // Replace the attachments array in the card
+      card.attachments = attachments;
+      
+      return card;
     } catch (error) {
-      // Fallback to MySQL if MongoDB fails
-      console.error("MongoDB findById failed, falling back to MySQL:", error);
-      // return await Card.findByPk(id, { include: [{ model: User }, { model: List }] });
+      console.error("MongoDB findById failed:", error);
+      throw error;
     }
   }
   
@@ -39,18 +71,33 @@ class CardRepository {
   
       // First create in MySQL
       const mysqlResource = await Card.create(data);
+
+
+      const savedAttachments = await Promise.all(
+        data.attachments.map(async attachment => {
+          const newAttachment = new AttachmentMongo({
+            name: attachment.name,
+            type: attachment.type,
+            size: attachment.size,
+            data: attachment.data,
+            cardId: new mongoose.Types.ObjectId() // temporary
+          });
+          return await newAttachment.save();
+        })
+      );
   
       // Prepare data for MongoDB, remove _id to let MongoDB generate it automatically
-      const mongoData = {
+       const mongoData = {
         mysqlId: mysqlResource.id.toString(),
-        title: data.title || data.name, // Map to correct field name
+        title: data.title || data.name,
         description: data.description || "",
-        attachments: Array.isArray(data.attachments) ? data.attachments : [],
+        attachments: savedAttachments.map(att => att._id), // Only store reference IDs
         labels: Array.isArray(data.labels) ? data.labels : [],
         checklist: Array.isArray(data.checklist) ? data.checklist : [],
         createdAt: new Date(),
         updatedAt: new Date()
       };
+      
       
       // Only convert programId to ObjectId if it's a valid MongoDB ID
       // If it's a MySQL ID, we should look up the corresponding MongoDB document
@@ -79,6 +126,11 @@ class CardRepository {
       // Create in MongoDB
       const mongoResource = await CardMongo.create(mongoData);
       console.log("Card saved in MongoDB:", mongoResource);
+
+      await AttachmentMongo.updateMany(
+        { _id: { $in: savedAttachments.map(att => att._id) } },
+        { cardId: mongoResource._id }
+      );
   
       return mysqlResource;
     } catch (error) {

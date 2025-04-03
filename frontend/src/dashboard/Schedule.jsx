@@ -103,39 +103,23 @@ const Schedule = () => {
       }
       
       const newSchedule = response.data;
-      console.log("API response for schedule:", newSchedule);
       
       // Get the role name
       let roleName = 'No Role';
-      let roleDebug = { reason: 'Default initialization' };
       
       if (specialist) {
         if (specialist.roleId) {
           if (typeof specialist.roleId === 'object' && specialist.roleId.name) {
             roleName = specialist.roleId.name;
-            roleDebug = { reason: 'Found role object with name', roleObject: specialist.roleId };
           } else if (typeof specialist.roleId === 'string') {
             roleName = 'Role ID Only (String)';
-            roleDebug = { reason: 'Role is string ID only', roleId: specialist.roleId };
           } else {
-            roleDebug = { 
-              reason: 'Role exists but is not usable', 
-              roleType: typeof specialist.roleId,
-              roleValue: specialist.roleId
-            };
-          }
-        } else {
-          roleDebug = { 
-            reason: 'No roleId property on specialist', 
-            specialistKeys: Object.keys(specialist)
-          };
+          
+        
         }
-      } else {
-        roleDebug = { 
-          reason: 'No matching specialist found', 
-          searchedId: formData.specialistId 
-        };
+      
       }
+    }
       
       const scheduleWithName = {
         ...newSchedule,
@@ -144,7 +128,6 @@ const Schedule = () => {
           : newSchedule.specialistName || 'Unknown Specialist',
         specialistRole: roleName,
         specialistObj: specialist || newSchedule.specialistObj || null,
-        _debugRoleInfo: roleDebug // For debugging
       };
       
       if (formData.id) {

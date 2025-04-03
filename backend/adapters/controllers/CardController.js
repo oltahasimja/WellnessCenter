@@ -33,7 +33,13 @@ const createCard = async (req, res) => {
   }
 };
 const updateCard = async (req, res) => {
+
+
   try {
+    if (req.body.profileImage) {
+      req.body.profileImage = req.body.profileImage;
+    }
+
     const updatedResource = await UseCase.update(req.params.id, req.body);
     if (updatedResource) {
       res.json(updatedResource);
