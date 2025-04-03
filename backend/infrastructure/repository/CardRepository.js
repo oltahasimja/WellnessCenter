@@ -101,14 +101,14 @@ class CardRepository {
       
       // Prepare update data for MongoDB
       const mongoUpdateData = { 
-        name: data.name, // Only include fields that need updating
-        updatedAt: new Date() // Add updated timestamp
+        ...data, // Spread all data first
+        updatedAt: new Date()
       };
       
-      // Handle programId - find corresponding MongoDB document
+      // Handle listId - find corresponding MongoDB document
       if (data.listId) {
         const list = await ListMongo.findOne({ mysqlId: data.listId.toString() });
-        if (!List) {
+        if (!list) {
           console.warn(`List with MySQL ID ${data.listId} not found in MongoDB`);
         } else {
           mongoUpdateData.listId = list._id;
@@ -125,18 +125,21 @@ class CardRepository {
         }
       }
       
+      // Remove mysqlId from update data to avoid overwriting
+      delete mongoUpdateData.mysqlId;
+      
       // Update in MongoDB
-      const updatedMongoDB = await CardMongo.updateOne(
+      const updatedMongoDB = await CardMongo.findOneAndUpdate(
         { mysqlId: id },
-        { $set: mongoUpdateData }
-      );
+        { $set: mongoUpdateData },
+        { new: true } // Return the updated document
+      ).populate([{ path: 'createdById', model: 'UserMongo' }, { path: 'listId', model: 'ListMongo' }]);
   
-      if (updatedMongoDB.modifiedCount === 0) {
-        console.warn("Card not found in MongoDB or no changes made");
+      if (!updatedMongoDB) {
+        console.warn("Card not found in MongoDB");
       }
   
-      // Return the updated resource with populated relationships
-      return this.findById(id);
+      return updatedMongoDB ? updatedMongoDB.toObject() : null;
     } catch (error) {
       console.error("Error updating Card:", error);
       throw new Error('Error updating Card: ' + error.message);

@@ -80,6 +80,7 @@ const Card = () => {
 
     return await Promise.all(filePromises);
   };
+  
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -108,6 +109,8 @@ const Card = () => {
   
       // Prepare the data payload
       const payload = {
+        ...formData, // Include all form data
+        id: formData.id, // Explicitly include ID
         title: formData.title.trim(),
         description: formData.description?.trim() || '',
         listId: formData.listId,
@@ -120,9 +123,6 @@ const Card = () => {
         isArchived: Boolean(formData.isArchived)
       };
   
-      // Log the payload for debugging
-      console.log('Submitting:', payload);
-  
       const endpoint = formData.id 
         ? `http://localhost:5000/api/card/${formData.id}`
         : 'http://localhost:5000/api/card';
@@ -131,7 +131,7 @@ const Card = () => {
   
       const response = await axios[method](endpoint, payload, {
         withCredentials: true,
-        timeout: 10000, // 10 second timeout
+        timeout: 10000,
         headers: {
           'Content-Type': 'application/json'
         }
@@ -147,12 +147,10 @@ const Card = () => {
       let errorMessage = 'Failed to save card';
       
       if (error.response) {
-        // The request was made and the server responded with a status code
         errorMessage = error.response.data?.message || 
                       error.response.statusText || 
                       `Server error (${error.response.status})`;
       } else if (error.request) {
-        // The request was made but no response was received
         errorMessage = 'No response from server. Check your connection.';
       }
       
@@ -177,7 +175,8 @@ const Card = () => {
   const handleEdit = (item) => {
     const editData = { 
       ...item,
-      id: item.mysqlId || item.id
+      id: item.mysqlId || item.id,
+      listId: item.listId?.mysqlId || item.listId // Handle list reference
     };
     setFormData(editData);
   };
