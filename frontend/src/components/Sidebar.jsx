@@ -52,12 +52,15 @@ const Sidebar = ({ setActiveComponent }) => {
     <div 
       className={`relative flex flex-col items-start ${isOpen ? 'px-4' : ''} py-2 cursor-pointer text-lg
         hover:bg-blue-50 dark:hover:bg-gray-700 hover:text-blue-700`}
-      onClick={() => {
-        if (externalLink) return;
-        handleMenuItemClick(componentName);
-        if (hasDropdown) toggleDropdown(label);
-      }}
-    >
+        onClick={() => {
+          if (externalLink && onClick) {
+            onClick(); 
+          } else {
+            handleMenuItemClick(componentName);
+            if (hasDropdown) toggleDropdown(label);
+          }
+        }}
+      >
       <div className="flex items-center justify-between w-full">
         <div className={`flex items-center space-x-3 ${isOpen ? 'justify-start' : 'justify-center'} w-full`}>
           <Icon className="w-6 h-6 text-gray-500 dark:text-gray-300 group-hover:text-blue-700" />
@@ -115,6 +118,11 @@ const Sidebar = ({ setActiveComponent }) => {
             componentName="createuser"
           />
           <MenuItem 
+            icon={Table} 
+            label="Schedule" 
+            componentName="schedule"
+          />
+          <MenuItem 
             icon={CheckSquare} 
             label="Training" 
             componentName="training"
@@ -138,14 +146,16 @@ const Sidebar = ({ setActiveComponent }) => {
 
         <div className="py-2 border-t">
          {isOpen && <div className="text-sm text-gray-400 px-4 py-2">SUPPORT</div>}
-          <MenuItem 
+         <MenuItem 
             icon={Github} 
             label="Repository" 
+            externalLink={true}
             onClick={() => window.open("https://github.com/oltahasimja/WellnessCenter", "_blank", "noopener,noreferrer")}
           />
           <MenuItem 
             icon={Trello} 
             label="Trello" 
+            externalLink={true}
             onClick={() => window.open("https://trello.com/b/EmwZHmbt/wellness-center", "_blank", "noopener,noreferrer")}
           />
         </div>
