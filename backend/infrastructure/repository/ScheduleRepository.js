@@ -26,16 +26,22 @@ class ScheduleRepository {
         .populate({
           path: 'specialistId',
           select: 'name lastName mysqlId',
-          model: 'UserMongo'
+          model: 'UserMongo',
+          populate: { 
+            path: 'roleId', 
+            model: 'RoleMongo',
+            select: 'name' 
+          }
         })
         .lean();
   
       return schedules.map(schedule => ({
         ...schedule,
-        id: schedule.mysqlId, // Ensure id field is present
+        id: schedule.mysqlId,
         specialistName: schedule.specialistId 
           ? `${schedule.specialistId.name} ${schedule.specialistId.lastName}`
-          : 'Unknown Specialist'
+          : 'Unknown Specialist',
+        specialistRole: schedule.specialistId?.roleId?.name || 'No Role' // Shto rolin e specialistit
       }));
     } catch (error) {
       console.error("Error finding schedules:", error);

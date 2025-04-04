@@ -1,7 +1,8 @@
+
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
-import { toast } from 'react-toastify'; // Add this for better error messages
+import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
 const Card = () => {
@@ -17,7 +18,10 @@ const Card = () => {
   const [selectedFiles, setSelectedFiles] = useState([]);
   const [newChecklistItem, setNewChecklistItem] = useState('');
   const [user, setUser] = useState(null);
+  const [removedAttachments, setRemovedAttachments] = useState([]);
   const navigate = useNavigate();
+  const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB limit
+
   const resetForm = () => {
     setFormData({
       isArchived: false,
@@ -28,7 +32,9 @@ const Card = () => {
     });
     setSelectedFiles([]);
     setNewChecklistItem('');
+    setRemovedAttachments([]);
   };
+
   useEffect(() => {
     const checkLoginStatus = async () => {
       try {
@@ -60,27 +66,53 @@ const Card = () => {
   };
 
   const handleFileChange = (e) => {
-    setSelectedFiles([...e.target.files]);
+    setSelectedFiles(prevFiles => [...prevFiles, ...Array.from(e.target.files)]);
   };
 
   const uploadFiles = async () => {
-    const filePromises = selectedFiles.map(file => {
-      return new Promise((resolve) => {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          resolve({
-            name: file.name,
-            type: file.type,
-            data: e.target.result.split(',')[1] // base64 without prefix
-          });
-        };
-        reader.readAsDataURL(file);
-      });
-    });
-
-    return await Promise.all(filePromises);
+    // Keep existing attachments that weren't removed
+    const keptAttachments = formData.attachments?.filter(att => 
+      !removedAttachments.includes(att.name)
+    ) || [];
+    
+    // Process only new files (not marked as existing)
+    const newFiles = selectedFiles.filter(file => !file.isExisting);
+    const newAttachments = await Promise.all(
+      newFiles.map(async file => {
+        if (file.size > MAX_FILE_SIZE) {
+          toast.warn(`File ${file.name} is too large (max 5MB)`);
+          return null;
+        }
+        return await convertToBase64(file);
+      })
+    );
+    
+    return [...keptAttachments, ...newAttachments.filter(Boolean)];
   };
-  
+
+  const convertToBase64 = (file) => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve({
+        name: file.name,
+        type: file.type,
+        size: file.size,
+        data: reader.result.split(',')[1]
+      });
+      reader.onerror = error => reject(error);
+      reader.readAsDataURL(file);
+    });
+  };
+
+  const addChecklistItem = () => {
+    if (newChecklistItem.trim()) {
+      setFormData({
+        ...formData,
+        checklist: [...formData.checklist, { text: newChecklistItem, completed: false }]
+      });
+      setNewChecklistItem('');
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -90,7 +122,6 @@ const Card = () => {
       return;
     }
   
-    // Validate required fields
     if (!formData.title || !formData.title.trim()) {
       toast.error('Title is required');
       return;
@@ -102,15 +133,13 @@ const Card = () => {
     }
   
     try {
-      // Convert files to base64 if any
-      const attachments = selectedFiles.length > 0 
-        ? await Promise.all(selectedFiles.map(convertToBase64))
+      const uploadedAttachments = selectedFiles.length > 0 
+        ? await uploadFiles() 
         : [];
   
-      // Prepare the data payload
       const payload = {
-        ...formData, // Include all form data
-        id: formData.id, // Explicitly include ID
+        ...formData,
+        id: formData.id,
         title: formData.title.trim(),
         description: formData.description?.trim() || '',
         listId: formData.listId,
@@ -118,7 +147,7 @@ const Card = () => {
         dueDate: formData.dueDate || null,
         priority: formData.priority || 'medium',
         labels: formData.labels || [],
-        attachments: [...(formData.attachments || []), ...attachments],
+        attachments: [...(formData.attachments || []), ...uploadedAttachments],
         checklist: formData.checklist || [],
         isArchived: Boolean(formData.isArchived)
       };
@@ -157,31 +186,68 @@ const Card = () => {
       toast.error(errorMessage);
     }
   };
-  
-  // Helper function to convert files to base64
-  const convertToBase64 = (file) => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => resolve({
-        name: file.name,
-        type: file.type,
-        size: file.size,
-        data: reader.result.split(',')[1] // Remove data URL prefix
-      });
-      reader.onerror = error => reject(error);
-      reader.readAsDataURL(file);
-    });
-  };
-  const handleEdit = (item) => {
+
+// Inside the Card component
+
+// Updated handleEdit function for Card.jsx
+const handleEdit = async (item) => {
+  try {
+    console.log("Editing card:", item.mysqlId || item.id);
+    const response = await axios.get(`http://localhost:5000/api/card/${item.mysqlId || item.id}`);
+    const fullCardData = response.data;
+    
+    console.log("Full card data received:", fullCardData);
+    console.log("Attachments from response:", fullCardData.attachments);
+    
     const editData = { 
-      ...item,
-      id: item.mysqlId || item.id,
-      listId: item.listId?.mysqlId || item.listId // Handle list reference
+      ...fullCardData,
+      id: fullCardData.mysqlId || fullCardData.id,
+      listId: fullCardData.listId?.mysqlId || fullCardData.listId
     };
-    setFormData(editData);
-  };
-
-
+    
+    setRemovedAttachments([]);
+    
+    // Process attachments if they exist
+    let existingAttachments = [];
+    
+    if (fullCardData.attachments && fullCardData.attachments.length > 0) {
+      existingAttachments = fullCardData.attachments
+        .filter(attachment => {
+          if (!attachment || !attachment.data) {
+            console.warn(`Attachment ${attachment?._id || 'unknown'} has no data or is invalid`);
+            return false;
+          }
+          return true;
+        })
+        .map(attachment => ({
+          _id: attachment._id,
+          name: attachment.name || `Attachment-${attachment._id}`,
+          type: attachment.type || 'image/jpeg',
+          size: attachment.size || 0,
+          data: attachment.data,
+          lastModified: Date.now(),
+          isExisting: true
+        }));
+    }
+    
+    console.log(`Processed ${existingAttachments.length} valid attachments`);
+    
+    // Update form data and selected files
+    setFormData({
+      ...editData,
+      attachments: existingAttachments
+    });
+    
+    setSelectedFiles(existingAttachments);
+    
+    if (existingAttachments.length === 0 && fullCardData.attachments?.length > 0) {
+      toast.warn('Attachments could not be loaded. They might need to be re-uploaded.');
+    }
+  } catch (error) {
+    console.error('Error fetching card details:', error);
+    toast.error(`Failed to load card details: ${error.message}`);
+  }
+};
 
   const handleDelete = async (id) => {
     await axios.delete(`http://localhost:5000/api/card/${id}`);
@@ -204,14 +270,17 @@ const Card = () => {
     });
   };
 
-  const addChecklistItem = () => {
-    if (newChecklistItem.trim()) {
-      setFormData({
-        ...formData,
-        checklist: [...formData.checklist, { text: newChecklistItem, completed: false }]
-      });
-      setNewChecklistItem('');
+  const removeFile = (index) => {
+    const file = selectedFiles[index];
+    if (file.isExisting) {
+      setRemovedAttachments(prev => [...prev, file.name]);
+      // Also remove from formData.attachments
+      setFormData(prev => ({
+        ...prev,
+        attachments: prev.attachments?.filter(att => att.name !== file.name) || []
+      }));
     }
+    setSelectedFiles(prev => prev.filter((_, i) => i !== index));
   };
 
   const toggleChecklistItem = (index) => {
@@ -341,13 +410,54 @@ const Card = () => {
                   multiple
                   onChange={handleFileChange}
                   className="border p-2 rounded-md w-full"
+                  accept="image/*"
                 />
-                <div className="mt-2 space-y-1">
+
+                
+                <div className="mt-2 space-y-2">
                   {selectedFiles.map((file, index) => (
-                    <div key={index} className="text-sm text-gray-600">
-                      {file.name}
+                    <div key={`${file.name}-${index}`} className="flex flex-col border rounded p-2">
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-gray-600">{file.name}</span>
+                        <button 
+                          type="button"
+                          onClick={() => removeFile(index)}
+                          className="ml-2 text-red-500 hover:text-red-700 hover:bg-red-50 p-1 rounded"
+                          title="Remove file"
+                        >
+                          ×
+                        </button>
+                      </div>
+                      
+                      {/* Show image preview for image files */}
+                      {file.type?.startsWith('image/') && file.data && (
+  <div className="mt-2">
+    <img 
+      src={`data:${file.type};base64,${file.data}`}
+      alt={file.name}
+      className="max-h-40 max-w-full border rounded"
+      onError={(e) => {
+        e.target.onerror = null;
+        e.target.src = '/placeholder-image.png';
+        console.error('Failed to load image:', file.name);
+      }}
+    />
+  </div>
+)}
+                      
+                      {file.size && (
+                        <div className="text-xs text-gray-400 mt-1">
+                          {Math.round(file.size / 1024)} KB
+                        </div>
+                      )}
                     </div>
                   ))}
+                  
+                  {selectedFiles.length === 0 && (
+                    <div className="text-sm text-gray-500 italic">
+                      No files attached
+                    </div>
+                  )}
                 </div>
               </div>
               
