@@ -15,6 +15,7 @@ import Role from './Role';
 import Training from './Training';
 import Card from './Card';
 import Schedule from './Schedule';
+import TrainingApplication from './TrainingApplication'
 
 function Dashboard() {
 
@@ -50,6 +51,8 @@ function Dashboard() {
       case "list": return <List />;
       case "role": return <Role />;
       case "training": return <Training />;
+      case "trainingapplication": return <TrainingApplication />;
+
 
 
       case "card": return <Card />;

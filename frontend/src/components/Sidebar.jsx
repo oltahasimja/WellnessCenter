@@ -128,6 +128,11 @@ const Sidebar = ({ setActiveComponent }) => {
             componentName="training"
           />
           <MenuItem 
+            icon={CheckSquare} 
+            label="TrainingApplication" 
+            componentName="trainingapplication"
+          />
+          <MenuItem 
             icon={ListCheck} 
             label="List" 
             componentName="list"
