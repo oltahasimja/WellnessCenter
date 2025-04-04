@@ -43,7 +43,7 @@ function Profile() {
   const handleCountryChange = (e) => {
     const country = e.target.value;
     setSelectedCountry(country);
-    setFormData((prev) => ({ ...prev, country }));
+    setFormData(prev => ({ ...prev, country }));
 
     if (!countryList.length) {
       console.warn("Country list is empty, refreshing...");
@@ -60,7 +60,7 @@ function Profile() {
         "Kaçaniku", "Mamushë", "Graçanica", "Ranillug", "Partesh", "Kllokot"
       ]);
     } else {
-      const countryData = countryList.find((c) => c.country === country);
+      const countryData = countryList.find(c => c.country === country);
       setCityList(countryData ? countryData.cities : []);
     }
 
@@ -77,38 +77,39 @@ function Profile() {
 
   useEffect(() => {
     // Fetch user data
-    const fetchUserData = async () => {
-      try {
-        setLoading(true);
-        const response = await axios.get('http://localhost:5000/user', {
-          withCredentials: true
-        });
-        
-        if (response.data.user) {
-          setUserData(response.data.user);
-          const user = response.data.user;
-          setFormData({
-            birthday: user.birthday ? user.birthday.split('T')[0] : '',
-            gender: user.gender || '',
-            number: user.number || '',
-            country: user.country || '',
-            city: user.city || ''
-          });
-          
-          // Set selected country and city
-          setSelectedCountry(user.country || '');
-          setSelectedCity(user.city || '');
-        } else {
-          navigate('/login');
-        }
-      } catch (err) {
-        setError('Failed to fetch user data');
-        console.error('Error fetching user data:', err);
-        navigate('/login');
-      } finally {
-        setLoading(false);
-      }
-    };
+  // In your fetchUserData function:
+const fetchUserData = async () => {
+  try {
+    setLoading(true);
+    const response = await axios.get('http://localhost:5000/user', {
+      withCredentials: true
+    });
+    
+    if (response.data.user) {
+      setUserData(response.data.user);
+      const user = response.data.user;
+      setFormData({
+        birthday: user.birthday ? user.birthday.split('T')[0] : '',
+        gender: user.gender || '',
+        number: user.number || '',
+        country: user.countryId || '', // Use countryId for form
+        city: user.cityId || '' // Use cityId for form
+      });
+      
+      // Set selected country and city names for display
+      setSelectedCountry(user.country || '');
+      setSelectedCity(user.city || '');
+    } else {
+      navigate('/login');
+    }
+  } catch (err) {
+    setError('Failed to fetch user data');
+    console.error('Error fetching user data:', err);
+    navigate('/login');
+  } finally {
+    setLoading(false);
+  }
+};
 
     fetchUserData();
     fetchCountries(); // Fetch countries on component mount
@@ -197,34 +198,46 @@ function Profile() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      // Use the correct ID - check both possible ID fields
       const userId = userData.id || userData.mysqlId;
       if (!userId) {
         throw new Error('User ID not found');
       }
   
-      await axios.put(`http://localhost:5000/api/user/${userId}`, {
+      const updateData = {
         birthday: formData.birthday,
         gender: formData.gender,
-        number: formData.number,
-        country: formData.country,
-        city: formData.city
-      }, {
+        number: formData.number
+      };
+  
+      if (selectedCountry) {
+        updateData.country = selectedCountry;
+      }
+      if (selectedCity) {
+        updateData.city = selectedCity;
+      }
+  
+      // Dërgo të dhënat e përditësuara në server
+      await axios.put(`http://localhost:5000/api/user/${userId}`, updateData, {
         withCredentials: true
       });
   
-      // Refresh user data
+      // Rifresko të dhënat e përdoruesit
       const response = await axios.get('http://localhost:5000/user', {
         withCredentials: true
       });
+      
       setUserData(response.data.user);
       setEditing(false);
+      // setMessage('Të dhënat u përditësuan me sukses!');
+      
+      // Fshi mesazhin pas 3 sekondash
+      // setTimeout(() => setMessage(''), 3000);
+      
     } catch (error) {
       console.error('Error updating profile:', error);
-      setError(`Failed to update profile: ${error.message}`);
+      setError(`Gabim gjatë përditësimit: ${error.response?.data?.message || error.message}`);
     }
   };
-
 
 
   if (loading) {

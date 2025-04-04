@@ -74,24 +74,30 @@ function EditUser({ setActiveComponent }) {
         setUserData(userResponse.data);
         setRoleList(rolesResponse.data);
         
+        // Extract country and city from their respective objects
+        const country = userResponse.data.countryId?.name || '';
+        const city = userResponse.data.cityId?.name || '';
+        
         setFormData({
           name: userResponse.data.name,
           lastName: userResponse.data.lastName,
           number: userResponse.data.number,
           email: userResponse.data.email,
           username: userResponse.data.username,
-          country: userResponse.data.country,
-          city: userResponse.data.city,
+          country: country, // Set country from countryId object
+          city: city, // Set city from cityId object
           birthday: userResponse.data.birthday ? userResponse.data.birthday.split('T')[0] : '',
           gender: userResponse.data.gender,
           roleId: userResponse.data.roleId?.mysqlId || userResponse.data.roleId
         });
         
-        setSelectedCountry(userResponse.data.country);
-        setSelectedCity(userResponse.data.city);
+        // Update the selected country and city
+        setSelectedCountry(country);
+        setSelectedCity(city);
         
-        if (userResponse.data.country) {
-          fetchCities(userResponse.data.country);
+        // If we have a country, fetch its cities
+        if (country) {
+          fetchCities(country);
         }
         
         setLoading(false);
@@ -163,10 +169,34 @@ function EditUser({ setActiveComponent }) {
         throw new Error('User ID not found');
       }
       
-      await axios.put(`http://localhost:5000/api/user/${id}`, formData);
+      const dataToSubmit = { ...formData };
+      
+      if (selectedCountry && selectedCountry !== userData.countryId?.name) {
+        try {
+          const countryResponse = await axios.get(`http://localhost:5000/api/country/byName/${selectedCountry}`);
+          if (countryResponse.data && countryResponse.data._id) {
+            dataToSubmit.countryId = countryResponse.data._id;
+          }
+        } catch (countryError) {
+          console.error('Error fetching country ID:', countryError);
+        }
+      }
+      
+      if (selectedCity && selectedCity !== userData.cityId?.name) {
+        try {
+          const cityResponse = await axios.get(`http://localhost:5000/api/city/byName/${selectedCity}`);
+          if (cityResponse.data && cityResponse.data._id) {
+            dataToSubmit.cityId = cityResponse.data._id;
+        
+          }
+        } catch (cityError) {
+          console.error('Error fetching city ID:', cityError);
+        }
+      }
+      
+      await axios.put(`http://localhost:5000/api/user/${id}`, dataToSubmit);
       setSuccessMessage('Të dhënat u përditësuan me sukses!');
       
-      // Fshi mesazhin pas 3 sekondash
       setTimeout(() => {
         setSuccessMessage('');
         // setActiveComponent("user");

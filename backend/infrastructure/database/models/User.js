@@ -1,7 +1,8 @@
 const { DataTypes } = require('sequelize');
 const sequelize = require('../../../config/database');
 const Role = require('../models/Role');
-
+const Country = require('../models/Country');
+const City = require('../models/City');
 
 const User = sequelize.define('User', {
   name: {
@@ -20,11 +21,13 @@ const User = sequelize.define('User', {
     type: DataTypes.STRING,
     allowNull: false,
     unique: true,
+    index: true  
   },
   username: {
     type: DataTypes.STRING,
     allowNull: false,
     unique: true,
+    index: true  
   },
   password: {
     type: DataTypes.STRING,
@@ -38,18 +41,6 @@ const User = sequelize.define('User', {
     type: DataTypes.DATEONLY,
     allowNull: true,
   },
-  country: {
-    type: DataTypes.STRING,
-    allowNull: true,
-  },
-  city: {
-    type: DataTypes.STRING,
-    allowNull: true,
-  },
-  password: {
-    type: DataTypes.STRING,
-    allowNull: false,
-  },
   profileImage: {
     type: DataTypes.TEXT, 
   },
@@ -61,15 +52,33 @@ const User = sequelize.define('User', {
     },
     onDelete: 'CASCADE', 
     onUpdate: 'CASCADE',
-},
-
+    index: true  
+  },
+  countryId: {
+    type: DataTypes.INTEGER,
+    references: {
+        model: Country,
+        key: 'id',
+    },
+    allowNull: true,
+  },
+  cityId: {
+    type: DataTypes.INTEGER,
+    references: {
+        model: City,
+        key: 'id',
+    },
+    allowNull: true,
+  },
 });
-
 
 Role.hasMany(User, { foreignKey: 'roleId' });
 User.belongsTo(Role, { foreignKey: 'roleId' });
 
+Country.hasMany(User, { foreignKey: 'countryId' });
+User.belongsTo(Country, { foreignKey: 'countryId' });
+
+City.hasMany(User, { foreignKey: 'cityId' });
+User.belongsTo(City, { foreignKey: 'cityId' });
+
 module.exports = User;
-
-
-

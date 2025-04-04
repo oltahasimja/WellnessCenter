@@ -5,7 +5,9 @@ const Schema = mongoose.Schema;
 const scheduleSchema = new Schema({
   mysqlId: {
     type: String,
-    unique: true
+    unique: true,
+    index: true  
+
   },
   specialistId: { 
     type: mongoose.Schema.Types.ObjectId, 

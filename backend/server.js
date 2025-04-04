@@ -10,7 +10,6 @@ const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const flash = require('connect-flash');
 const cookieParser = require('cookie-parser');
-const User = require('./infrastructure/database/models/User');
 const fs = require('fs');
 const path = require('path');
 const sequelize = require('./config/database');
@@ -18,6 +17,9 @@ const trainingRoutes = require('./routes/TrainingRoutes');
 const isAuthenticated = require('./middlewares/authMiddleware').isAuthenticated;
 
 const mongoose = require('mongoose')
+const User = require('./infrastructure/database/models/User');
+const Country = require('./infrastructure/database/models/Country');
+const City = require('./infrastructure/database/models/City');
 
 
 
@@ -111,7 +113,21 @@ app.get('/user', isAuthenticated, async (req, res) => {
     }
     
     const user = await User.findByPk(req.user.id, {
-      include: [{ model: Role }] 
+      include: [
+        { model: Role },
+        { 
+          model: Country,
+          attributes: ['id', 'name']
+        },
+        { 
+          model: City,
+          attributes: ['id', 'name'],
+          include: [{
+            model: Country,
+            attributes: ['id', 'name']
+          }]
+        }
+      ]
     });
     
     if (!user) {
@@ -128,8 +144,10 @@ app.get('/user', isAuthenticated, async (req, res) => {
         username: user.username,
         role: user.Role ? user.Role.name : 'User',
         profileImage: user.profileImage,
-        country: user.country,
-        city: user.city,
+        country: user.Country ? user.Country.name : null,
+        city: user.City ? user.City.name : null,
+        countryId: user.Country ? user.Country.id : null,
+        cityId: user.City ? user.City.id : null,
         gender: user.gender,
         birthday: user.birthday
       }

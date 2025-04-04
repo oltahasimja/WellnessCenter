@@ -12,16 +12,16 @@ const {
   getUsersByRole
 } = require("../adapters/controllers/UserController");
 
-const { isAuthenticated } = require('../middlewares/authMiddleware');
- router.use(isAuthenticated);
+ const { isAuthenticated } = require('../middlewares/authMiddleware');
+//  router.use(isAuthenticated);
 
 
 router.get('/specialists', getSpecialists);
-router.get('/', getAllUsers);
-router.get('/:id', getUserById);
-router.get('/role/:roleId', getUsersByRole);  
+router.get('/', isAuthenticated, getAllUsers);
+router.get('/:id', isAuthenticated, getUserById);
+router.get('/role/:roleId', isAuthenticated, getUsersByRole);  
 router.post('/', createUser);
-router.put('/:id', updateUser);
-router.delete('/:id', deleteUser);
+router.put('/:id', isAuthenticated, updateUser);
+router.delete('/:id', isAuthenticated, deleteUser);
 
 module.exports = router;
