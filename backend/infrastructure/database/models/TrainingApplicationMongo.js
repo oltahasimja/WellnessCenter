@@ -3,6 +3,13 @@ const Schema = mongoose.Schema;
 
 // Schema për TrainingApplicationMongo
 const TrainingApplicationMongoSchema = new Schema({
+  mysqlId: {
+    type: String,
+    required: true,
+    index: true  // Add index for faster queries
+  },
+
+
   userId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'UserMongo',

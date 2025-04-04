@@ -12,7 +12,7 @@ import Program from './Program';
 import CreateUser from './CreateUser';
 import EditUser from './EditUser';
 import Role from './Role';
-
+import Training from './Training';
 import Card from './Card';
 import Schedule from './Schedule';
 
@@ -49,6 +49,8 @@ function Dashboard() {
       case "userprograms": return <UserPrograms />;
       case "list": return <List />;
       case "role": return <Role />;
+      case "training": return <Training />;
+
 
       case "card": return <Card />;
 
