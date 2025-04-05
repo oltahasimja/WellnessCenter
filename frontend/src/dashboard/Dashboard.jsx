@@ -20,6 +20,7 @@ import Order from './Order';
 import Appointments from './Appointment';
 import CreateAppointment from './CreateAppointment';
 
+
 function Dashboard() {
 
   axios.defaults.withCredentials = true;
@@ -58,6 +59,8 @@ function Dashboard() {
       case "training": return <Training />;
       case "trainingapplication": return <TrainingApplication />;
       case "order": return <Order />;
+     
+
 
 
 

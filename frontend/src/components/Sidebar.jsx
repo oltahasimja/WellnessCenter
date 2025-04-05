@@ -93,6 +93,11 @@ const Sidebar = ({ setActiveComponent }) => {
             label="Dashboard" 
             componentName="dashboard"
           />
+             <MenuItem 
+            icon={Antenna} 
+            label="Product" 
+            componentName="product"
+          />
           <MenuItem 
             icon={Calendar} 
             label="Appointment" 
@@ -163,6 +168,7 @@ const Sidebar = ({ setActiveComponent }) => {
             label="Board" 
             componentName="board"
           />
+         
         </div>
 
         <div className="py-2 border-t">
