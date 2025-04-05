@@ -95,6 +95,16 @@ const Sidebar = ({ setActiveComponent }) => {
           />
           <MenuItem 
             icon={Calendar} 
+            label="Appointment" 
+            componentName="appointment"
+          />
+          <MenuItem 
+            icon={Calendar} 
+            label="createAppointment" 
+            componentName="createappointment"
+          />
+          <MenuItem 
+            icon={Calendar} 
             label="Program" 
             componentName="program"
           />

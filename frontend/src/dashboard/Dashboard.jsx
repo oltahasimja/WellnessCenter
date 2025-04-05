@@ -17,6 +17,8 @@ import Card from './Card';
 import Schedule from './Schedule';
 import TrainingApplication from './TrainingApplication';
 import Order from './Order';
+import Appointments from './Appointment';
+import CreateAppointment from './CreateAppointment';
 
 function Dashboard() {
 
@@ -45,6 +47,8 @@ function Dashboard() {
     switch (activeComponent) {
       case "user": return <User setActiveComponent={setActiveComponent} />;
       case "profile": return <Profile setActiveComponent={setActiveComponent} />;
+      case "appointment": return <Appointments />;
+      case "createappointment": return <CreateAppointment />;
       case "program": return <Program />;
       case "createuser": return <CreateUser setActiveComponent={setActiveComponent} />;
       case "edituser": return <EditUser setActiveComponent={setActiveComponent} />;

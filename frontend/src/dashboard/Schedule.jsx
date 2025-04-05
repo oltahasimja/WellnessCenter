@@ -92,7 +92,7 @@ const Schedule = () => {
       
       const dataToSend = {
         ...formData,
-        workDays: formData.workDays.join(', ')
+        workDays: formData.workDays 
       };
       
       let response;

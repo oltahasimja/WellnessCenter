@@ -17,6 +17,10 @@ import Order from './dashboard/Order';
 
 
 
+import Appointments from './dashboard/Appointment';
+
+
+
 const App = () => {
     return (
  
@@ -25,7 +29,7 @@ const App = () => {
             <Router>
                 <Routes>
 
-                {/* <Route path="/" element={<Home />} /> */}
+                {/* <Route path="/home" element={<Home />} /> */}
                 <Route path="/" element={<Login />} />
                 <Route path="/login" element={<Login />} />
                 <Route path="/Register" element={<Register />} />
