@@ -13,6 +13,7 @@ import Training from './dashboard/Training';
 import Card from './dashboard/Card';
 import TrainingApplication from './dashboard/TrainingApplication';
 import TrainingDetail from './dashboard/TrainingDetail';
+import Order from './dashboard/Order';
 
 
 
@@ -37,6 +38,8 @@ const App = () => {
                 <Route path="/programs/:id" element={<ProgramDetail />} />
                 <Route path="/card" element={<Card/>}/>
                 <Route path="/training/:id" element={<TrainingDetail />} />
+                <Route path="/order" element={<Order/>}/>
+
                 </Routes>
             </Router>
         </ThemeProvider>

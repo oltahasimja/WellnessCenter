@@ -18,6 +18,7 @@ import {
   Trello,
   LogOut, 
   ListCheck,
+  Clipboard,
   Antenna
 } from 'lucide-react';
 
@@ -141,6 +142,11 @@ const Sidebar = ({ setActiveComponent }) => {
             icon={ListCheck} 
             label="UserPrograms" 
             componentName="userprograms"
+          />
+            <MenuItem 
+            icon={Clipboard} 
+            label="Order" 
+            componentName="order"
           />
           <MenuItem 
             icon={Antenna} 
