@@ -3,6 +3,7 @@ const sequelize = require('../../../config/database');
 const Role = require('../models/Role');
 const Country = require('../models/Country');
 const City = require('../models/City');
+const ProfileImage = require('../models/ProfileImage');
 
 const User = sequelize.define('User', {
   name: {
@@ -41,9 +42,7 @@ const User = sequelize.define('User', {
     type: DataTypes.DATEONLY,
     allowNull: true,
   },
-  profileImage: {
-    type: DataTypes.TEXT, 
-  },
+ 
   roleId: { 
     type: DataTypes.INTEGER,
     references: {
@@ -70,6 +69,14 @@ const User = sequelize.define('User', {
     },
     allowNull: true,
   },
+  profileImageId: {
+    type: DataTypes.INTEGER,  
+    references: {
+      model: ProfileImage,   
+      key: 'id',
+    },
+    allowNull: true,
+  },
 });
 
 Role.hasMany(User, { foreignKey: 'roleId' });
@@ -80,5 +87,8 @@ User.belongsTo(Country, { foreignKey: 'countryId' });
 
 City.hasMany(User, { foreignKey: 'cityId' });
 User.belongsTo(City, { foreignKey: 'cityId' });
+
+ProfileImage.hasMany(User, { foreignKey: 'profileImageId' });
+User.belongsTo(ProfileImage, { foreignKey: 'profileImageId' });
 
 module.exports = User;

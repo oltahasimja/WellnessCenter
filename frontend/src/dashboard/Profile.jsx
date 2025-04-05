@@ -93,7 +93,8 @@ const fetchUserData = async () => {
         gender: user.gender || '',
         number: user.number || '',
         country: user.countryId || '', // Use countryId for form
-        city: user.cityId || '' // Use cityId for form
+        city: user.cityId || '', // Use cityId for form
+        profileImage: user.profileImageId || null
       });
       
       // Set selected country and city names for display
@@ -118,28 +119,30 @@ const fetchUserData = async () => {
   const handleImageUpload = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
-
+  
     const allowedTypes = ['image/jpeg', 'image/png', 'image/jfif'];
     if (!allowedTypes.includes(file.type)) {
       alert('Ju lutem zgjidhni një foto në formatin JPEG, PNG ose JFIF');
       return;
     }
-
+  
     if (file.size > 5 * 1024 * 1024) {
       alert('Foto duhet të jetë më e vogël se 5MB');
       return;
     }
-
+  
     const reader = new FileReader();
     reader.onloadend = async () => {
       try {
-        const base64Image = reader.result;
+        const base64Image = reader.result.split(',')[1]; // Heq header-in
+        
         await axios.put(`http://localhost:5000/api/user/${userData.id}`, {
           profileImage: base64Image
         }, {
           withCredentials: true
         });
         
+        // Rifresko të dhënat e përdoruesit
         const response = await axios.get('http://localhost:5000/user', {
           withCredentials: true
         });
@@ -299,10 +302,10 @@ const fetchUserData = async () => {
                   <div className={`w-24 h-24 rounded-full flex items-center justify-center overflow-hidden shadow-md ${theme === 'dark' ? 'bg-blue-900' : 'bg-blue-100'}`}>
                     {userData.profileImage ? (
                       <img 
-                        src={userData.profileImage} 
-                        alt="Profile" 
-                        className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-                      />
+                      src={`data:image/jpeg;base64,${userData.profileImage}`}
+                      alt="Profile"
+                      className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                    />
                     ) : (
                       <span className={`text-3xl font-bold ${theme === 'dark' ? 'text-blue-300' : 'text-blue-600'}`}>
                         {initials}

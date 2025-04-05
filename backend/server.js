@@ -20,6 +20,9 @@ const mongoose = require('mongoose')
 const User = require('./infrastructure/database/models/User');
 const Country = require('./infrastructure/database/models/Country');
 const City = require('./infrastructure/database/models/City');
+const ProfileImage = require('./infrastructure/database/models/ProfileImage');
+
+
 
 
 
@@ -106,12 +109,9 @@ app.use(passport.initialize());
 app.use(passport.session());
 
 
+
 app.get('/user', isAuthenticated, async (req, res) => {
   try {
-    if (!req.isAuthenticated()) {
-      return res.status(200).json({ user: null });
-    }
-    
     const user = await User.findByPk(req.user.id, {
       include: [
         { model: Role },
@@ -126,6 +126,10 @@ app.get('/user', isAuthenticated, async (req, res) => {
             model: Country,
             attributes: ['id', 'name']
           }]
+        },
+        {
+          model: ProfileImage,
+          attributes: ['id', 'name']
         }
       ]
     });
@@ -143,7 +147,8 @@ app.get('/user', isAuthenticated, async (req, res) => {
         number: user.number,
         username: user.username,
         role: user.Role ? user.Role.name : 'User',
-        profileImage: user.profileImage,
+        profileImage: user.ProfileImage ? user.ProfileImage.name : null,
+        profileImageId: user.ProfileImage ? user.ProfileImage.id : null,
         country: user.Country ? user.Country.name : null,
         city: user.City ? user.City.name : null,
         countryId: user.Country ? user.Country.id : null,
@@ -157,7 +162,50 @@ app.get('/user', isAuthenticated, async (req, res) => {
   }
 });
 
+const UserMongo = require('./infrastructure/database/models/UserMongo');
+const CountryMongo = require('./infrastructure/database/models/CountryMongo');
+const CityMongo = require('./infrastructure/database/models/CityMongo');
+const ProfileImageMongo = require('./infrastructure/database/models/ProfileImageMongo');
+// const RoleMongo = require('./infrastructure/database/models/RoleMongo');
 
+// app.get('/user', isAuthenticated, async (req, res) => {
+//   try {
+//     const user = await UserMongo.findOne({ mysqlId: req.user.id })
+//       .populate('roleId', 'name') 
+//       .populate('countryId', 'name') 
+//       .populate('cityId', 'name') 
+//       .populate({
+//         path: 'profileImageId',
+//         select: 'name data', 
+//       });
+
+//     if (!user) {
+//       return res.status(404).json({ error: 'User not found' });
+//     }
+
+//     res.json({
+//       user: {
+//         id: user.mysqlId, 
+//         name: user.name,
+//         lastName: user.lastName,
+//         email: user.email,
+//         number: user.number,
+//         username: user.username,
+//         role: user.roleId ? user.roleId.name : 'User',
+//         profileImage: user.profileImageId ? user.profileImageId.name : null,
+//         profileImageId: user.profileImageId ? user.profileImageId.id : null,
+//         country: user.countryId ? user.countryId.name : null,
+//         city: user.cityId ? user.cityId.name : null,
+//         countryId: user.countryId?._id || null,
+//         cityId: user.cityId?._id || null,
+//         gender: user.gender,
+//         birthday: user.birthday,
+//       },
+//     });
+//   } catch (error) {
+//     res.status(500).json({ error: error.message });
+//   }
+// });
 
 
 

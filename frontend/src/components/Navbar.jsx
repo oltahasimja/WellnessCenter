@@ -69,22 +69,22 @@ function Navbar({ setTheme, setActiveComponent }) {
 
         {/* Foto e profilit */}
         <div className="cursor-pointer" onClick={handleProfileClick}>
-          {loading ? (
-            <div className="w-10 h-10 rounded-full bg-gray-200 dark:bg-gray-700 animate-pulse"></div>
-          ) : userData?.profileImage ? (
-            <img
-              src={userData.profileImage}
-              alt="Profile"
-              className="w-10 h-10 rounded-full object-cover border-2 border-blue-500 hover:border-blue-600 transition-colors"
-            />
-          ) : (
-            <div className="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center hover:bg-blue-200 dark:hover:bg-blue-800 transition-colors">
-              <span className="text-blue-600 dark:text-blue-300 font-bold">
-                {initials}
-              </span>
-            </div>
-          )}
-        </div>
+  {loading ? (
+    <div className="w-10 h-10 rounded-full bg-gray-200 dark:bg-gray-700 animate-pulse"></div>
+  ) : userData?.profileImage ? (
+    <img
+    src={`data:image/jpeg;base64,${userData.profileImage}`}
+    alt="Profile"
+      className="w-10 h-10 rounded-full object-cover border-2 border-blue-500 hover:border-blue-600 transition-colors"
+    />
+  ) : (
+    <div className="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center hover:bg-blue-200 dark:hover:bg-blue-800 transition-colors">
+      <span className="text-blue-600 dark:text-blue-300 font-bold">
+        {initials}
+      </span>
+    </div>
+  )}
+</div>
 
         {/* Switcher për Dark Mode / Light Mode */}
         <ThemeSwitcher setTheme={setTheme} />

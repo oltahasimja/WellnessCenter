@@ -42,8 +42,10 @@ const userSchema = new Schema({
   birthday: {
     type: Date,
   },
-  profileImage: {
-    type: String, 
+  profileImageId: { 
+    type: mongoose.Schema.Types.ObjectId, 
+    ref: 'ProfileImageMongo', 
+    index: true  
   },
   roleId: { 
     type: mongoose.Schema.Types.ObjectId, 
