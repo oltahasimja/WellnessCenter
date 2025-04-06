@@ -14,7 +14,8 @@ import Card from './dashboard/Card';
 import TrainingApplication from './dashboard/TrainingApplication';
 import TrainingDetail from './dashboard/TrainingDetail';
 import Order from './dashboard/Order';
-
+import Product from './dashboard/Product';
+import Category from './dashboard/Category';
 
 
 import Appointments from './dashboard/Appointment';
@@ -43,7 +44,8 @@ const App = () => {
                 <Route path="/card" element={<Card/>}/>
                 <Route path="/training/:id" element={<TrainingDetail />} />
                 <Route path="/order" element={<Order/>}/>
-
+                <Route path="/product" element={<Product/>}/>
+                <Route path="/category" element={<Category/>}/>
                 </Routes>
             </Router>
         </ThemeProvider>

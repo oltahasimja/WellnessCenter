@@ -4,9 +4,11 @@ import axios from 'axios';
 const Product = () => {
   const [formData, setFormData] = useState({});
   const [productList, setProductList] = useState([]);
+  const [categoryList, setCategoryList] = useState([]);
 
   useEffect(() => {
     fetchProducts();
+    fetchCategories();
   }, []);
 
   const fetchProducts = async () => {
@@ -14,16 +16,38 @@ const Product = () => {
     setProductList(response.data);
   };
 
+  const fetchCategories = async () => {
+    const response = await axios.get('http://localhost:5000/api/category');
+    setCategoryList(response.data);
+  }; 
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (formData.id) {
-      await axios.put(`http://localhost:5000/api/product/${formData.id}`, formData);
-    } else {
-      await axios.post('http://localhost:5000/api/product', formData);
+    
+
+    if (!formData.category) {
+        alert('Please select a category');
+        return;
     }
+
+    const dataToSubmit = {
+        name: formData.name,
+        description: formData.description,
+        price: formData.price,
+        category: formData.category,
+        image: formData.image,
+    };
+
+
+    if (formData.id) {
+        await axios.put(`http://localhost:5000/api/product/${formData.id}`, dataToSubmit);
+    } else {
+        await axios.post('http://localhost:5000/api/product', dataToSubmit);
+    }
+
     fetchProducts();
     setFormData({});
-  };
+};
 
   const handleEdit = (item) => {
     const editData = { ...item };
@@ -61,10 +85,6 @@ const Product = () => {
     }
   };
 
-  const handleClear = () => {
-    setFormData({ ...formData, price: '' }); //clear the price
-  };
-
   return (
     <div className="flex justify-center items-center min-h-screen bg-gray-100">
       <div className="bg-white shadow-lg rounded-lg p-6 w-full max-w-3xl">
@@ -96,15 +116,20 @@ const Product = () => {
             className="border p-3 rounded-md w-full focus:ring-2 focus:ring-blue-500 outline-none"
           />
 
-          {/* category dropdown */}
-          <select
-            value={formData.category || ''}
-            onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-            className="border p-3 rounded-md w-full focus:ring-2 focus:ring-blue-500 outline-none"
-          >
-            <option value="">Select Category</option>
-            {/* more categories */}
-          </select>
+          {/* categories */}
+      <select
+        value={formData.category || ''}
+        onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+        className="border p-3 rounded-md w-full focus:ring-2 focus:ring-blue-500 outline-none"
+      >
+        <option value="">Select Category</option>
+        {/* rendering dinamically */}
+        {categoryList.map((category) => (
+          <option key={category.id} value={category.id}>
+            {category.name}
+          </option>
+        ))}
+      </select>
 
           {/* image */}
           <input

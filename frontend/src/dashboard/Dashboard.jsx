@@ -20,6 +20,7 @@ import Order from './Order';
 import Appointments from './Appointment';
 import CreateAppointment from './CreateAppointment';
 import Product from './Product';
+import Category from './Category';
 
 function Dashboard() {
 
@@ -60,6 +61,7 @@ function Dashboard() {
       case "trainingapplication": return <TrainingApplication />;
       case "order": return <Order />;
       case "product": return <Product />;
+      case "category": return <Category />;
      
 
 

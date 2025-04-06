@@ -19,7 +19,9 @@ import {
   LogOut, 
   ListCheck,
   Clipboard,
-  Antenna
+  Antenna,
+  Box,
+  Grid
 } from 'lucide-react';
 
 const Sidebar = ({ setActiveComponent }) => {
@@ -94,9 +96,14 @@ const Sidebar = ({ setActiveComponent }) => {
             componentName="dashboard"
           />
              <MenuItem 
-            icon={Antenna} 
+            icon={Box} 
             label="Product" 
             componentName="product"
+          />
+          <MenuItem 
+            icon={Grid} 
+            label="Categories" 
+            componentName="category"
           />
           <MenuItem 
             icon={Calendar} 
