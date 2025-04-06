@@ -6,6 +6,17 @@ const Training = () => {
   const [formData, setFormData] = useState({});
   const [trainingList, setTrainingList] = useState([]);
   
+  // Duration options
+  const durationOptions = [
+    '1 muaj',
+    '2 muaj',
+    '3 muaj', 
+    '4 muaj',
+    '5 muaj',
+    '6 muaj',
+    '1 vit'
+  ];
+
   useEffect(() => {
     fetchTrainings();
   }, []);
@@ -39,6 +50,11 @@ const Training = () => {
     fetchTrainings();
   };
 
+  const handleParticipantsChange = (e) => {
+    const value = Math.min(Number(e.target.value), 10); // Limit to maximum 10
+    setFormData({ ...formData, max_participants: value });
+  };
+
   return (
     <div className="flex justify-center items-center min-h-screen bg-gray-100">
       <div className="bg-white shadow-lg rounded-lg p-6 w-full max-w-7xl">
@@ -51,6 +67,7 @@ const Training = () => {
             value={formData.title || ''}
             onChange={(e) => setFormData({ ...formData, title: e.target.value })}
             className="border p-3 rounded-md w-full focus:ring-2 focus:ring-blue-500 outline-none"
+            required
           />
           <input 
             type="text"
@@ -58,6 +75,7 @@ const Training = () => {
             value={formData.category || ''}
             onChange={(e) => setFormData({ ...formData, category: e.target.value })}
             className="border p-3 rounded-md w-full focus:ring-2 focus:ring-blue-500 outline-none"
+            required
           />
           <input 
             type="text"
@@ -65,20 +83,30 @@ const Training = () => {
             value={formData.description || ''}
             onChange={(e) => setFormData({ ...formData, description: e.target.value })}
             className="border p-3 rounded-md w-full focus:ring-2 focus:ring-blue-500 outline-none"
+            required
           />
-          <input 
-            type="text"
-            placeholder="duration"
+          
+          <select
             value={formData.duration || ''}
             onChange={(e) => setFormData({ ...formData, duration: e.target.value })}
             className="border p-3 rounded-md w-full focus:ring-2 focus:ring-blue-500 outline-none"
-          />
+            required
+          >
+            <option value="" disabled>Zgjidhni kohëzgjatjen</option>
+            {durationOptions.map((option, index) => (
+              <option key={index} value={option}>{option}</option>
+            ))}
+          </select>
+          
           <input 
             type="number"
             placeholder="max_participants"
             value={formData.max_participants || ''}
-            onChange={(e) => setFormData({ ...formData, max_participants: Number(e.target.value) })}
+            onChange={handleParticipantsChange}
             className="border p-3 rounded-md w-full focus:ring-2 focus:ring-blue-500 outline-none"
+            min="1"
+            max="10"
+            required
           />
           <button type="submit" className="w-full bg-blue-500 hover:bg-blue-600 text-white py-2 rounded-md font-semibold text-lg">
             {formData.id ? 'Përditëso' : 'Shto'}
