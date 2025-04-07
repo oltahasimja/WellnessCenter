@@ -14,7 +14,6 @@ import Card from './dashboard/Card';
 import TrainingApplication from './dashboard/TrainingApplication';
 import TrainingDetail from './dashboard/TrainingDetail';
 import Order from './dashboard/Order';
-import Appointments from './dashboard/Appointment';
 
 const AppRoutes = () => {
   const { darkMode } = useTheme();

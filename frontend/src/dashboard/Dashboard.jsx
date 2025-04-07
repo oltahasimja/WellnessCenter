@@ -6,19 +6,19 @@ import Navbar from '../components/Navbar';
 import useAuthCheck from '../hook/useAuthCheck';
 import List from './List';
 import UserPrograms from './UserPrograms';
-import User from './User';
+import User from './Users/User';
 import Profile from './Profile';
 import Program from './Program';
-import CreateUser from './CreateUser';
-import EditUser from './EditUser';
+import CreateUser from './Users/CreateUser';
+import EditUser from './Users/EditUser';
 import Role from './Role';
 import Training from './Training';
 import Card from './Card';
 import Schedule from './Schedule';
 import TrainingApplication from './TrainingApplication';
 import Order from './Order';
-import Appointments from './Appointment';
-import CreateAppointment from './CreateAppointment';
+import Appointments from './Appointment/Appointment';
+import CreateAppointment from './Appointment/CreateAppointment';
 import Product from './Product';
 import Category from './Category';
 
@@ -89,9 +89,10 @@ function Dashboard() {
           <Sidebar />
         </div>
       
-        <div className="p-6 flex-1 bg-gray-100 dark:bg-gray-800 overflow-auto h-screen">
-          {renderComponent()}
-        </div>
+        <div className="p-6 flex-1 bg-gray-100 dark:bg-gray-800 overflow-auto h-screen" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+      {renderComponent()}
+          </div>
+
       </div>
     </div>
   );

@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useParams, useNavigate } from "react-router-dom";
-import Navbar from "../components/Navbar";
-import Sidebar from "../components/Sidebar";
-import { useTheme } from "../components/ThemeContext";
+import Navbar from "../../components/Navbar";
+import Sidebar from "../../components/Sidebar";
+import { useTheme } from "../../components/ThemeContext";
 
 const CreateUser = ({ setActiveComponent }) => {
   const { theme } = useTheme();

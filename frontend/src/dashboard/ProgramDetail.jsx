@@ -36,7 +36,6 @@ const ProgramDetail = () => {
     };
     checkLoginStatus();
   }, [navigate]);
-
   useEffect(() => {
     const fetchProgramData = async () => {
       if (!currentUser) return;
@@ -45,26 +44,33 @@ const ProgramDetail = () => {
         setError(null);
         
         const userProgramsRes = await axios.get('http://localhost:5000/api/userprograms');
+        
+        // Check if user is a member of the program
         const isProgramMember = userProgramsRes.data.some(userProgram => {
-          const programId = userProgram.programId._id?.toString();
-          const mysqlProgramId = userProgram.programId.mysqlId?.toString();
-          const userId = userProgram.userId._id?.toString();
-          const mysqlUserId = userProgram.userId.mysqlId?.toString();
-  
-          return (
-            (programId === id || mysqlProgramId === id) &&
-            (userId === currentUser.id.toString() || mysqlUserId === currentUser.id.toString())
+          if (!userProgram || !userProgram.userId) return false;
+          
+          // Check user match
+          const userMatches = 
+            userProgram.userId._id === currentUser.id.toString() || 
+            userProgram.userId.mysqlId === currentUser.id.toString();
+          
+          // Check program match (only if programId exists)
+          const programMatches = userProgram.programId && (
+            userProgram.programId._id === id || 
+            userProgram.programId.mysqlId === id
           );
+          
+          return userMatches && programMatches;
         });
-  
+
         if (!isProgramMember) {
           setError("You don't have access to this program");
           setLoading(false);
           return;
         }
-  
+
         setIsMember(true);
-  
+
         // Fetch the program details
         const programRes = await axios.get(`http://localhost:5000/api/program/${id}`);
         if (!programRes.data || programRes.data.message === "Program not found") {
@@ -72,54 +78,65 @@ const ProgramDetail = () => {
           return;
         }
         setProgram(programRes.data);
-  
-        // Fetch and set members
-        const programMembers = userProgramsRes.data.filter(userProgram => 
-          userProgram.programId._id === id || userProgram.programId.mysqlId === id
-        );
-        const membersList = programMembers.map(item => ({
-          _id: item.userId._id,
-          mysqlId: item.userId.mysqlId,
-          name: item.userId.name,
-          email: item.userId.email,
-          role: item.userId.roleId
-        }));
+
+        // Filter and map members with proper null checks
+        const membersList = userProgramsRes.data
+          .filter(userProgram => 
+            userProgram.programId && (
+              userProgram.programId._id === id || 
+              userProgram.programId.mysqlId === id
+            )
+          )
+          .map(userProgram => ({
+            _id: userProgram.userId._id,
+            mysqlId: userProgram.userId.mysqlId,
+            name: userProgram.userId.name,
+            email: userProgram.userId.email,
+            role: userProgram.userId.roleId
+          }));
         
         setMembers(membersList);
 
-        const listsRes = await axios.get('http://localhost:5000/api/list');
-        const programLists = listsRes.data.filter(list => 
-          list.programId._id === id || list.programId.mysqlId === id
-        );
-        
-        // Transform lists into the format needed for the board
-        const cardsRes = await axios.get('http://localhost:5000/api/card');
-    
-    // Transform lists into the format needed for the board with their cards
-    const boardLists = programLists.map(list => {
-      const listCards = cardsRes.data.filter(card => 
-        card.listId._id === list._id || card.listId.mysqlId === list.mysqlId
-      ).map(card => ({
-        id: card.mysqlId || card._id,
-        text: card.title,
-        description: card.description,
-        priority: card.priority,
-        dueDate: card.dueDate,
-        labels: card.labels || [],
-        checklist: card.checklist || []
-      }));
-      
-      return {
-        id: list.mysqlId || list._id,
-        title: list.name,
-        cards: listCards,
-        inputText: ''
-      };
-    });
-    
-    setLists(boardLists);
-        
-        
+        // Fetch lists and cards
+        const [listsRes, cardsRes] = await Promise.all([
+          axios.get('http://localhost:5000/api/list'),
+          axios.get('http://localhost:5000/api/card')
+        ]);
+
+        // Process lists and cards
+        const boardLists = listsRes.data
+          .filter(list => 
+            list.programId && (
+              list.programId._id === id || 
+              list.programId.mysqlId === id
+            )
+          )
+          .map(list => {
+            const listCards = cardsRes.data
+              .filter(card => 
+                card.listId && (
+                  card.listId._id === list._id || 
+                  card.listId.mysqlId === list.mysqlId
+                )
+              )
+              .map(card => ({
+                id: card.mysqlId || card._id,
+                text: card.title,
+                description: card.description,
+                priority: card.priority,
+                dueDate: card.dueDate,
+                labels: card.labels || [],
+                checklist: card.checklist || []
+              }));
+
+            return {
+              id: list.mysqlId || list._id,
+              title: list.name,
+              cards: listCards,
+              inputText: ''
+            };
+          });
+
         setLists(boardLists);
         
       } catch (error) {
@@ -129,7 +146,7 @@ const ProgramDetail = () => {
         setLoading(false);
       }
     };
-  
+
     if (currentUser) {
       fetchProgramData();
     }

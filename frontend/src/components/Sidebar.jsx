@@ -4,22 +4,11 @@ import { useTheme } from "../components/ThemeContext";
 import axios from 'axios';
 import { 
   LayoutDashboard, 
-  Calendar, 
-  UserCircle2, 
-  CheckSquare, 
-  FileText, 
-  Table, 
-  FileInput, 
-  MessageCircle, 
-  Mail, 
-  Menu, 
-  ChevronDown, 
-  Github,
-  Trello,
-  LogOut, 
-  ListCheck,
-  Clipboard,
-  Antenna
+  Calendar,  UserCircle2,  CheckSquare,  FileText,   Table,  FileInput,  MessageCircle,
+    Mail, Menu,  ChevronDown,  Github, Trello,LogOut, ListCheck,Clipboard, Antenna,
+  Users, Layers, Shield, CalendarClock, GraduationCap, ListOrdered, Package, Tags,
+  ClipboardList, UserPlus
+
 } from 'lucide-react';
 
 const Sidebar = () => {
@@ -55,10 +44,10 @@ const Sidebar = () => {
         onClick={() => {
           if (externalLink && onClick) {
             onClick(); 
-          } else {
+          } else if (!hasDropdown) {
             handleMenuItemClick(componentName);
-            if (hasDropdown) toggleDropdown(label);
           }
+          if (hasDropdown) toggleDropdown(label);
         }}
       >
       <div className="flex items-center justify-between w-full">
@@ -76,7 +65,7 @@ const Sidebar = () => {
   );
 
   return (
-    <div className={`${isOpen ? 'w-64' : 'w-20'} bg-white dark:bg-gray-900 dark:text-white border-r h-screen transition-all duration-300 shadow-md flex flex-col justify-between`}>
+    <div className={`${isOpen ? 'w-72' : 'w-20'} bg-white dark:bg-gray-900 dark:text-white border-r h-screen overflow-auto transition-all duration-300 shadow-md flex flex-col justify-between`} style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
       <div>
         <div className="px-4 py-4 border-b flex items-center justify-between">
           {isOpen && <span className="text-xl font-semibold">Wellness</span>}
@@ -92,78 +81,176 @@ const Sidebar = () => {
             label="Dashboard" 
             componentName=""
           />
-           <MenuItem 
-            icon={Calendar} 
-            label="Product" 
-            componentName="product"
-          />
-           <MenuItem 
-            icon={Calendar} 
-            label="Catergory" 
-            componentName="category"
-          />
+        
+
+    <div className="mb-1">
+            <MenuItem 
+              icon={Package} 
+              label="Manage Product" 
+              hasDropdown={true}
+            />
+            {openDropdown === 'Manage Product' && isOpen && (
+              <div className={`ml-12 mt-1 space-y-1 ${theme === 'dark' ? 'bg-gray-800' : 'bg-gray-50'} rounded-md p-1`}>
+                <div 
+                  className="flex items-center px-3 py-2 hover:bg-blue-100 dark:hover:bg-gray-700 rounded cursor-pointer"
+                  onClick={() => handleMenuItemClick('product')}
+                >
+                  <Table className="w-5 h-5 mr-2" />
+                  <span>Product</span>
+                </div>
+                <div 
+                  className="flex items-center px-3 py-2 hover:bg-blue-100 dark:hover:bg-gray-700 rounded cursor-pointer"
+                  onClick={() => handleMenuItemClick('category')}
+                >
+                  <Tags className="w-5 h-5 mr-2" />
+                  <span>Category</span>
+                </div>
+              </div>
+            )}
+          </div>
+
+
+
+         
+
+        <div className="mb-1">
+            <MenuItem 
+              icon={Calendar} 
+              label="Manage Appointment" 
+              hasDropdown={true}
+            />
+            {openDropdown === 'Manage Appointment' && isOpen && (
+              <div className={`ml-12 mt-1 space-y-1 ${theme === 'dark' ? 'bg-gray-800' : 'bg-gray-50'} rounded-md p-1`}>
+                <div 
+                  className="flex items-center px-3 py-2 hover:bg-blue-100 dark:hover:bg-gray-700 rounded cursor-pointer"
+                  onClick={() => handleMenuItemClick('appointment')}
+                >
+                  <Table className="w-5 h-5 mr-2" />
+                  <span>Appointments</span>
+                </div>
+                <div 
+                  className="flex items-center px-3 py-2 hover:bg-blue-100 dark:hover:bg-gray-700 rounded cursor-pointer"
+                  onClick={() => handleMenuItemClick('createappointment')}
+                >
+                  <UserPlus className="w-5 h-5 mr-2" />
+                  <span>Create Appointment</span>
+                </div>
+              </div>
+            )}
+          </div>
+
+          <div className="mb-1">
+            <MenuItem 
+              icon={Layers} 
+              label="Manage Programs" 
+              hasDropdown={true}
+            />
+            {openDropdown === 'Manage Programs' && isOpen && (
+              <div className={`ml-12 mt-1 space-y-1 ${theme === 'dark' ? 'bg-gray-800' : 'bg-gray-50'} rounded-md p-1`}>
+                <div 
+                  className="flex items-center px-3 py-2 hover:bg-blue-100 dark:hover:bg-gray-700 rounded cursor-pointer"
+                  onClick={() => handleMenuItemClick('program')}
+                >
+                  <Table className="w-5 h-5 mr-2" />
+                  <span>Product</span>
+                </div>
+                <div 
+                  className="flex items-center px-3 py-2 hover:bg-blue-100 dark:hover:bg-gray-700 rounded cursor-pointer"
+                  onClick={() => handleMenuItemClick('userprograms')}
+                >
+                  <UserPlus className="w-5 h-5 mr-2" />
+                  <span>UserPrograms</span>
+                </div>
+                <div 
+                  className="flex items-center px-3 py-2 hover:bg-blue-100 dark:hover:bg-gray-700 rounded cursor-pointer"
+                  onClick={() => handleMenuItemClick('list')}
+                >
+                  <ListOrdered  className="w-5 h-5 mr-2" />
+                  <span>List</span>
+                </div>
+
+
+              </div>
+            )}
+          </div>
+
+
+          {/* Manage Users Dropdown */}
+          <div className="mb-1">
+            <MenuItem 
+              icon={Users} 
+              label="Manage Users" 
+              hasDropdown={true}
+            />
+            {openDropdown === 'Manage Users' && isOpen && (
+              <div className={`ml-12 mt-1 space-y-1 ${theme === 'dark' ? 'bg-gray-800' : 'bg-gray-50'} rounded-md p-1`}>
+                <div 
+                  className="flex items-center px-3 py-2 hover:bg-blue-100 dark:hover:bg-gray-700 rounded cursor-pointer"
+                  onClick={() => handleMenuItemClick('users')}
+                >
+                  <Table className="w-5 h-5 mr-2" />
+                  <span>Users</span>
+                </div>
+                <div 
+                  className="flex items-center px-3 py-2 hover:bg-blue-100 dark:hover:bg-gray-700 rounded cursor-pointer"
+                  onClick={() => handleMenuItemClick('createuser')}
+                >
+                  <UserPlus className="w-5 h-5 mr-2" />
+                  <span>Create User</span>
+                </div>
+              </div>
+            )}
+          </div>
+          <div className="mb-1">
+            <MenuItem 
+              icon={GraduationCap} 
+              label="Manage Training" 
+              hasDropdown={true}
+            />
+            {openDropdown === 'Manage Training' && isOpen && (
+              <div className={`ml-12 mt-1 space-y-1 ${theme === 'dark' ? 'bg-gray-800' : 'bg-gray-50'} rounded-md p-1`}>
+                <div 
+                  className="flex items-center px-3 py-2 hover:bg-blue-100 dark:hover:bg-gray-700 rounded cursor-pointer"
+                  onClick={() => handleMenuItemClick('training')}
+                >
+                  <Table className="w-5 h-5 mr-2" />
+                  <span>Training</span>
+                </div>
+                <div 
+                  className="flex items-center px-3 py-2 hover:bg-blue-100 dark:hover:bg-gray-700 rounded cursor-pointer"
+                  onClick={() => handleMenuItemClick('trainingapplication')}
+                >
+                  <UserPlus className="w-5 h-5 mr-2" />
+                  <span>TrainingApplication</span>
+                </div>
+              </div>
+            )}
+          </div>
+
           <MenuItem 
-            icon={Calendar} 
-            label="Appointment" 
-            componentName="appointment"
+            icon={CalendarClock} 
+            label="Schedule" 
+            componentName="schedule"
           />
-          <MenuItem 
-            icon={Calendar} 
-            label="createAppointment" 
-            componentName="createappointment"
-          />
-          <MenuItem 
-            icon={Calendar} 
-            label="Program" 
-            componentName="program"
-          />
+
+           
           <MenuItem 
             icon={UserCircle2} 
             label="Profile" 
             componentName="profile"
           />
+
           <MenuItem 
-            icon={Table} 
-            label="Users" 
-            componentName="users"
-          />
-          <MenuItem 
-            icon={FileText} 
+            icon={Shield} 
             label="Roles" 
             componentName="roles"
           />
+          
+
+        
+
           <MenuItem 
-            icon={FileInput} 
-            label="Create User" 
-            componentName="createuser"
-          />
-          <MenuItem 
-            icon={Table} 
-            label="Schedule" 
-            componentName="schedule"
-          />
-          <MenuItem 
-            icon={CheckSquare} 
-            label="Training" 
-            componentName="training"
-          />
-          <MenuItem 
-            icon={CheckSquare} 
-            label="TrainingApplication" 
-            componentName="trainingapplication"
-          />
-          <MenuItem 
-            icon={ListCheck} 
-            label="List" 
-            componentName="list"
-          />
-          <MenuItem 
-            icon={ListCheck} 
-            label="UserPrograms" 
-            componentName="userprograms"
-          />
-          <MenuItem 
-            icon={Clipboard} 
+            icon={ClipboardList} 
             label="Order" 
             componentName="order"
           />
@@ -171,6 +258,11 @@ const Sidebar = () => {
             icon={Antenna} 
             label="Board" 
             componentName="board"
+          />
+           <MenuItem 
+            icon={MessageCircle} 
+            label="Chat" 
+            componentName="chat"
           />
         </div>
 

@@ -34,19 +34,18 @@ function Navbar({ setTheme, setActiveComponent }) {
     : '';
 
   const handleProfileClick = () => {
-    navigate("/dashboard"); 
-    setActiveComponent("profile");   };
+    navigate("/dashboard/profile"); 
+    // setActiveComponent("profile");  
+   };
 
   return (
-    <nav className="flex items-center justify-end px-3 rounded-md py-2 bg-white shadow-md dark:bg-gray-900 w-[13rem] fixed top-0 right-0 mt-4 mr-4 z-50">
+    <nav className="flex items-center justify-end px-3 rounded-md py-1 bg-white shadow-md dark:bg-gray-900 w-[11rem] mr-1 fixed top-0 right-0  z-50">
       {/* Seksioni i kërkimit */}
       <div className="flex items-center">
         {/* You can add a search section here if needed */}
       </div>
 
-      {/* Seksioni i ikonave dhe switcher-it të temave */}
-      <div className="flex items-center space-x-4">
-        {/* Ikona për njoftime */}
+      <div className="flex items-center space-x-4 ml-auto">
         <button
           className="p-2 rounded bg-gray-200 dark:bg-gray-800 dark:text-white"
           aria-label="Notification"
@@ -67,7 +66,6 @@ function Navbar({ setTheme, setActiveComponent }) {
           </svg>
         </button>
 
-        {/* Foto e profilit */}
         <div className="cursor-pointer" onClick={handleProfileClick}>
   {loading ? (
     <div className="w-10 h-10 rounded-full bg-gray-200 dark:bg-gray-700 animate-pulse"></div>

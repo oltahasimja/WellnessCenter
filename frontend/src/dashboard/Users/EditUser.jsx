@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { useTheme } from "../components/ThemeContext";
+import { useTheme } from "../../components/ThemeContext";
 
 function EditUser({ setActiveComponent }) {
   const { theme } = useTheme();
@@ -247,8 +247,8 @@ function EditUser({ setActiveComponent }) {
               </div>
               <button
                 onClick={() => {
-                  setActiveComponent("user");
-                  navigate('/dashboard'); 
+                  navigate("/dashboard/users");
+                  // setActiveComponent("user");
                 }}
                 className={`px-4 py-2 rounded-md ${theme === 'dark' ? 'bg-blue-600 hover:bg-blue-700' : 'bg-blue-500 hover:bg-blue-600'} text-white`}
               >
@@ -450,9 +450,11 @@ function EditUser({ setActiveComponent }) {
                 <button
                   type="button"
                   onClick={() => {
-                    setActiveComponent("user");
-                    navigate('/dashboard'); 
-                }}                  className={`px-4 py-2 rounded-md ${theme === 'dark' ? 'bg-gray-600 hover:bg-gray-500' : 'bg-gray-300 hover:bg-gray-400'} text-white`}
+                    navigate("/dashboard/users");
+                    // setActiveComponent("user");
+                  }}                 
+                
+                className={`px-4 py-2 rounded-md ${theme === 'dark' ? 'bg-gray-600 hover:bg-gray-500' : 'bg-gray-300 hover:bg-gray-400'} text-white`}
                 >
                   Cancel
                 </button>
