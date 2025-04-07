@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { useTheme } from "../components/ThemeContext";
-import ThemeSwitcher from '../components/ThemeSwitcher';
+import { useTheme } from "../../components/ThemeContext";
+import ThemeSwitcher from '../../components/ThemeSwitcher';
 import axios from 'axios';
 
 const Role = () => {

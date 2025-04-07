@@ -36,7 +36,7 @@ app.use('/api/trainings', trainingRoutes);
 // Middleware setup
 app.use(cookieParser());
 app.use(cors({
-  origin: "http://localhost:3000",
+  origin: ["http://localhost:3000", "http://192.168.0.109:3000"],
   credentials: true, 
     methods: ['GET', 'POST', 'PUT', 'DELETE'], 
     allowedHeaders: ['Content-Type', 'Authorization'] 
@@ -267,7 +267,7 @@ const createDefaultRoles = async () => {
   try {
     await sequelize.sync(); 
 
-    const roles = ['User', 'Admin', 'Fizioterapeut', 'Nutricionist', 'Trajner', 'Psikolog'];
+    const roles = ['Client', 'Fizioterapeut', 'Nutricionist', 'Trajner', 'Psikolog'];
 
     for (let roleName of roles) {
       // Create or find the role in MySQL

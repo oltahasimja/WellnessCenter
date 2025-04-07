@@ -11,6 +11,8 @@ const City = require("../database/models/City");
 const CityMongo = require("../database/models/CityMongo");
 const ProfileImage = require("../database/models/ProfileImage");
 const ProfileImageMongo = require("../database/models/ProfileImageMongo");
+const DashboardRole = require("../database/models/DashboardRole");
+const DashboardRoleMongo = require("../database/models/DashboardRoleMongo");
 
 class UserRepository {
 
@@ -40,6 +42,7 @@ class UserRepository {
             .populate('roleId')
             .populate('countryId')
             .populate('cityId')
+            .populate('dashboardRoleId')
             // .populate('profileImageId')
             .lean();
     } catch (error) {
@@ -54,6 +57,7 @@ class UserRepository {
       .populate('roleId')
       .populate('countryId')
       .populate('cityId')
+      .populate('dashboardRoleId')
       // .populate('profileImageId')
       .lean();
     } catch (error) {
@@ -183,6 +187,7 @@ async update(id, data) {
       email: data.email,
       username: data.username,
       roleId: data.roleId,
+      dashboardRoleId: data.dashboardRoleId,
       birthday: data.birthday,
       gender: data.gender,
       number: data.number
@@ -237,6 +242,7 @@ async update(id, data) {
       email: data.email,
       username: data.username,
       roleId: data.roleId,
+      dashboardRoleId: data.dashboardRoleId,
       birthday: data.birthday,
       gender: data.gender,
       number: data.number
@@ -290,6 +296,15 @@ async update(id, data) {
               throw new Error(`Role with MySQL ID ${data.roleId} not found in MongoDB`);
             }
             mongoUpdateData.roleId = new ObjectId(role._id.toString());
+          }
+
+          if (data.dashboardRoleId) {
+            // Find the related document in MongoDB
+            const role = await DashboardRoleMongo.findOne({ mysqlId: data.dashboardRoleId.toString() });
+            if (!role) {
+              throw new Error(`Role with MySQL ID ${data.dashboardRoleId} not found in MongoDB`);
+            }
+            mongoUpdateData.dashboardRoleId = new ObjectId(role._id.toString());
           }
 
     await UserMongo.updateOne(

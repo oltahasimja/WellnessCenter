@@ -11,7 +11,8 @@ import Profile from './Profile';
 import Program from './Program';
 import CreateUser from './Users/CreateUser';
 import EditUser from './Users/EditUser';
-import Role from './Role';
+import Role from './Roles/Role';
+import DashboardRole from './Roles/DashboardRole';
 import Training from './Training';
 import Card from './Card';
 import Schedule from './Schedule';
@@ -65,6 +66,7 @@ function Dashboard() {
       case "userprograms": return <UserPrograms />;
       case "list": return <List />;
       case "roles": return <Role />;
+      case "dashboardrole": return <DashboardRole />;
       case "training": return <Training />;
       case "trainingapplication": return <TrainingApplication />;
       case "order": return <Order />;

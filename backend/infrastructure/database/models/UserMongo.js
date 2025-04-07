@@ -52,6 +52,12 @@ const userSchema = new Schema({
     ref: 'RoleMongo', 
     index: true  
   },
+
+  dashboardRoleId: { 
+    type: mongoose.Schema.Types.ObjectId, 
+    ref: 'DashboardRoleMongo', 
+    index: true  
+  },
   countryId: { 
     type: mongoose.Schema.Types.ObjectId, 
     ref: 'CountryMongo', 

@@ -4,6 +4,7 @@ const Role = require('../models/Role');
 const Country = require('../models/Country');
 const City = require('../models/City');
 const ProfileImage = require('../models/ProfileImage');
+const DashboardRole = require('../models/DashboardRole');
 
 const User = sequelize.define('User', {
   name: {
@@ -53,6 +54,16 @@ const User = sequelize.define('User', {
     onUpdate: 'CASCADE',
     index: true  
   },
+  dashboardRoleId: { 
+    type: DataTypes.INTEGER,
+    references: {
+        model: DashboardRole,  
+        key: 'id',      
+    },
+    onDelete: 'CASCADE', 
+    onUpdate: 'CASCADE',
+    index: true  
+  },
   countryId: {
     type: DataTypes.INTEGER,
     references: {
@@ -81,6 +92,9 @@ const User = sequelize.define('User', {
 
 Role.hasMany(User, { foreignKey: 'roleId' });
 User.belongsTo(Role, { foreignKey: 'roleId' });
+
+DashboardRole.hasMany(User, { foreignKey: 'dashboardRoleId' });
+User.belongsTo(DashboardRole, { foreignKey: 'dashboardRoleId' });
 
 Country.hasMany(User, { foreignKey: 'countryId' });
 User.belongsTo(Country, { foreignKey: 'countryId' });

@@ -10,6 +10,7 @@ function EditUser({ setActiveComponent }) {
   const [userData, setUserData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [roleList, setRoleList] = useState([]);
+  const [dashboardroleList, setDashboardRoleList] = useState([]);
   const [countryList, setCountryList] = useState([]);
   const [cityList, setCityList] = useState([]);
   const [selectedCountry, setSelectedCountry] = useState('');
@@ -25,7 +26,8 @@ function EditUser({ setActiveComponent }) {
     city: '',
     birthday: '',
     gender: '',
-    roleId: ''
+    roleId: '',
+    dashboardRoleId: ''
   });
   
   const [successMessage, setSuccessMessage] = useState('');
@@ -66,13 +68,15 @@ function EditUser({ setActiveComponent }) {
         const id = localStorage.getItem('editUserId');
         if (!id) return;
         
-        const [userResponse, rolesResponse] = await Promise.all([
+        const [userResponse, rolesResponse, dashboardroleList] = await Promise.all([
           axios.get(`http://localhost:5000/api/user/${id}`),
-          axios.get("http://localhost:5000/api/role")
+          axios.get("http://localhost:5000/api/role"),
+          axios.get("http://localhost:5000/api/dashboardrole")
         ]);
         
         setUserData(userResponse.data);
         setRoleList(rolesResponse.data);
+        setDashboardRoleList(dashboardroleList.data);
         
         // Extract country and city from their respective objects
         const country = userResponse.data.countryId?.name || '';
@@ -88,7 +92,9 @@ function EditUser({ setActiveComponent }) {
           city: city, // Set city from cityId object
           birthday: userResponse.data.birthday ? userResponse.data.birthday.split('T')[0] : '',
           gender: userResponse.data.gender,
-          roleId: userResponse.data.roleId?.mysqlId || userResponse.data.roleId
+          roleId: userResponse.data.roleId?.mysqlId || userResponse.data.roleId,
+          dashboardRoleId: userResponse.data.dashboardRoleId?.mysqlId || userResponse.data.dashboardRoleId
+
         });
         
         // Update the selected country and city
@@ -396,6 +402,33 @@ function EditUser({ setActiveComponent }) {
                 ))}
             </select>
           </div>
+          {dashboardroleList.length > 0 && (
+  <div>
+    <label className={`block ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`} htmlFor="dashboardRoleId">Dashboard Role</label>
+    <select
+      id="dashboardRoleId"
+      name="dashboardRoleId"
+      value={formData.dashboardRoleId || ''}
+      onChange={handleInputChange}
+      className={`w-full p-2 rounded border ${theme === 'dark' ? 'bg-gray-600 border-gray-500 text-white' : 'bg-white border-gray-300'}`}
+    >
+      <option value="">Select Dashboard Role</option>
+      {userData?.dashboardRoleId && (
+        <option value={userData.dashboardRoleId.mysqlId || userData.dashboardRoleId}>
+          {userData.dashboardRoleId.name}
+        </option>
+      )}
+      
+      {dashboardroleList
+        .filter(role => role.mysqlId !== (userData?.dashboardRoleId?.mysqlId || userData?.dashboardRoleId))
+        .map(role => (
+          <option key={role.mysqlId || role._id} value={role.mysqlId || role._id}>
+            {role.name}
+          </option>
+        ))}
+    </select>
+  </div>
+)}
         </div>
                 </div>
               
