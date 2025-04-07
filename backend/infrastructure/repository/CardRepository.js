@@ -71,10 +71,11 @@ class CardRepository {
   
       // First create in MySQL
       const mysqlResource = await Card.create(data);
-
-
+  
+      // Handle attachments - initialize as empty array if not provided
+      const attachmentsToProcess = data.attachments || [];
       const savedAttachments = await Promise.all(
-        data.attachments.map(async attachment => {
+        attachmentsToProcess.map(async attachment => {
           const newAttachment = new AttachmentMongo({
             name: attachment.name,
             type: attachment.type,
@@ -87,7 +88,7 @@ class CardRepository {
       );
   
       // Prepare data for MongoDB, remove _id to let MongoDB generate it automatically
-       const mongoData = {
+      const mongoData = {
         mysqlId: mysqlResource.id.toString(),
         title: data.title || data.name,
         description: data.description || "",
@@ -98,17 +99,13 @@ class CardRepository {
         updatedAt: new Date()
       };
       
-      
       // Only convert programId to ObjectId if it's a valid MongoDB ID
-      // If it's a MySQL ID, we should look up the corresponding MongoDB document
       if (data.listId) {
-        // Find the program in MongoDB that has this mysqlId
         const list = await ListMongo.findOne({ mysqlId: data.listId.toString() });
         if (list) {
           mongoData.listId = list._id;
         } else {
           console.warn(`Program with MySQL ID ${data.listId} not found in MongoDB`);
-          // Either skip or handle this case appropriately
         }
       }
   
@@ -119,14 +116,13 @@ class CardRepository {
           mongoData.createdById = user._id;
         } else {
           console.warn(`User with MySQL ID ${data.createdById} not found in MongoDB`);
-          // Either skip or handle this case appropriately
         }
       }
   
       // Create in MongoDB
       const mongoResource = await CardMongo.create(mongoData);
       console.log("Card saved in MongoDB:", mongoResource);
-
+  
       await AttachmentMongo.updateMany(
         { _id: { $in: savedAttachments.map(att => att._id) } },
         { cardId: mongoResource._id }
@@ -141,63 +137,127 @@ class CardRepository {
   
   async update(id, data) {
     try {
-      // Update in MySQL
-      const [updatedCount] = await Card.update(
-        { ...data },
-        { where: { id } }
-      );
-  
-      if (updatedCount === 0) {
-        throw new Error("Card not found in MySQL");
-      }
-      
-      // Prepare update data for MongoDB
-      const mongoUpdateData = { 
-        ...data, // Spread all data first
-        updatedAt: new Date()
-      };
-      
-      // Handle listId - find corresponding MongoDB document
-      if (data.listId) {
-        const list = await ListMongo.findOne({ mysqlId: data.listId.toString() });
-        if (!list) {
-          console.warn(`List with MySQL ID ${data.listId} not found in MongoDB`);
-        } else {
-          mongoUpdateData.listId = list._id;
+        let mongoListId = null;
+        let mysqlListId = null;
+
+        // Handle listId update if provided
+        if (data.listId) {
+            // First try to find the list in MySQL
+            const mysqlList = await List.findOne({ 
+                where: { id: data.listId } 
+            });
+
+            if (!mysqlList) {
+                // If not found in MySQL, check MongoDB by mysqlId
+                const mongoList = await ListMongo.findOne({ 
+                    mysqlId: data.listId.toString() 
+                });
+
+                if (!mongoList) {
+                    throw new Error(`List with ID ${data.listId} not found in either database`);
+                }
+
+                // Found in MongoDB but not MySQL - this is a problem
+                throw new Error(`List with ID ${data.listId} exists in MongoDB but not MySQL`);
+            }
+
+            // List exists in MySQL, now verify in MongoDB
+            mysqlListId = mysqlList.id;
+            const mongoList = await ListMongo.findOne({ 
+                mysqlId: mysqlListId.toString() 
+            });
+
+            if (!mongoList) {
+                console.warn(`List with MySQL ID ${mysqlListId} not found in MongoDB`);
+            } else {
+                mongoListId = mongoList._id;
+            }
         }
-      }
-      
-      // Handle createdById - find corresponding MongoDB document
-      if (data.createdById) {
-        const user = await UserMongo.findOne({ mysqlId: data.createdById.toString() });
-        if (!user) {
-          console.warn(`User with MySQL ID ${data.createdById} not found in MongoDB`);
-        } else {
-          mongoUpdateData.createdById = user._id;
+
+        // Prepare MySQL update data
+        const mysqlUpdateData = { ...data };
+        if (data.listId) {
+            mysqlUpdateData.listId = mysqlListId;
         }
-      }
-      
-      // Remove mysqlId from update data to avoid overwriting
-      delete mongoUpdateData.mysqlId;
-      
-      // Update in MongoDB
-      const updatedMongoDB = await CardMongo.findOneAndUpdate(
-        { mysqlId: id },
-        { $set: mongoUpdateData },
-        { new: true } // Return the updated document
-      ).populate([{ path: 'createdById', model: 'UserMongo' }, { path: 'listId', model: 'ListMongo' }]);
-  
-      if (!updatedMongoDB) {
-        console.warn("Card not found in MongoDB");
-      }
-  
-      return updatedMongoDB ? updatedMongoDB.toObject() : null;
+
+        // Update in MySQL
+        const [updatedCount] = await Card.update(mysqlUpdateData, { 
+            where: { id } 
+        });
+        
+        if (updatedCount === 0) {
+            throw new Error("Card not found in MySQL");
+        }
+
+        // Get existing card from MongoDB
+        const existingCard = await CardMongo.findOne({ mysqlId: id });
+        if (!existingCard) {
+            throw new Error("Card not found in MongoDB");
+        }
+
+        // Prepare MongoDB update data
+        const mongoUpdateData = {
+            title: data.title || existingCard.title,
+            description: data.description || existingCard.description || "",
+            updatedAt: new Date()
+        };
+
+        // Only update listId if we have a valid mongoListId
+        if (mongoListId) {
+            mongoUpdateData.listId = mongoListId;
+        }
+
+        // Process attachments if needed
+        if (data.attachments || data.removedAttachments) {
+            const existingAttachmentIds = existingCard.attachments || [];
+            const newAttachments = data.attachments || [];
+            const removedAttachmentIds = data.removedAttachments || [];
+            
+            const attachmentsToKeep = existingAttachmentIds.filter(id => 
+                !removedAttachmentIds.includes(id.toString())
+            );
+            
+            const attachmentsToAdd = newAttachments.filter(att => !att._id);
+            const savedAttachments = await Promise.all(
+                attachmentsToAdd.map(async attachment => {
+                    const newAttachment = new AttachmentMongo({
+                        name: attachment.name,
+                        type: attachment.type,
+                        size: attachment.size,
+                        data: attachment.data,
+                        cardId: existingCard._id
+                    });
+                    return await newAttachment.save();
+                })
+            );
+
+            mongoUpdateData.attachments = [
+                ...attachmentsToKeep,
+                ...savedAttachments.map(att => att._id)
+            ];
+        }
+
+        // Update in MongoDB
+        const updatedMongoDB = await CardMongo.findOneAndUpdate(
+            { mysqlId: id },
+            { $set: mongoUpdateData },
+            { new: true }
+        ).populate([
+            { path: 'createdById', model: 'UserMongo' },
+            { path: 'listId', model: 'ListMongo' },
+            { path: 'attachments', model: 'AttachmentMongo' }
+        ]);
+
+        if (!updatedMongoDB) {
+            throw new Error("Failed to update card in MongoDB");
+        }
+
+        return updatedMongoDB.toObject();
     } catch (error) {
-      console.error("Error updating Card:", error);
-      throw new Error('Error updating Card: ' + error.message);
+        console.error("Error updating Card:", error);
+        throw new Error('Error updating Card: ' + error.message);
     }
-  }
-  
+}
   async delete(id) {
     try {
       // Delete from MySQL

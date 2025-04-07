@@ -20,6 +20,7 @@ const ProgramDetail = () => {
   const [showListForm, setShowListForm] = useState(false);
   const [editingListId, setEditingListId] = useState(null);
   const [editedListName, setEditedListName] = useState('');
+  
   useEffect(() => {
     const checkLoginStatus = async () => {
       try {
@@ -92,12 +93,31 @@ const ProgramDetail = () => {
         );
         
         // Transform lists into the format needed for the board
-        const boardLists = programLists.map(list => ({
-          id: list.mysqlId || list._id,
-          title: list.name,
-          cards: [], // Initialize with empty array
-          inputText: '' // Initialize with empty string
-        }));
+        const cardsRes = await axios.get('http://localhost:5000/api/card');
+    
+    // Transform lists into the format needed for the board with their cards
+    const boardLists = programLists.map(list => {
+      const listCards = cardsRes.data.filter(card => 
+        card.listId._id === list._id || card.listId.mysqlId === list.mysqlId
+      ).map(card => ({
+        id: card.mysqlId || card._id,
+        text: card.title,
+        description: card.description,
+        priority: card.priority,
+        dueDate: card.dueDate,
+        labels: card.labels || [],
+        checklist: card.checklist || []
+      }));
+      
+      return {
+        id: list.mysqlId || list._id,
+        title: list.name,
+        cards: listCards,
+        inputText: ''
+      };
+    });
+    
+    setLists(boardLists);
         
         
         setLists(boardLists);
@@ -301,58 +321,131 @@ const saveListEdit = async (listId) => {
      });
    };
 
-   const handleDragEnd = (result) => {
+   const handleDragEnd = async (result) => {
     if (!result.destination) return;
-
+  
     const { source, destination } = result;
+    
+    // Find the actual lists and card
     const sourceList = lists.find((list) => list.id === source.droppableId);
     const destList = lists.find((list) => list.id === destination.droppableId);
-
-    const sourceCards = [...sourceList.cards];
-    const [movedCard] = sourceCards.splice(source.index, 1);
-
-    if (source.droppableId === destination.droppableId) {
-      // Moving within the same list
-      sourceCards.splice(destination.index, 0, movedCard);
-      setLists(
-        lists.map((list) =>
-          list.id === source.droppableId ? { ...list, cards: sourceCards } : list
-        )
-      );
-    } else {
-      // Moving to a different list
-      const destCards = [...destList.cards];
-      destCards.splice(destination.index, 0, movedCard);
-
-      setLists(
-        lists.map((list) => {
-          if (list.id === source.droppableId) return { ...list, cards: sourceCards };
-          if (list.id === destination.droppableId) return { ...list, cards: destCards };
-          return list;
-        })
-      );
+    const [movedCard] = sourceList.cards.splice(source.index, 1);
+  
+    try {
+      // Get the destination list's full data to access both MongoDB and MySQL IDs
+      const listRes = await axios.get(`http://localhost:5000/api/list/${destination.droppableId}`);
+      
+      // Update the card with both ID types
+      await axios.put(`http://localhost:5000/api/card/${movedCard.id}`, {
+        listId: listRes.data.mysqlId, // For MySQL
+        mongoListId: listRes.data._id // For MongoDB
+      });
+  
+      // Update local state
+      if (source.droppableId === destination.droppableId) {
+        sourceList.cards.splice(destination.index, 0, movedCard);
+        setLists(
+          lists.map((list) =>
+            list.id === source.droppableId ? { ...list, cards: sourceList.cards } : list
+          )
+        );
+      } else {
+        const destCards = [...destList.cards];
+        destCards.splice(destination.index, 0, movedCard);
+        setLists(
+          lists.map((list) => {
+            if (list.id === source.droppableId) return { ...list, cards: sourceList.cards };
+            if (list.id === destination.droppableId) return { ...list, cards: destCards };
+            return list;
+          })
+        );
+      }
+    } catch (error) {
+      console.error('Error moving card:', error);
+      // Revert the change in UI if API fails
+      sourceList.cards.splice(source.index, 0, movedCard);
+      setLists([...lists]);
+      alert('Failed to move card: ' + (error.response?.data?.message || error.message));
     }
   };
 
   // Add a new card to the "To Do" list
-  const addCard = (listId) => {
+  const addCard = async (listId) => {
     const list = lists.find(l => l.id === listId);
     const cardText = list.inputText;
     
     if (!cardText || !cardText.trim()) return;
     
-    const updatedLists = lists.map((list) => {
-      if (list.id === listId) {
-        return {
-          ...list,
-          cards: [...list.cards, { id: Date.now().toString(), text: cardText }],
-          inputText: '' // Clear the input after adding
-        };
-      }
-      return list;
-    });
-    
-    setLists(updatedLists);
+    try {
+      const response = await axios.post('http://localhost:5000/api/card', {
+        title: cardText,
+        listId: listId,
+        createdById: currentUser.id
+      });
+  
+      const newCard = {
+        id: response.data.mysqlId || response.data._id,
+        text: response.data.title,
+        description: response.data.description,
+        priority: response.data.priority,
+        dueDate: response.data.dueDate,
+        labels: response.data.labels || [],
+        checklist: response.data.checklist || []
+      };
+  
+      const updatedLists = lists.map((list) => {
+        if (list.id === listId) {
+          return {
+            ...list,
+            cards: [...list.cards, newCard],
+            inputText: '' // Clear the input after adding
+          };
+        }
+        return list;
+      });
+      
+      setLists(updatedLists);
+    } catch (error) {
+      console.error('Error creating card:', error);
+      alert('Failed to create card: ' + (error.response?.data?.message || error.message));
+    }
+  };
+
+  const handleEditCard = async (cardId, updates) => {
+    try {
+      await axios.put(`http://localhost:5000/api/card/${cardId}`, updates);
+      
+      // Update local state
+      setLists(lists.map(list => ({
+        ...list,
+        cards: list.cards.map(card => 
+          card.id === cardId ? { ...card, ...updates } : card
+        )
+      })));
+    } catch (error) {
+      console.error('Error updating card:', error);
+      alert('Failed to update card: ' + (error.response?.data?.message || error.message));
+    }
+  };
+  
+  const handleDeleteCard = async (listId, cardId) => {
+    try {
+      await axios.delete(`http://localhost:5000/api/card/${cardId}`);
+      
+      // Update local state
+      setLists(lists.map(list => {
+        if (list.id === listId) {
+          return {
+            ...list,
+            cards: list.cards.filter(card => card.id !== cardId)
+          };
+        }
+        return list;
+      }));
+    } catch (error) {
+      console.error('Error deleting card:', error);
+      alert('Failed to delete card: ' + (error.response?.data?.message || error.message));
+    }
   };
 
   if (loading) return <div className="text-center p-8">Loading program details...</div>;
@@ -529,18 +622,38 @@ return(
 </div>
                     
                     {list.cards.map((card, index) => (
-                      <Draggable key={card.id} draggableId={card.id} index={index}>
-                        {(provided) => (
-                          <div
-                            ref={provided.innerRef}
-                            {...provided.draggableProps}
-                            {...provided.dragHandleProps}
-                            className="bg-white p-3 rounded-md shadow-md mb-2 cursor-pointer"
-                          >
-                            {card.text}
-                          </div>
-                        )}
-                      </Draggable>
+                  <Draggable key={card.id} draggableId={card.id} index={index}>
+                  {(provided) => (
+                    <div
+                      ref={provided.innerRef}
+                      {...provided.draggableProps}
+                      {...provided.dragHandleProps}
+                      className="bg-white p-3 rounded-md shadow-md mb-2 cursor-pointer"
+                    >
+                      <div className="font-medium">{card.text}</div>
+                      {card.description && (
+                        <div className="text-sm text-gray-600 mt-1">{card.description}</div>
+                      )}
+                      {card.dueDate && (
+                        <div className="text-xs text-gray-500 mt-1">
+                          Due: {new Date(card.dueDate).toLocaleDateString()}
+                        </div>
+                      )}
+                      {card.labels && card.labels.length > 0 && (
+                        <div className="flex flex-wrap gap-1 mt-2">
+                          {card.labels.map((label, i) => (
+                            <span 
+                              key={i} 
+                              className="px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-800"
+                            >
+                              {label}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </Draggable>
                     ))}
                     {provided.placeholder}
                     
