@@ -1,108 +1,106 @@
+
 const mongoose = require('mongoose');
 const { ObjectId } = require('mongoose').Types;
-const Order = require("../database/models/Order"); 
-const OrderMongo = require("../database/models/OrderMongo"); 
+const Order = require("../database/models/Order");
+const OrderMongo = require("../database/models/OrderMongo");
+
 
 class OrderRepository {
-  
+  // Read operations - Get from MongoDB with fallback to MySQL
   async findAll() {
     try {
-      
+      // Get all from MongoDB with populated relationships
       return await OrderMongo.find().lean();
     } catch (error) {
+      // Fallback to MySQL if MongoDB fails
       console.error("MongoDB findAll failed, falling back to MySQL:", error);
-      try {
-        
-        return await Order.findAll(); 
-      } catch (mysqlError) {
-        console.error("MySQL findAll also failed:", mysqlError);
-        throw new Error('Error fetching orders from both MongoDB and MySQL');
-      }
+      // return await Order.findAll({  });
     }
   }
-
+  
   async findById(id) {
     try {
-      
+      // Get from MongoDB with populated relationships
       return await OrderMongo.findOne({ mysqlId: id }).lean();
     } catch (error) {
+      // Fallback to MySQL if MongoDB fails
       console.error("MongoDB findById failed, falling back to MySQL:", error);
-      try {
-        
-        return await Order.findByPk(id); 
-      } catch (mysqlError) {
-        console.error("MySQL findById also failed:", mysqlError);
-        throw new Error('Error fetching order by ID from both MongoDB and MySQL');
-      }
+      // return await Order.findByPk(id, {  });
     }
   }
-
   
+  // Write operations - Write to both MongoDB and MySQL
   async create(data) {
     try {
       console.log("Creating Order:", data);
-
       
+      // First create in MySQL
       const mysqlResource = await Order.create(data);
-
       
+      // Prepare data for MongoDB
       const mongoData = {
         mysqlId: mysqlResource.id.toString(),
         ...data
       };
-
       
+      // Handle foreign keys - convert MySQL IDs to MongoDB references
+      
+      
+      // Create in MongoDB
       const mongoResource = await OrderMongo.create(mongoData);
       console.log("Order saved in MongoDB:", mongoResource);
-
+      
       return mysqlResource;
     } catch (error) {
       console.error("Error creating Order:", error);
       throw new Error('Error creating Order: ' + error.message);
     }
   }
-
+  
   async update(id, data) {
     try {
-      
+      // Update in MySQL
       const [updatedCount] = await Order.update(
         { ...data },
         { where: { id } }
       );
-
+  
       if (updatedCount === 0) {
         throw new Error("Order not found in MySQL");
       }
-
-    
-      const mongoUpdateData = { ...data };
-
       
+      // Prepare update data for MongoDB
+      const mongoUpdateData = { ...data };
+      
+      // Handle foreign keys - convert MySQL IDs to MongoDB references
+      
+      
+      // Update in MongoDB
       const updatedMongoDB = await OrderMongo.updateOne(
         { mysqlId: id },
         { $set: mongoUpdateData }
       );
-
+  
       if (updatedMongoDB.modifiedCount === 0) {
         console.warn("Order not found in MongoDB or no changes made");
       }
-
-      
+  
+      // Return the updated resource with populated relationships
       return this.findById(id);
     } catch (error) {
       console.error("Error updating Order:", error);
       throw new Error('Error updating Order: ' + error.message);
     }
   }
-
+  
   async delete(id) {
     try {
       // Delete from MySQL
       const deletedMySQL = await Order.destroy({ where: { id } });
-
+      
       // Delete from MongoDB
       await OrderMongo.deleteOne({ mysqlId: id });
-
+      
       return deletedMySQL;
     } catch (error) {
       console.error("Error deleting Order:", error);

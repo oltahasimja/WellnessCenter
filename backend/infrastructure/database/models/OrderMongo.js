@@ -3,12 +3,12 @@ const Schema = mongoose.Schema;
 
 
 const OrderSchema = new Schema({
-  orderNumber: {
+  mysqlId: {
     type: String,
     required: true,
-    unique: true,
-    index: true,
+    index: true
   },
+
   customerName: {
     type: String,
     required: true,
@@ -30,20 +30,10 @@ const OrderSchema = new Schema({
     type: Number,
     required: true,
   },
-  status: {
-    type: String,
-    enum: ['Pending', 'Confirmed', 'Shipped', 'Delivered', 'Cancelled'],
-    default: 'Pending',
-  },
   orderDate: {
     type: Date,
     default: Date.now,
   },
-  mysqlId: {
-    type: String,  
-    required: false,
-    index: true,
-  }
 }, { timestamps: true });
 
 

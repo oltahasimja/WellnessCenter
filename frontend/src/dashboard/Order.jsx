@@ -46,25 +46,17 @@ const Order = () => {
                 
           <input 
             type="text"
-            placeholder="order_number"
-            value={formData.order_number || ''}
-            onChange={(e) => setFormData({ ...formData, order_number: e.target.value })}
+            placeholder="customerName"
+            value={formData.customerName || ''}
+            onChange={(e) => setFormData({ ...formData, customerName: e.target.value })}
             className="border p-3 rounded-md w-full focus:ring-2 focus:ring-blue-500 outline-none"
           />
       
           <input 
             type="text"
-            placeholder="customer_name"
-            value={formData.customer_name || ''}
-            onChange={(e) => setFormData({ ...formData, customer_name: e.target.value })}
-            className="border p-3 rounded-md w-full focus:ring-2 focus:ring-blue-500 outline-none"
-          />
-      
-          <input 
-            type="text"
-            placeholder="training_title"
-            value={formData.training_title || ''}
-            onChange={(e) => setFormData({ ...formData, training_title: e.target.value })}
+            placeholder="productName"
+            value={formData.productName || ''}
+            onChange={(e) => setFormData({ ...formData, productName: e.target.value })}
             className="border p-3 rounded-md w-full focus:ring-2 focus:ring-blue-500 outline-none"
           />
       
@@ -78,17 +70,17 @@ const Order = () => {
       
           <input 
             type="number"
-            placeholder="total_price"
-            value={formData.total_price || ''}
-            onChange={(e) => setFormData({ ...formData, total_price: Number(e.target.value) })}
+            placeholder="pricePerUnit"
+            value={formData.pricePerUnit || ''}
+            onChange={(e) => setFormData({ ...formData, pricePerUnit: Number(e.target.value) })}
             className="border p-3 rounded-md w-full focus:ring-2 focus:ring-blue-500 outline-none"
           />
       
           <input 
-            type="text"
-            placeholder="status"
-            value={formData.status || ''}
-            onChange={(e) => setFormData({ ...formData, status: e.target.value })}
+            type="number"
+            placeholder="totalPrice"
+            value={formData.totalPrice || ''}
+            onChange={(e) => setFormData({ ...formData, totalPrice: Number(e.target.value) })}
             className="border p-3 rounded-md w-full focus:ring-2 focus:ring-blue-500 outline-none"
           />
 
@@ -102,7 +94,7 @@ const Order = () => {
           <table className="w-full border-collapse shadow-md rounded-md bg-white">
             <thead>
               <tr className="bg-gray-200 text-gray-600 uppercase text-sm leading-normal">
-                <th className="py-3 px-6 text-left">order_number</th><th className="py-3 px-6 text-left">customer_name</th><th className="py-3 px-6 text-left">training_title</th><th className="py-3 px-6 text-left">quantity</th><th className="py-3 px-6 text-left">total_price</th><th className="py-3 px-6 text-left">status</th><th className="py-3 px-6 text-left">order_date</th>
+                <th className="py-3 px-6 text-left">customerName</th><th className="py-3 px-6 text-left">productName</th><th className="py-3 px-6 text-left">quantity</th><th className="py-3 px-6 text-left">pricePerUnit</th><th className="py-3 px-6 text-left">totalPrice</th><th className="py-3 px-6 text-left">orderDate</th>
                 <th className="py-3 px-6 text-center">Veprime</th>
               </tr>
             </thead>
@@ -110,7 +102,7 @@ const Order = () => {
               {orderList.length > 0 ? (
                 orderList.map((item) => (
                   <tr key={item.mysqlId || item.id} className="border-b border-gray-200 hover:bg-gray-100">
-                    <td className="py-3 px-6 text-left">{item.order_number}</td><td className="py-3 px-6 text-left">{item.customer_name}</td><td className="py-3 px-6 text-left">{item.training_title}</td><td className="py-3 px-6 text-left">{item.quantity}</td><td className="py-3 px-6 text-left">{item.total_price}</td><td className="py-3 px-6 text-left">{item.status}</td><td className="py-3 px-6 text-left">{item.order_date}</td>
+                    <td className="py-3 px-6 text-left">{item.customerName}</td><td className="py-3 px-6 text-left">{item.productName}</td><td className="py-3 px-6 text-left">{item.quantity}</td><td className="py-3 px-6 text-left">{item.pricePerUnit}</td><td className="py-3 px-6 text-left">{item.totalPrice}</td><td className="py-3 px-6 text-left">{item.orderDate}</td>
                     <td className="py-3 px-6 flex justify-center space-x-2">
                       <button onClick={() => handleEdit(item)} className="bg-yellow-500 hover:bg-yellow-600 text-white py-1 px-3 rounded-md text-sm">Edit</button>
                       <button onClick={() => handleDelete(item.mysqlId || item.id)} className="bg-red-500 hover:bg-red-600 text-white py-1 px-3 rounded-md text-sm">Delete</button>
@@ -119,7 +111,7 @@ const Order = () => {
                 ))
               ) : (
                 <tr>
-                  <td colSpan="8" className="text-center text-gray-500 py-4">Nuk ka të dhëna</td>
+                  <td colSpan="7" className="text-center text-gray-500 py-4">Nuk ka të dhëna</td>
                 </tr>
               )}
             </tbody>
