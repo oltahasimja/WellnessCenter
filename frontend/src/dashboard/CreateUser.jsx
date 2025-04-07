@@ -116,8 +116,8 @@ const CreateUser = ({ setActiveComponent }) => {
         await axios.post("http://localhost:5000/api/user", userData);
       }
       
-      navigate("/dashboard"); 
-      setActiveComponent("user"); 
+      navigate("/dashboard/users"); 
+      // setActiveComponent("user"); 
 
 
 
@@ -278,8 +278,8 @@ const CreateUser = ({ setActiveComponent }) => {
                   <button
                     type="button"
                     onClick={() => {
-                      navigate("/dashboard");
-                      setActiveComponent("user");
+                      navigate("/dashboard/users");
+                      // setActiveComponent("user");
                     }}
                     className="bg-gray-500 hover:bg-gray-600 text-white py-3 px-6 rounded-lg font-semibold transition"
                   >

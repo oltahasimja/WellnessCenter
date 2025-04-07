@@ -133,6 +133,7 @@ const User = ({ setActiveComponent }) => {
       await axios.put(`http://localhost:5000/api/user/${id}`, editFormData);
       setEditingId(null);
       fetchUsers();
+      navigate('/dashboard/users');
     } catch (error) {
       console.error("Error updating user:", error);
     }
@@ -260,13 +261,12 @@ const User = ({ setActiveComponent }) => {
                     ))}
                   </select>
 
-                  <Link 
-                    to="/dashboard"
-                    onClick={() => setActiveComponent("createuser")}
-                    className="bg-blue-600 hover:bg-blue-700 text-white py-3 px-6 rounded-lg font-semibold transition"
-                  >
-                    Add New User
-                  </Link>
+                  <Link
+                to="/dashboard/createuser"
+                className="bg-blue-600 hover:bg-blue-700 text-white py-3 px-6 rounded-lg font-semibold transition"
+              >
+                Add New User
+              </Link>
                 </div>
               </div>
 
@@ -449,15 +449,15 @@ const User = ({ setActiveComponent }) => {
                               <>
                  
 
-                                     <button
-                                    onClick={() => {
-                                      setActiveComponent("edituser");
-                                      localStorage.setItem('editUserId', item.mysqlId || item.id);
-                                    }}
-                                    className="bg-yellow-500 hover:bg-yellow-600 text-white py-2 px-4 rounded-lg text-lg"
-                                  >
-                                    Edit
-                                  </button>
+                 <button
+                        onClick={() => {
+                          const userId = item.mysqlId || item.id;
+                          navigate(`/dashboard/edituser/${userId}`);
+                        }}
+                        className="bg-yellow-500 hover:bg-yellow-600 text-white py-2 px-4 rounded-lg text-lg"
+                      >
+                        Edit
+                      </button>
 
                                 <button
                                   onClick={() => handleDeleteClick(item.mysqlId || item.id, item.name)}

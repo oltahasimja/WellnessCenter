@@ -26,6 +26,7 @@ function CreateAppointment({ onAppointmentCreated }) {
   const [errorMessage, setErrorMessage] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
   const [workingDays, setWorkingDays] = useState([]);
+  const [searchInput, setSearchInput] = useState('');
   const datePickerRef = useRef(null);
 
   const navigate = useNavigate();
@@ -76,6 +77,34 @@ function CreateAppointment({ onAppointmentCreated }) {
       fetchSpecialists();
     }
   }, [currentUser]);
+
+const filterSpecialistsByType = (type) => {
+  if (type === 'select') {
+    setFilteredSpecialists([]);
+    return;
+  }
+  
+  let filtered = specialists;
+  
+  switch (type) {
+    case 'training':
+      filtered = specialists.filter(spec => spec.roleId?.name === 'Trajner');
+      break;
+    case 'nutrition':
+      filtered = specialists.filter(spec => spec.roleId?.name === 'Nutricionist');
+      break;
+    case 'therapy':
+      filtered = specialists.filter(spec => spec.roleId?.name === 'Fizioterapeut');
+      break;
+    case 'mental_performance':
+      filtered = specialists.filter(spec => spec.roleId?.name === 'Psikolog');
+      break;
+    default:
+      filtered = specialists;
+  }
+  
+  setFilteredSpecialists(filtered);
+};
 
   // Fetch schedules when specialists change
   useEffect(() => {
@@ -166,8 +195,12 @@ function CreateAppointment({ onAppointmentCreated }) {
     }, 100);
   };
 
-  // Function to highlight working days in calendar
-  const highlightWorkingDays = () => {
+ 
+
+  
+
+   // Function to highlight working days in calendar
+   const highlightWorkingDays = () => {
     // Get the open calendar if available
     const calendar = document.querySelector('input[type="datetime-local"]:focus + .date-calendar');
     if (!calendar) return;
@@ -190,29 +223,6 @@ function CreateAppointment({ onAppointmentCreated }) {
   const getDayIndex = (dayName) => {
     const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
     return days.indexOf(dayName);
-  };
-
-  const filterSpecialistsByType = (type) => {
-    let filtered = specialists;
-    
-    switch (type) {
-      case 'training':
-        filtered = specialists.filter(spec => spec.roleId?.name === 'Trajner');
-        break;
-      case 'nutrition':
-        filtered = specialists.filter(spec => spec.roleId?.name === 'Nutricionist');
-        break;
-      case 'therapy':
-        filtered = specialists.filter(spec => spec.roleId?.name === 'Fizioterapeut');
-        break;
-      case 'mental_performance':
-        filtered = specialists.filter(spec => spec.roleId?.name === 'Psikolog');
-        break;
-      default:
-        filtered = specialists;
-    }
-    
-    setFilteredSpecialists(filtered);
   };
 
   const handleChange = (e) => {
@@ -725,12 +735,55 @@ function CreateAppointment({ onAppointmentCreated }) {
     );
   };
 
+  const selectRef = useRef(null);
+
+  const handleSearch = (e) => {
+    const value = e.target.value;
+    setSearchInput(value); // Ruaj vlerën e input-it në state
+    
+    const searchTerm = value.toLowerCase();
+    
+    let filtered = specialists;
+    
+    switch (formData.type) {
+      case 'training':
+        filtered = specialists.filter(spec => spec.roleId?.name === 'Trajner');
+        break;
+      case 'nutrition':
+        filtered = specialists.filter(spec => spec.roleId?.name === 'Nutricionist');
+        break;
+      case 'therapy':
+        filtered = specialists.filter(spec => spec.roleId?.name === 'Fizioterapeut');
+        break;
+      case 'mental_performance':
+        filtered = specialists.filter(spec => spec.roleId?.name === 'Psikolog');
+        break;
+      default:
+        filtered = specialists;
+    }
+    
+    filtered = filtered.filter(spec => 
+      `${spec.name} ${spec.lastName} ${spec.roleId?.name}`
+        .toLowerCase()
+        .includes(searchTerm)
+    );
+    
+    setFilteredSpecialists(filtered);
+    
+    // Hap dropdown-in nëse ka rezultate
+    if (filtered.length > 0 && selectRef.current) {
+      selectRef.current.size = Math.min(filtered.length + 1, 6);
+    }
+  };
+  
+
   const statusColors = {
     pending: theme === 'dark' ? "bg-yellow-900 text-yellow-200" : "bg-yellow-100 text-yellow-800",
     confirmed: theme === 'dark' ? "bg-green-900 text-green-200" : "bg-green-100 text-green-800",
     canceled: theme === 'dark' ? "bg-red-900 text-red-200" : "bg-red-100 text-red-800",
     completed: theme === 'dark' ? "bg-blue-900 text-blue-200" : "bg-blue-100 text-blue-800"
   };
+
 
 
   return (
@@ -796,25 +849,85 @@ function CreateAppointment({ onAppointmentCreated }) {
             </select>
           </div>
           
-          <div>
-            <label className={`block mb-2 font-medium ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
-              Specialist
-            </label>
-            <select 
-              name="specialistId" 
-              value={formData.specialistId} 
-              onChange={handleChange} 
-              required
-              className={`w-full p-3 border rounded-md focus:outline-none focus:ring-2 ${theme === 'dark' ? 'bg-gray-700 border-gray-600 focus:ring-blue-500' : 'bg-white border-gray-300 focus:ring-blue-500'}`}
-            >
-              <option value="">Select Specialist</option>
-              {filteredSpecialists.map((spec) => (
-                <option key={spec._id} value={spec._id}>
-                  {spec.name} {spec.lastName} ({spec.roleId?.name})
-                </option>
-              ))}
-            </select>
-          </div>
+          <div className="relative mb-4">
+  <label className={`block mb-2 font-medium ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
+    Specialist
+  </label>
+  
+  <div className="relative">
+  <input
+  type="text"
+  placeholder="Search specialists..."
+  onChange={handleSearch}
+  value={searchInput} // Kjo është shumë e rëndësishme
+  onFocus={() => {
+    if (selectRef.current) {
+      selectRef.current.size = Math.min(filteredSpecialists.length + 1, 6);
+    }
+  }}
+  className={`w-full p-3 pl-10 border rounded-lg focus:outline-none focus:ring-2 transition-all ${
+    theme === 'dark' 
+      ? 'bg-gray-700 border-gray-600 focus:ring-blue-500 focus:border-blue-500 placeholder-gray-400 text-white' 
+      : 'bg-white border-gray-300 focus:ring-blue-500 focus:border-blue-500 placeholder-gray-500 text-gray-900'
+  }`}
+/>
+    <div className={`absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none ${
+      theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
+    }`}>
+      <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+        <path fillRule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clipRule="evenodd" />
+      </svg>
+    </div>
+  </div>
+  
+  <div className="relative">
+  <select 
+  ref={selectRef}
+  name="specialistId" 
+  value={formData.specialistId} 
+  onChange={(e) => {
+    handleChange(e);
+    selectRef.current.size = 1;
+  }}
+  required
+  className={`w-full p-3 pr-8 mt-1 border rounded-lg appearance-none focus:outline-none focus:ring-2 transition-all ${
+    theme === 'dark' 
+      ? 'bg-gray-700 border-gray-600 focus:ring-blue-500 focus:border-blue-500 text-white' 
+      : 'bg-white border-gray-300 focus:ring-blue-500 focus:border-blue-500 text-gray-900'
+  }`}
+  size={1}
+  onFocus={() => {
+    selectRef.current.size = Math.min(filteredSpecialists.length + 1, 6);
+  }}
+  onBlur={() => {
+    setTimeout(() => {
+      // Kontrollo nëse fokusi është zhvendosur në inputin e kërkimit
+      if (document.activeElement !== document.querySelector('input[placeholder="Search specialists..."]')) {
+        selectRef.current.size = 1;
+      }
+    }, 200);
+  }}
+>
+      <option value="">Select Specialist</option>
+      {filteredSpecialists.map((spec) => (
+        <option 
+          key={spec._id} 
+          value={spec._id}
+          className={theme === 'dark' ? 'bg-gray-700 hover:bg-gray-600' : 'bg-white hover:bg-gray-100'}
+        >
+          {spec.name} {spec.lastName} ({spec.roleId?.name})
+        </option>
+      ))}
+    </select>
+    <div className={`absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none ${
+      theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
+    }`}>
+      <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+        <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
+      </svg>
+    </div>
+  </div>
+</div>
 
           {formData.specialistId && (
             <div className={`p-4 rounded-md ${theme === 'dark' ? 'bg-gray-700 border-gray-600' : 'bg-gray-50 border-gray-200'} border`}>

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import Sidebar from "../components/Sidebar";
 import Navbar from '../components/Navbar';
 import useAuthCheck from '../hook/useAuthCheck';
@@ -23,74 +23,77 @@ import Product from './Product';
 import Category from './Category';
 
 function Dashboard() {
-
   axios.defaults.withCredentials = true;
-
   useAuthCheck();
   const { pathname } = useLocation();
+  const navigate = useNavigate();
   
+  // Extract active component from URL
+  const getActiveComponent = () => {
+    const pathParts = pathname.split('/');
+    return pathParts.length > 2 ? pathParts[2] : '';
+  };
+
   const [activeComponent, setActiveComponent] = useState(() => {
-    return localStorage.getItem('activeComponent') || 'dashboard';
+    // Try to get from URL first, then fallback to localStorage
+    const pathComponent = getActiveComponent();
+    return pathComponent || localStorage.getItem('lastActiveComponent') || '';
   });
 
   useEffect(() => {
-    localStorage.setItem('activeComponent', activeComponent);
-  }, [activeComponent]);
-
-  useEffect(() => {
-    if (pathname.startsWith('/edituser/')) {
-      const id = pathname.split('/')[2];
+    const component = getActiveComponent();
+    if (component) {
+      setActiveComponent(component);
+      localStorage.setItem('lastActiveComponent', component);
+    }
+    
+    if (pathname.startsWith('/dashboard/edituser/')) {
+      const id = pathname.split('/')[3];
       localStorage.setItem('editUserId', id);
-      setActiveComponent('edituser');
     }
   }, [pathname]);
 
   const renderComponent = () => {
     switch (activeComponent) {
-      case "user": return <User setActiveComponent={setActiveComponent} />;
-      case "profile": return <Profile setActiveComponent={setActiveComponent} />;
+      case "users": return <User navigate={navigate} />;
+      case "profile": return <Profile />;
       case "appointment": return <Appointments />;
       case "createappointment": return <CreateAppointment />;
       case "program": return <Program />;
-      case "createuser": return <CreateUser setActiveComponent={setActiveComponent} />;
-      case "edituser": return <EditUser setActiveComponent={setActiveComponent} />;
+      case "createuser": return <CreateUser navigate={navigate} />;
+      case "edituser": return <EditUser navigate={navigate} />;
       case "userprograms": return <UserPrograms />;
       case "list": return <List />;
-      case "role": return <Role />;
+      case "roles": return <Role />;
       case "training": return <Training />;
       case "trainingapplication": return <TrainingApplication />;
       case "order": return <Order />;
+      case "card": return <Card />;
+      case "schedule": return <Schedule />;
       case "product": return <Product />;
       case "category": return <Category />;
-     
-
-
-
-
-      case "card": return <Card />;
-
-      case "schedule": return <Schedule />;
-
-      // case "training": return <Training />;
-      // case "board": return <Board />;
-      default: 
+      case "": 
+      case null:
+      case undefined:
         return <h1 className="text-2xl font-bold">Mirë se vini në Dashboard</h1>;
+      default:
+        return <h1 className="text-2xl font-bold">Komponenti nuk u gjet</h1>;
     }
   };
 
   return (
     <div className="h-screen flex flex-col">
-    <Navbar setActiveComponent={setActiveComponent} />
-    <div className="flex flex-1">
-      <div className="h-screen">
-        <Sidebar setActiveComponent={setActiveComponent} />
-      </div>
+      <Navbar />
+      <div className="flex flex-1">
+        <div className="bg-white dark:bg-gray-900 dark:text-white">
+          <Sidebar />
+        </div>
       
-      <div className="p-6 flex-1 bg-gray-100 dark:bg-gray-800 overflow-auto h-screen">
-        {renderComponent()}
+        <div className="p-6 flex-1 bg-gray-100 dark:bg-gray-800 overflow-auto h-screen">
+          {renderComponent()}
+        </div>
       </div>
     </div>
-  </div>
   );
 }
 

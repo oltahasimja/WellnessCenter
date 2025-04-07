@@ -19,12 +19,10 @@ import {
   LogOut, 
   ListCheck,
   Clipboard,
-  Antenna,
-  Box,
-  Grid
+  Antenna
 } from 'lucide-react';
 
-const Sidebar = ({ setActiveComponent }) => {
+const Sidebar = () => {
   const [isOpen, setIsOpen] = useState(true);
   const [openDropdown, setOpenDropdown] = useState(null);
   const navigate = useNavigate();
@@ -47,8 +45,7 @@ const Sidebar = ({ setActiveComponent }) => {
   };
 
   const handleMenuItemClick = (componentName) => {
-    setActiveComponent(componentName);
-    localStorage.setItem('activeComponent', componentName);
+    navigate(`/dashboard/${componentName}`);
   };
 
   const MenuItem = ({ icon: Icon, label, hasDropdown, componentName, externalLink, onClick }) => (
@@ -88,21 +85,21 @@ const Sidebar = ({ setActiveComponent }) => {
           </button>
         </div>
 
-        <div className="py-2">
+        <div className="py-2 bg-white dark:bg-gray-900 dark:text-white">
           {isOpen && <div className="text-sm text-gray-400 px-4 py-2">MENU</div>}
           <MenuItem 
             icon={LayoutDashboard} 
             label="Dashboard" 
-            componentName="dashboard"
+            componentName=""
           />
-             <MenuItem 
-            icon={Box} 
+           <MenuItem 
+            icon={Calendar} 
             label="Product" 
             componentName="product"
           />
-          <MenuItem 
-            icon={Grid} 
-            label="Categories" 
+           <MenuItem 
+            icon={Calendar} 
+            label="Catergory" 
             componentName="category"
           />
           <MenuItem 
@@ -128,12 +125,12 @@ const Sidebar = ({ setActiveComponent }) => {
           <MenuItem 
             icon={Table} 
             label="Users" 
-            componentName="user"
+            componentName="users"
           />
           <MenuItem 
             icon={FileText} 
             label="Roles" 
-            componentName="role"
+            componentName="roles"
           />
           <MenuItem 
             icon={FileInput} 
@@ -165,7 +162,7 @@ const Sidebar = ({ setActiveComponent }) => {
             label="UserPrograms" 
             componentName="userprograms"
           />
-            <MenuItem 
+          <MenuItem 
             icon={Clipboard} 
             label="Order" 
             componentName="order"
@@ -175,12 +172,11 @@ const Sidebar = ({ setActiveComponent }) => {
             label="Board" 
             componentName="board"
           />
-         
         </div>
 
-        <div className="py-2 border-t">
-         {isOpen && <div className="text-sm text-gray-400 px-4 py-2">SUPPORT</div>}
-         <MenuItem 
+        <div className="py-2 border-t bg-white dark:bg-gray-900 dark:text-white">
+          {isOpen && <div className="text-sm text-gray-400 px-4 py-2">SUPPORT</div>}
+          <MenuItem 
             icon={Github} 
             label="Repository" 
             externalLink={true}
@@ -195,7 +191,7 @@ const Sidebar = ({ setActiveComponent }) => {
         </div>
       </div>
 
-      <div className="p-4 border-t">
+      <div className="p-4 border-t bg-white dark:bg-gray-900 dark:text-white">
         <button 
           onClick={handleLogout} 
           className="flex items-center w-full bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600"
