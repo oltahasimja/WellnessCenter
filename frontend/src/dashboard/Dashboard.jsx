@@ -22,6 +22,8 @@ import Appointments from './Appointment/Appointment';
 import CreateAppointment from './Appointment/CreateAppointment';
 import Product from './Product';
 import Category from './Category';
+import Cart from './Cart';
+
 
 function Dashboard() {
   axios.defaults.withCredentials = true;
@@ -29,30 +31,29 @@ function Dashboard() {
   const { pathname } = useLocation();
   const navigate = useNavigate();
   
-  // Extract active component from URL
-  const getActiveComponent = () => {
-    const pathParts = pathname.split('/');
-    return pathParts.length > 2 ? pathParts[2] : '';
-  };
-
+  // Use getActiveComponent directly inside useEffect
   const [activeComponent, setActiveComponent] = useState(() => {
-    // Try to get from URL first, then fallback to localStorage
-    const pathComponent = getActiveComponent();
-    return pathComponent || localStorage.getItem('lastActiveComponent') || '';
+    const pathParts = pathname.split('/');
+    return pathParts.length > 2 ? pathParts[2] : localStorage.getItem('lastActiveComponent') || '';
   });
 
   useEffect(() => {
+    const getActiveComponent = () => {
+      const pathParts = pathname.split('/');
+      return pathParts.length > 2 ? pathParts[2] : '';
+    };
+
     const component = getActiveComponent();
     if (component) {
       setActiveComponent(component);
       localStorage.setItem('lastActiveComponent', component);
     }
-    
+
     if (pathname.startsWith('/dashboard/edituser/')) {
       const id = pathname.split('/')[3];
       localStorage.setItem('editUserId', id);
     }
-  }, [pathname]);
+  }, [pathname]);  // Only pathname as a dependency
 
   const renderComponent = () => {
     switch (activeComponent) {
@@ -74,6 +75,8 @@ function Dashboard() {
       case "schedule": return <Schedule />;
       case "product": return <Product />;
       case "category": return <Category />;
+      case "cart": return <Cart />;
+     
       case "": 
       case null:
       case undefined:
@@ -92,8 +95,8 @@ function Dashboard() {
         </div>
       
         <div className="p-6 flex-1 bg-gray-100 dark:bg-gray-800 overflow-auto h-screen" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
-      {renderComponent()}
-          </div>
+          {renderComponent()}
+        </div>
 
       </div>
     </div>

@@ -7,13 +7,14 @@ import {
   Calendar,  UserCircle2,  CheckSquare,  FileText,   Table,  FileInput,  MessageCircle,
     Mail, Menu,  ChevronDown,  Github, Trello,LogOut, ListCheck,Clipboard, Antenna,
   Users, Layers, Shield, CalendarClock, GraduationCap, ListOrdered, Package, Tags,
-  ClipboardList, UserPlus
+  ClipboardList, UserPlus, ShoppingCart
 
 } from 'lucide-react';
 
 const Sidebar = () => {
   const [isOpen, setIsOpen] = useState(true);
   const [openDropdown, setOpenDropdown] = useState(null);
+  const [cartItemCount, setCartItemCount] = useState(0); // <-- Track cart items
   const navigate = useNavigate();
   const { theme } = useTheme();
 
@@ -285,7 +286,16 @@ const Sidebar = () => {
             label="Chat" 
             componentName="chat"
           />
+          {/* shopping cart*/}
+          <MenuItem 
+            icon={ShoppingCart} 
+            label="Shopping Cart" 
+            componentName="cart" 
+            hasDropdown={false} 
+          />
+          
         </div>
+
 
         <div className="py-2 border-t bg-white dark:bg-gray-900 dark:text-white">
           {isOpen && <div className="text-sm text-gray-400 px-4 py-2">SUPPORT</div>}

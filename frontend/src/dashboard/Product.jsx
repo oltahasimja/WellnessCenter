@@ -85,6 +85,21 @@ const Product = () => {
     }
   };
 
+  const handleAddToCart = async (product) => {
+    const cartId = "someCartId"; // Get the correct cartId based on your app's logic (e.g., from context or global state)
+    try {
+      // Call the backend API to add the product to the cart
+      await axios.post('http://localhost:5000/api/cart', { productId: product.id, quantity: 1, cartId });
+  
+      // Handle success (e.g., show a success message or update cart count)
+      alert('Product added to cart!');
+    } catch (err) {
+      // Handle error if needed
+      alert('Failed to add product to cart. Please try again.');
+    }
+  };
+  
+
   return (
     <div className="flex justify-center items-center min-h-screen bg-gray-100">
       <div className="bg-white shadow-lg rounded-lg p-6 w-full max-w-3xl">
@@ -169,6 +184,7 @@ const Product = () => {
                     <td className="py-3 px-6 flex justify-center space-x-2">
                       <button onClick={() => handleEdit(item)} className="bg-yellow-500 hover:bg-yellow-600 text-white py-1 px-3 rounded-md text-sm">Edit</button>
                       <button onClick={() => handleDelete(item.mysqlId || item.id)} className="bg-red-500 hover:bg-red-600 text-white py-1 px-3 rounded-md text-sm">Delete</button>
+                      <button onClick={handleAddToCart} className="bg-green-500 hover:bg-green-300 text-white py-1 px-3 rounded-md text-sm">Add To Cart</button>
                     </td>
                   </tr>
                 ))

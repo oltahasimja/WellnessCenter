@@ -318,3 +318,4 @@ sequelize.sync().then(() => {
 }).catch((err) => console.log(err));
 
 
+

@@ -15,6 +15,7 @@ import TrainingApplication from './dashboard/TrainingApplication';
 import TrainingDetail from './dashboard/TrainingDetail';
 import Order from './dashboard/Order';
 
+
 const AppRoutes = () => {
   const { darkMode } = useTheme();
 
@@ -42,6 +43,7 @@ const AppRoutes = () => {
         <Route path="/card" element={<Card />} />
         <Route path="/training/:id" element={<TrainingDetail />} />
         <Route path="/order" element={<Order />} />
+      
       </Routes>
     </Router>
   );
