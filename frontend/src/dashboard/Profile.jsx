@@ -245,7 +245,7 @@ const fetchUserData = async () => {
 
   if (loading) {
     return (
-      <div className="h-screen flex flex-col">
+      <div className="flex flex-col">
         <Navbar />
         <div className="flex flex-1 mb-[2rem]">
           <Sidebar />
@@ -259,10 +259,10 @@ const fetchUserData = async () => {
 
   if (error) {
     return (
-      <div className="h-screen flex flex-col">
-        <Navbar />
+      <div className="flex flex-col">
+        {/* <Navbar /> */}
         <div className="flex flex-1 mb-[2rem]">
-          <Sidebar />
+          {/* <Sidebar /> */}
           <div className={`p-6 flex-1 ${theme === 'dark' ? 'bg-gray-800' : 'bg-gray-100'} flex items-center justify-center`}>
             <div className="text-lg text-red-500">{error}</div>
           </div>

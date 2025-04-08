@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import { useTheme } from "../components/ThemeContext";
+import { useTheme } from "../../components/ThemeContext";
 
 const Appointments = () => {
   const { theme } = useTheme();
@@ -12,6 +12,10 @@ const Appointments = () => {
   const [refresh, setRefresh] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
+  
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const appointmentsPerPage = 5;
 
   const navigate = useNavigate();
 
@@ -109,6 +113,25 @@ const Appointments = () => {
     setSuccessMessage('Appointment created successfully!');
   };
 
+  // Calculate pagination
+  const indexOfLastAppointment = currentPage * appointmentsPerPage;
+  const indexOfFirstAppointment = indexOfLastAppointment - appointmentsPerPage;
+  const currentAppointments = appointments.slice(indexOfFirstAppointment, indexOfLastAppointment);
+  const totalPages = Math.ceil(appointments.length / appointmentsPerPage);
+  
+  // Change page
+  const goToNextPage = () => {
+    if (currentPage < totalPages) {
+      setCurrentPage(currentPage + 1);
+    }
+  };
+  
+  const goToPreviousPage = () => {
+    if (currentPage > 1) {
+      setCurrentPage(currentPage - 1);
+    }
+  };
+
   return (
     <div className={`min-h-screen p-6 ${theme === 'dark' ? 'bg-gray-900 text-gray-100' : 'bg-gray-50 text-gray-800'}`}>
       <div className={`max-w-4xl mx-auto p-6 rounded-lg ${theme === 'dark' ? 'bg-gray-800' : 'bg-white shadow-md'}`}>
@@ -156,67 +179,100 @@ const Appointments = () => {
               {isSpecialist ? 'You have no appointments scheduled.' : 'You don\'t have any appointments yet.'}
             </p>
           ) : (
-            <ul className="space-y-4">
-              {appointments.map((appt) => {
-                const userName = appt.userId?.name || 'Unknown Client';
-                const userLastName = appt.userId?.lastName || '';
-                const specialistName = appt.specialistId?.name || 'Unknown Specialist';
-                const specialistLastName = appt.specialistId?.lastName || '';
-                const specialistRole = appt.specialistId?.roleId?.name || 'Specialist';
-                const specialistFullName = `${specialistName} ${specialistLastName}`.trim() || 'Unknown Specialist';
-                const userFullName = `${userName} ${userLastName}`.trim() || 'Unknown Client';
+            <>
+              <ul className="space-y-4 mb-6">
+                {currentAppointments.map((appt) => {
+                  const userName = appt.userId?.name || 'Unknown Client';
+                  const userLastName = appt.userId?.lastName || '';
+                  const specialistName = appt.specialistId?.name || 'Unknown Specialist';
+                  const specialistLastName = appt.specialistId?.lastName || '';
+                  const specialistRole = appt.specialistId?.roleId?.name || 'Specialist';
+                  const specialistFullName = `${specialistName} ${specialistLastName}`.trim() || 'Unknown Specialist';
+                  const userFullName = `${userName} ${userLastName}`.trim() || 'Unknown Client';
 
-                return (
-                  <li 
-                    key={appt._id} 
-                    className={`p-4 rounded-md ${theme === 'dark' ? 'bg-gray-700 border-gray-600' : 'bg-white border-gray-200'} border shadow-sm`}
+                  return (
+                    <li 
+                      key={appt._id} 
+                      className={`p-4 rounded-md ${theme === 'dark' ? 'bg-gray-700 border-gray-600' : 'bg-white border-gray-200'} border shadow-sm transition-all hover:shadow-md`}
+                    >
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <div className={`font-semibold ${theme === 'dark' ? 'text-white' : 'text-gray-800'}`}>
+                            {isSpecialist ? userFullName : specialistFullName} 
+                            <span className={`ml-2 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
+                              ({isSpecialist ? 'Client' : specialistRole})
+                            </span>
+                          </div>
+                          <div className={`${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'} mt-1`}>
+                            <span className="font-medium">Date:</span> {new Date(appt.appointmentDate).toLocaleString()}
+                          </div>
+                          <div className={`${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'} mt-1`}>
+                            <span className="font-medium">Type:</span> <span className="capitalize">{appt.type.replace('_', ' ')}</span>
+                          </div>
+                          {appt.notes && (
+                            <div className={`${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'} mt-1`}>
+                              <span className="font-medium">Notes:</span> {appt.notes}
+                            </div>
+                          )}
+                        </div>
+                        <div className="flex flex-col items-end">
+                          <div className={`px-3 py-1 text-sm rounded-full mb-2 ${statusColors[appt.status]}`}>
+                            {appt.status.charAt(0).toUpperCase() + appt.status.slice(1)}
+                          </div>
+                          {isSpecialist && appt.status === 'pending' && (
+                            <div className="flex space-x-2">
+                              <button 
+                                onClick={() => updateAppointmentStatus(appt._id, 'confirmed')}
+                                className="px-3 py-1 bg-green-500 text-white rounded-md hover:bg-green-600 transition-colors"
+                              >
+                                Confirm
+                              </button>
+                              <button 
+                                onClick={() => updateAppointmentStatus(appt._id, 'canceled')}
+                                className="px-3 py-1 bg-red-500 text-white rounded-md hover:bg-red-600 transition-colors"
+                              >
+                                Cancel
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </li>
+                  );
+                })}
+              </ul>
+              
+              {/* Pagination Controls */}
+              <div className="flex justify-between items-center mt-6">
+                <div className={theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}>
+                  Showing {indexOfFirstAppointment + 1}-{Math.min(indexOfLastAppointment, appointments.length)} of {appointments.length} appointments
+                </div>
+                <div className="flex space-x-2">
+                  <button
+                    onClick={goToPreviousPage}
+                    disabled={currentPage === 1}
+                    className={`px-4 py-2 rounded-md ${
+                      currentPage === 1 
+                        ? (theme === 'dark' ? 'bg-gray-700 text-gray-500' : 'bg-gray-200 text-gray-400') 
+                        : (theme === 'dark' ? 'bg-blue-600 text-white hover:bg-blue-700' : 'bg-blue-500 text-white hover:bg-blue-600')
+                    } transition-colors`}
                   >
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <div className={`font-semibold ${theme === 'dark' ? 'text-white' : 'text-gray-800'}`}>
-                          {isSpecialist ? userFullName : specialistFullName} 
-                          <span className={theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}>
-                            ({isSpecialist ? 'Client' : specialistRole})
-                          </span>
-                        </div>
-                        <div className={theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}>
-                          Date: {new Date(appt.appointmentDate).toLocaleString()}
-                        </div>
-                        <div className={theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}>
-                          Type: {appt.type}
-                        </div>
-                        {appt.notes && (
-                          <div className={theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}>
-                            Notes: {appt.notes}
-                          </div>
-                        )}
-                      </div>
-                      <div className="flex flex-col items-end">
-                        <div className={`px-3 py-1 text-sm rounded-full mb-2 ${statusColors[appt.status]}`}>
-                          {appt.status}
-                        </div>
-                        {isSpecialist && appt.status === 'pending' && (
-                          <div className="flex space-x-2">
-                            <button 
-                              onClick={() => updateAppointmentStatus(appt._id, 'confirmed')}
-                              className="px-3 py-1 bg-green-500 text-white rounded-md hover:bg-green-600 transition-colors"
-                            >
-                              Confirm
-                            </button>
-                            <button 
-                              onClick={() => updateAppointmentStatus(appt._id, 'canceled')}
-                              className="px-3 py-1 bg-red-500 text-white rounded-md hover:bg-red-600 transition-colors"
-                            >
-                              Cancel
-                            </button>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </li>
-                );
-              })}
-            </ul>
+                    Prev
+                  </button>
+                  <button
+                    onClick={goToNextPage}
+                    disabled={currentPage === totalPages}
+                    className={`px-4 py-2 rounded-md ${
+                      currentPage === totalPages 
+                        ? (theme === 'dark' ? 'bg-gray-700 text-gray-500' : 'bg-gray-200 text-gray-400') 
+                        : (theme === 'dark' ? 'bg-blue-600 text-white hover:bg-blue-700' : 'bg-blue-500 text-white hover:bg-blue-600')
+                    } transition-colors`}
+                  >
+                    Next
+                  </button>
+                </div>
+              </div>
+            </>
           )}
         </div>
       </div>

@@ -21,7 +21,7 @@ const Training = sequelize.define("Training", {
   max_participants: {
     type: DataTypes.INTEGER,
     allowNull: false,
-    defaultValue: 30, 
+    defaultValue: 10, 
   }
 }, {
   timestamps: false 

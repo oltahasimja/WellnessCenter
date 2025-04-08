@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useTheme } from '../components/ThemeContext';
+import DeleteConfirmation from '../components/DeleteConfirmation';
 
 const Schedule = () => {
   const { theme } = useTheme();
@@ -10,6 +11,15 @@ const Schedule = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [debugInfo, setDebugInfo] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(5);
+  
+  // Add state for delete confirmation modal
+  const [deleteModal, setDeleteModal] = useState({
+    isOpen: false, 
+    itemId: null,
+    itemName: ''
+  });
   
   const daysOfWeek = [
     'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'
@@ -25,11 +35,9 @@ const Schedule = () => {
     
     try {
       const usersResponse = await axios.get('http://localhost:5000/api/user/specialists');
-      // console.log("Specialists data:", usersResponse.data);
       setUserList(usersResponse.data);
       
       const schedulesResponse = await axios.get('http://localhost:5000/api/schedule');
-      // console.log("Schedules data:", schedulesResponse.data);
       
       const schedulesWithNames = schedulesResponse.data.map(schedule => {
         const specialistId = typeof schedule.specialistId === 'object' ? 
@@ -40,22 +48,17 @@ const Schedule = () => {
           user._id.toString() === specialistId
         );
         
-    
         let roleName = 'No Role';
-        // let roleDebug = { reason: 'Default initialization' };
         
         // Try to get role from the specialist
         if (specialist) {
           if (specialist.roleId) {
             if (typeof specialist.roleId === 'object' && specialist.roleId.name) {
               roleName = specialist.roleId.name;
-            
-            
             }
           }
         }
        
-        
         return {
           ...schedule,
           specialistName: specialist ? 
@@ -66,16 +69,13 @@ const Schedule = () => {
             'Unknown Specialist',
           specialistRole: roleName,
           specialistObj: specialist || null,
-          // _debugRoleInfo: roleDebug // For debugging
         };
       });
       
-      // setDebugInfo(debugData);
       setScheduleList(schedulesWithNames);
     } catch (err) {
       console.error("Error fetching data:", err);
       setError("Failed to load data. Please try again later.");
-      // setDebugInfo({ error: err.toString(), stack: err.stack });
     } finally {
       setIsLoading(false);
     }
@@ -113,13 +113,9 @@ const Schedule = () => {
             roleName = specialist.roleId.name;
           } else if (typeof specialist.roleId === 'string') {
             roleName = 'Role ID Only (String)';
-          } else {
-          
-        
+          }
         }
-      
       }
-    }
       
       const scheduleWithName = {
         ...newSchedule,
@@ -147,7 +143,6 @@ const Schedule = () => {
     }
   };
   
-  // Rest of the component remains the same...
   const handleEdit = (item) => {
     let workDaysArray = [];
     
@@ -167,22 +162,38 @@ const Schedule = () => {
     });
   };
   
-  const handleDelete = async (id) => {
-    if (window.confirm("Are you sure you want to delete this schedule?")) {
-      setIsLoading(true);
-      try {
-        await axios.delete(`http://localhost:5000/api/schedule/${id}`);
-        setScheduleList(prev => prev.filter(item => 
-          (item.mysqlId !== id) && (item._id !== id)
-        ));
-      } catch (err) {
-        console.error("Error deleting schedule:", err);
-        setError("Failed to delete schedule. Please try again.");
-        fetchData();
-      } finally {
-        setIsLoading(false);
-      }
+  // Modified to open the delete confirmation modal
+  const handleDeleteClick = (item) => {
+    const itemName = item.specialistName || 'this schedule';
+    setDeleteModal({
+      isOpen: true,
+      itemId: item.mysqlId || item._id,
+      itemName: itemName
+    });
+  };
+  
+  // Handle the actual deletion after confirmation
+  const handleDeleteConfirm = async () => {
+    setIsLoading(true);
+    try {
+      await axios.delete(`http://localhost:5000/api/schedule/${deleteModal.itemId}`);
+      setScheduleList(prev => prev.filter(item => 
+        (item.mysqlId !== deleteModal.itemId) && (item._id !== deleteModal.itemId)
+      ));
+      // Close the modal after successful deletion
+      setDeleteModal({ isOpen: false, itemId: null, itemName: '' });
+    } catch (err) {
+      console.error("Error deleting schedule:", err);
+      setError("Failed to delete schedule. Please try again.");
+      fetchData();
+    } finally {
+      setIsLoading(false);
     }
+  };
+  
+  // Close the delete modal
+  const handleCloseDeleteModal = () => {
+    setDeleteModal({ isOpen: false, itemId: null, itemName: '' });
   };
   
   const handleDayChange = (day) => {
@@ -208,32 +219,87 @@ const Schedule = () => {
   const renderWorkDaysCheckboxes = () => {
     return (
       <>
-        <div className="flex items-center">
+      <div className="col-span-full bg-blue-50 dark:bg-blue-900/20 border dark:border-blue-700 border-blue-200 p-4 rounded-md shadow-sm mb-3">
+        <div className="flex items-center mb-3">
           <input
             type="checkbox"
             id="allWeek"
             checked={formData.workDays?.length === daysOfWeek.length}
             onChange={() => handleDayChange('AllWeek')}
-            className="mr-2"
+            className="mr-2 h-4 w-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"
             disabled={isLoading}
           />
-          <label htmlFor="allWeek" className={theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}>All Week</label>
+          <label htmlFor="allWeek" className={theme === 'dark' ? 'text-gray-300 font-semibold' : 'text-gray-700 font-semibold'}>
+            Select All Week
+          </label>
         </div>
+    
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+          {daysOfWeek.map(day => (
+            <div
+              key={day}
+              className={`flex items-center p-2 rounded-md border transition 
+                ${formData.workDays?.includes(day) ? 
+                  (theme === 'dark' ? 'bg-blue-800 border-blue-500' : 'bg-blue-100 border-blue-400') : 
+                  (theme === 'dark' ? 'bg-gray-800 border-gray-600' : 'bg-white border-gray-300')}`}
+            >
+              <input
+                type="checkbox"
+                id={day.toLowerCase()}
+                checked={formData.workDays?.includes(day) || false}
+                onChange={() => handleDayChange(day)}
+                className="mr-2 h-4 w-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"
+                disabled={isLoading}
+              />
+              <label htmlFor={day.toLowerCase()} className={theme === 'dark' ? 'text-gray-200' : 'text-gray-700'}>
+                {day}
+              </label>
+            </div>
+          ))}
+        </div>
+      </div>
+    </>
+    );
+  };
+  const getPaginatedData = () => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    return scheduleList.slice(startIndex, endIndex);
+  };
+
+  const getTotalPages = () => {
+    return Math.ceil(scheduleList.length / itemsPerPage);
+  };
+
+  const renderPagination = () => {
+    const totalPages = getTotalPages();
+    
+    return (
+      <div className={`flex justify-between items-center mt-4 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
+        <button
+          onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+          disabled={currentPage === 1 || isLoading}
+          className={`px-4 py-2 rounded-md ${currentPage === 1 || isLoading ? 
+            (theme === 'dark' ? 'bg-gray-700 cursor-not-allowed' : 'bg-gray-300 cursor-not-allowed') : 
+            (theme === 'dark' ? 'bg-gray-600 hover:bg-gray-500' : 'bg-gray-200 hover:bg-gray-300')}`}
+        >
+          Previous
+        </button>
         
-        {daysOfWeek.map(day => (
-          <div key={day} className="flex items-center">
-            <input
-              type="checkbox"
-              id={day.toLowerCase()}
-              checked={formData.workDays?.includes(day) || false}
-              onChange={() => handleDayChange(day)}
-              className="mr-2"
-              disabled={isLoading}
-            />
-            <label htmlFor={day.toLowerCase()} className={theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}>{day}</label>
-          </div>
-        ))}
-      </>
+        <span>
+          Page {currentPage} of {totalPages}
+        </span>
+        
+        <button
+          onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+          disabled={currentPage === totalPages || isLoading || totalPages === 0}
+          className={`px-4 py-2 rounded-md ${currentPage === totalPages || isLoading || totalPages === 0 ? 
+            (theme === 'dark' ? 'bg-gray-700 cursor-not-allowed' : 'bg-gray-300 cursor-not-allowed') : 
+            (theme === 'dark' ? 'bg-gray-600 hover:bg-gray-500' : 'bg-gray-200 hover:bg-gray-300')}`}
+        >
+          Next
+        </button>
+      </div>
     );
   };
   
@@ -262,7 +328,6 @@ const Schedule = () => {
               value={formData.specialistId || ''}
               onChange={(e) => {
                 const selectedSpecialist = userList.find(user => user._id === e.target.value);
-                // console.log("Selected specialist:", selectedSpecialist);
                 setFormData({ 
                   ...formData, 
                   specialistId: e.target.value,
@@ -274,22 +339,37 @@ const Schedule = () => {
               disabled={isLoading}
             >
               <option value="">Select Specialist</option>
-              {userList.map((item) => {
-                // console.log(`Specialist ${item.name}'s roleId:`, item.roleId);
-                const roleDisplay = item.roleId && typeof item.roleId === 'object' && item.roleId.name 
-                  ? item.roleId.name 
-                  : 'No Role';
-                
-                return (
-                  <option key={item._id} value={item._id}>
-                    {item.name} {item.lastName} ({roleDisplay})
-                  </option>
-                );
-              })}
+              {userList
+                .filter(user => {
+                  // If we're in edit mode and this is the current specialist, always show it
+                  if (formData.id && formData.specialistId === user._id) {
+                    return true;
+                  }
+                  
+                  // Otherwise, only show specialists without schedules
+                  const hasSchedule = scheduleList.some(schedule => {
+                    // Skip the current schedule item when checking
+                    if (formData.id && (schedule._id === formData.id || schedule.mysqlId === formData.id)) {
+                      return false;
+                    }
+                    return schedule.specialistObj && schedule.specialistObj._id === user._id;
+                  });
+                  return !hasSchedule; 
+                })
+                .map((item) => {
+                  const roleDisplay = item.roleId && typeof item.roleId === 'object' && item.roleId.name 
+                    ? item.roleId.name 
+                    : 'No Role';
+                  
+                  return (
+                    <option key={item._id} value={item._id}>
+                      {item.name} {item.lastName} ({roleDisplay})
+                    </option>
+                  );
+                })}
             </select>
           </div>
           
-          {/* Rest of the form remains the same */}
           <div>
             <label className={`block font-medium mb-1 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>Work Days</label>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
@@ -360,72 +440,96 @@ const Schedule = () => {
             <p className={`mt-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>Loading schedules...</p>
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className={`w-full border-collapse shadow-md rounded-md ${theme === 'dark' ? 'bg-gray-700' : 'bg-white'}`}>
-              <thead>
-                <tr className={`uppercase text-sm ${theme === 'dark' ? 'bg-gray-600 text-gray-200' : 'bg-gray-200 text-gray-600'}`}>
-                  <th className="py-3 px-6">Specialist</th>
-                  <th className="py-3 px-6">Role</th>
-                  <th className="py-3 px-6">Work Days</th>
-                  <th className="py-3 px-6">Start Time</th>
-                  <th className="py-3 px-6">End Time</th>
-                  <th className="py-3 px-6">Break Start</th>
-                  <th className="py-3 px-6">Break End</th>
-                  <th className="py-3 px-6">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-              {scheduleList.length > 0 ? (
-                scheduleList.map((item) => (
-                  <tr 
-                    key={item._id || item.mysqlId} 
-                    className={`border-b ${theme === 'dark' ? 'border-gray-600 hover:bg-gray-600' : 'border-gray-200 hover:bg-gray-50'}`}
-                  >
-                    <td className="py-3 px-6">
-                      {item.specialistObj 
-                        ? `${item.specialistObj.name} ${item.specialistObj.lastName}`
-                        : item.specialistName || 'Unknown Specialist'}
-                    </td>
-                    <td className="py-3 px-6 relative group">
-                      {item.specialistRole}
-                      <div className="hidden group-hover:block absolute z-10 bg-gray-800 text-white text-xs p-2 rounded w-64 left-0 mt-1">
-                        {/* {JSON.stringify(item._debugRoleInfo, null, 2)} */}
-                      </div>
-                    </td>
-                    <td className="py-3 px-6">{item.workDays}</td>
-                    <td className="py-3 px-6">{item.startTime}</td>
-                    <td className="py-3 px-6">{item.endTime}</td>
-                    <td className="py-3 px-6">{item.breakStartTime || '-'}</td>
-                    <td className="py-3 px-6">{item.breakEndTime || '-'}</td>
-                    <td className="py-3 px-6 flex space-x-2">
-                      <button 
-                        onClick={() => handleEdit(item)}
-                        className={`py-1 px-3 rounded-md transition duration-200 ${theme === 'dark' ? 'bg-yellow-600 hover:bg-yellow-700' : 'bg-yellow-500 hover:bg-yellow-600'} text-white`}
-                        disabled={isLoading}
-                      >
-                        Edit
-                      </button>
-                      <button 
-                        onClick={() => handleDelete(item.mysqlId || item._id)}
-                        className={`py-1 px-3 rounded-md transition duration-200 ${theme === 'dark' ? 'bg-red-600 hover:bg-red-700' : 'bg-red-500 hover:bg-red-600'} text-white`}
-                        disabled={isLoading}
-                      >
-                        Delete
-                      </button>
+          <>
+            <div className="overflow-x-auto">
+              <table className={`w-full border-collapse shadow-md rounded-md ${theme === 'dark' ? 'bg-gray-700' : 'bg-white'}`}>
+                <thead>
+                  <tr className={`uppercase text-sm ${theme === 'dark' ? 'bg-gray-600 text-gray-200' : 'bg-gray-200 text-gray-600'}`}>
+                    <th className="py-3 px-6">Specialist</th>
+                    <th className="py-3 px-6">Role</th>
+                    <th className="py-3 px-6">Work Days</th>
+                    <th className="py-3 px-6">Start Time</th>
+                    <th className="py-3 px-6">End Time</th>
+                    <th className="py-3 px-6">Break Start</th>
+                    <th className="py-3 px-6">Break End</th>
+                    <th className="py-3 px-6">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                {getPaginatedData().length > 0 ? (
+                  getPaginatedData().map((item) => (
+                    <tr 
+                      key={item._id || item.mysqlId} 
+                      className={`border-b ${theme === 'dark' ? 'border-gray-600 hover:bg-gray-600' : 'border-gray-200 hover:bg-gray-50'}`}
+                    >
+                      <td className="py-3 px-6">
+                        {item.specialistObj 
+                          ? `${item.specialistObj.name} ${item.specialistObj.lastName}`
+                          : item.specialistName || 'Unknown Specialist'}
+                      </td>
+                      <td className="py-3 px-6 relative group">
+                        {item.specialistRole}
+                      </td>
+                      <td className="py-3 px-6">
+                          <div className="flex flex-wrap gap-1">
+                            {Array.isArray(item.workDays) 
+                              ? item.workDays.map((day, index) => (
+                                  <span key={index} className="px-2 py-1 bg-gray-200 dark:bg-gray-600 rounded text-xs">
+                                    {day}
+                                  </span>
+                                ))
+                              : typeof item.workDays === 'string' 
+                                ? item.workDays.split(',').map((day, index) => (
+                                    <span key={index} className="px-2 py-1 bg-gray-200 dark:bg-gray-600 rounded text-xs">
+                                      {day.trim()}
+                                    </span>
+                                  ))
+                                : 'No days'}
+                          </div>
+                        </td>  
+                      <td className="py-3 px-6">{item.startTime}</td>
+                      <td className="py-3 px-6">{item.endTime}</td>
+                      <td className="py-3 px-6">{item.breakStartTime || '-'}</td>
+                      <td className="py-3 px-6">{item.breakEndTime || '-'}</td>
+                      <td className="py-3 px-6 flex space-x-2">
+                        <button 
+                          onClick={() => handleEdit(item)}
+                          className={`py-1 px-3 rounded-md transition duration-200 ${theme === 'dark' ? 'bg-yellow-600 hover:bg-yellow-700' : 'bg-yellow-500 hover:bg-yellow-600'} text-white`}
+                          disabled={isLoading}
+                        >
+                          Edit
+                        </button>
+                        <button 
+                          onClick={() => handleDeleteClick(item)}
+                          className={`py-1 px-3 rounded-md transition duration-200 ${theme === 'dark' ? 'bg-red-600 hover:bg-red-700' : 'bg-red-500 hover:bg-red-600'} text-white`}
+                          disabled={isLoading}
+                        >
+                          Delete
+                        </button>
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan="8" className={`py-4 text-center ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
+                      No schedules found
                     </td>
                   </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan="8" className={`py-4 text-center ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
-                    No schedules found
-                  </td>
-                </tr>
-              )}
-              </tbody>
-            </table>
-          </div>
+                )}
+                </tbody>
+              </table>
+            </div>
+            {scheduleList.length > 0 && renderPagination()}
+          </>
         )}
+        
+        {/* Include the DeleteConfirmation component */}
+        <DeleteConfirmation 
+          isOpen={deleteModal.isOpen}
+          onClose={handleCloseDeleteModal}
+          onConfirm={handleDeleteConfirm}
+          itemName={deleteModal.itemName}
+        />
       </div>
     </div>
   );

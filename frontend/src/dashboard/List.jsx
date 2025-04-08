@@ -156,7 +156,7 @@ const List = () => {
                         item.name
                       )}
                     </td>
-                    <td className="py-3 px-6 text-left">{item.programId.title}</td>
+                    <td className="py-3 px-6 text-left">{item.programId?.title || '—'}</td>
                     <td className="py-3 px-6 text-left">{item.createdById.name}</td>
                     <td className="py-3 px-6 text-left">{item.createdAt}</td>
                     <td className="py-3 px-6 flex justify-center space-x-2">

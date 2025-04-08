@@ -32,9 +32,8 @@ const Card = () => {
     });
     setSelectedFiles([]);
     setNewChecklistItem('');
-    setRemovedAttachments([]);
+    setRemovedAttachments([]); // Make sure to reset this state
   };
-
   useEffect(() => {
     const checkLoginStatus = async () => {
       try {
@@ -72,7 +71,7 @@ const Card = () => {
   const uploadFiles = async () => {
     // Keep existing attachments that weren't removed
     const keptAttachments = formData.attachments?.filter(att => 
-      !removedAttachments.includes(att.name)
+      !removedAttachments.includes(att._id || att.name)
     ) || [];
     
     // Process only new files (not marked as existing)
@@ -83,7 +82,14 @@ const Card = () => {
           toast.warn(`File ${file.name} is too large (max 5MB)`);
           return null;
         }
-        return await convertToBase64(file);
+        
+        try {
+          return await convertToBase64(file);
+        } catch (error) {
+          console.error('Error converting file:', file.name, error);
+          toast.warn(`Failed to process file ${file.name}`);
+          return null;
+        }
       })
     );
     
@@ -133,10 +139,13 @@ const Card = () => {
     }
   
     try {
+      // Upload new attachments if there are any
       const uploadedAttachments = selectedFiles.length > 0 
         ? await uploadFiles() 
         : [];
   
+      console.log(`Removed attachments to send: ${removedAttachments.join(', ')}`);
+      
       const payload = {
         ...formData,
         id: formData.id,
@@ -147,9 +156,10 @@ const Card = () => {
         dueDate: formData.dueDate || null,
         priority: formData.priority || 'medium',
         labels: formData.labels || [],
-        attachments: [...(formData.attachments || []), ...uploadedAttachments],
+        attachments: uploadedAttachments,
         checklist: formData.checklist || [],
-        isArchived: Boolean(formData.isArchived)
+        isArchived: Boolean(formData.isArchived),
+        removedAttachments: removedAttachments // Send list of attachment IDs to remove
       };
   
       const endpoint = formData.id 
@@ -157,6 +167,8 @@ const Card = () => {
         : 'http://localhost:5000/api/card';
   
       const method = formData.id ? 'put' : 'post';
+  
+      console.log('Submitting payload:', JSON.stringify(payload));
   
       const response = await axios[method](endpoint, payload, {
         withCredentials: true,
@@ -197,7 +209,6 @@ const handleEdit = async (item) => {
     const fullCardData = response.data;
     
     console.log("Full card data received:", fullCardData);
-    console.log("Attachments from response:", fullCardData.attachments);
     
     const editData = { 
       ...fullCardData,
@@ -207,32 +218,28 @@ const handleEdit = async (item) => {
     
     setRemovedAttachments([]);
     
-    // Process attachments if they exist
+    // Process attachments
     let existingAttachments = [];
-    
     if (fullCardData.attachments && fullCardData.attachments.length > 0) {
-      existingAttachments = fullCardData.attachments
-        .filter(attachment => {
-          if (!attachment || !attachment.data) {
-            console.warn(`Attachment ${attachment?._id || 'unknown'} has no data or is invalid`);
-            return false;
-          }
-          return true;
-        })
-        .map(attachment => ({
-          _id: attachment._id,
-          name: attachment.name || `Attachment-${attachment._id}`,
-          type: attachment.type || 'image/jpeg',
+      existingAttachments = fullCardData.attachments.map(attachment => {
+        // Make sure _id is handled properly
+        const attachmentId = attachment._id ? attachment._id.toString() : null;
+        
+        // Create a File-like object for existing attachments
+        return {
+          _id: attachmentId, // Store as string, not as Object
+          name: attachment.name || `Attachment-${attachmentId}`,
+          type: attachment.type || 'application/octet-stream',
           size: attachment.size || 0,
           data: attachment.data,
           lastModified: Date.now(),
           isExisting: true
-        }));
+        };
+      });
     }
     
-    console.log(`Processed ${existingAttachments.length} valid attachments`);
+    console.log(`Processed ${existingAttachments.length} attachments`);
     
-    // Update form data and selected files
     setFormData({
       ...editData,
       attachments: existingAttachments
@@ -240,15 +247,11 @@ const handleEdit = async (item) => {
     
     setSelectedFiles(existingAttachments);
     
-    if (existingAttachments.length === 0 && fullCardData.attachments?.length > 0) {
-      toast.warn('Attachments could not be loaded. They might need to be re-uploaded.');
-    }
   } catch (error) {
     console.error('Error fetching card details:', error);
     toast.error(`Failed to load card details: ${error.message}`);
   }
 };
-
   const handleDelete = async (id) => {
     await axios.delete(`http://localhost:5000/api/card/${id}`);
     fetchCards();
@@ -272,15 +275,33 @@ const handleEdit = async (item) => {
 
   const removeFile = (index) => {
     const file = selectedFiles[index];
-    if (file.isExisting) {
-      setRemovedAttachments(prev => [...prev, file.name]);
-      // Also remove from formData.attachments
+    
+    // If it's an existing attachment, track its ID for deletion on the server
+    if (file.isExisting && file._id) {
+      console.log(`Marking attachment for deletion: ${file._id}`);
+      setRemovedAttachments(prev => [...prev, file._id]);
+    }
+    
+    // Remove file from the selectedFiles array
+    setSelectedFiles(prev => prev.filter((_, i) => i !== index));
+    
+    // Also remove the attachment from formData.attachments if it exists there
+    if (formData.attachments && formData.attachments.length > 0) {
       setFormData(prev => ({
         ...prev,
-        attachments: prev.attachments?.filter(att => att.name !== file.name) || []
+        attachments: prev.attachments.filter(att => {
+          // For existing attachments with _id
+          if (file._id && att._id) {
+            return att._id.toString() !== file._id.toString();
+          }
+          // For new files being uploaded (match by name)
+          return att.name !== file.name;
+        })
       }));
     }
-    setSelectedFiles(prev => prev.filter((_, i) => i !== index));
+  
+    console.log(`File removed: ${file.name}`);
+    console.log(`Current removedAttachments: ${removedAttachments.join(', ')}`);
   };
 
   const toggleChecklistItem = (index) => {
@@ -431,20 +452,20 @@ const handleEdit = async (item) => {
                       
                       {/* Show image preview for image files */}
                       {file.type?.startsWith('image/') && file.data && (
-  <div className="mt-2">
-    <img 
-      src={`data:${file.type};base64,${file.data}`}
-      alt={file.name}
-      className="max-h-40 max-w-full border rounded"
-      onError={(e) => {
-        e.target.onerror = null;
-        e.target.src = '/placeholder-image.png';
-        console.error('Failed to load image:', file.name);
-      }}
-    />
-  </div>
-)}
-                      
+                  <div className="mt-2">
+                    <img 
+                      src={file.isExisting 
+                        ? `data:${file.type};base64,${file.data}`
+                        : URL.createObjectURL(new Blob([file], { type: file.type }))}
+                      alt={file.name}
+                      className="max-h-40 max-w-full border rounded"
+                      onError={(e) => {
+                        e.target.onerror = null;
+                        e.target.src = '/placeholder-image.png';
+                      }}
+                    />
+                  </div>
+                )}                
                       {file.size && (
                         <div className="text-xs text-gray-400 mt-1">
                           {Math.round(file.size / 1024)} KB
