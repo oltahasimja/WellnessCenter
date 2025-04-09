@@ -84,7 +84,7 @@ const TrainingApplication = () => {
       const payload = {
         trainingId: formData.trainingId,
         userId: loggedInUser.id,
-        status: 'Në pritje',
+        duration: '',
         applicationDate: new Date().toISOString()
       };
 
@@ -196,7 +196,7 @@ const TrainingApplication = () => {
           <table className="w-full border-collapse shadow-md rounded-md bg-white">
             <thead>
               <tr className="bg-gray-200 text-gray-600 uppercase text-sm leading-normal">
-                <th className="py-3 px-6 text-left">Statusi</th>
+                <th className="py-3 px-6 text-left">Duration</th>
                 <th className="py-3 px-6 text-left">Data e Aplikimit</th>
                 <th className="py-3 px-6 text-left">Përdoruesi</th>
                 <th className="py-3 px-6 text-left">Trajnimi</th>
@@ -207,7 +207,7 @@ const TrainingApplication = () => {
               {trainingapplicationList.length > 0 ? (
                 trainingapplicationList.map((item) => (
                   <tr key={item.mysqlId || item.id} className="border-b border-gray-200 hover:bg-gray-100">
-                    <td className="py-3 px-6 text-left">{item.status || 'Në pritje'}</td>
+                    <td className="py-3 px-6 text-left">{item.trainingId?.duration}</td>
                     <td className="py-3 px-6 text-left">
                       {new Date(item.applicationDate).toLocaleDateString()}
                     </td>

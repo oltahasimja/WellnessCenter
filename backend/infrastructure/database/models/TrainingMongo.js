@@ -35,5 +35,3 @@ const Training = mongoose.model('TrainingMongo', TrainingSchema);
 
 module.exports = Training;
 
-module.exports = Training;
-

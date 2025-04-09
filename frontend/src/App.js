@@ -10,6 +10,7 @@ import List from './dashboard/List';
 import UserProgram from './dashboard/UserPrograms';
 import ProgramDetail from './dashboard/ProgramDetail'; 
 import Training from './dashboard/Training';
+import Certification from './dashboard/Certification';
 import Card from './dashboard/Card';
 import TrainingApplication from './dashboard/TrainingApplication';
 import TrainingDetail from './dashboard/TrainingDetail';
@@ -36,6 +37,7 @@ const AppRoutes = () => {
         <Route path="/dashboard/*" element={<Dashboard />} />
         <Route path="/list" element={<List />} />
         <Route path="/training" element={<Training />} />
+        <Route path="/certification" element={<Certification />} />
         <Route path="/trainingapplication" element={<TrainingApplication />} />
         <Route path="/userprograms" element={<UserProgram />} />
         <Route path="/programs" element={<Program />} />
