@@ -108,6 +108,11 @@ passport.deserializeUser(async (id, done) => {
 app.use(passport.initialize());
 app.use(passport.session());
 
+const Role = require('./infrastructure/database/models/Role');
+const RoleMongo = require('./infrastructure/database/models/RoleMongo');
+const DashboardRole = require('./infrastructure/database/models/DashboardRole');
+const DashboardRoleMongo = require('./infrastructure/database/models/DashboardRoleMongo');
+
 
 
 app.get('/user', isAuthenticated, async (req, res) => {
@@ -115,6 +120,7 @@ app.get('/user', isAuthenticated, async (req, res) => {
     const user = await User.findByPk(req.user.id, {
       include: [
         { model: Role },
+        { model: DashboardRole },
         { 
           model: Country,
           attributes: ['id', 'name']
@@ -147,6 +153,7 @@ app.get('/user', isAuthenticated, async (req, res) => {
         number: user.number,
         username: user.username,
         role: user.Role ? user.Role.name : 'User',
+       dashboardRole: user.DashboardRole ? user.DashboardRole.name : 'User',
         profileImage: user.ProfileImage ? user.ProfileImage.name : null,
         profileImageId: user.ProfileImage ? user.ProfileImage.id : null,
         country: user.Country ? user.Country.name : null,
@@ -259,10 +266,7 @@ app.post('/logout', (req, res) => {
   res.status(200).json({ message: 'U çkyçët me sukses.' });
 });
 
-const Role = require('./infrastructure/database/models/Role');
-const RoleMongo = require('./infrastructure/database/models/RoleMongo');
-const DashboardRole = require('./infrastructure/database/models/DashboardRole');
-const DashboardRoleMongo = require('./infrastructure/database/models/DashboardRoleMongo');
+
 
 const createDefaultRoles = async () => {
   try {

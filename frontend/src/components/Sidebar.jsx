@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTheme } from "../components/ThemeContext";
+import useAuthCheck from '../hook/useAuthCheck';
 import axios from 'axios';
 import { 
   LayoutDashboard, 
@@ -15,8 +16,24 @@ const Sidebar = () => {
   const [isOpen, setIsOpen] = useState(true);
   const [openDropdown, setOpenDropdown] = useState(null);
   const [cartItemCount, setCartItemCount] = useState(0); // <-- Track cart items
+  const { isChecking, user } = useAuthCheck(); 
   const navigate = useNavigate();
   const { theme } = useTheme();
+
+  if (isChecking) {
+    return (
+      <div className="flex items-center justify-center min-h-screen dark:bg-gray-900 bg-white">
+        <div className="w-16 h-16 border-4 border-blue-500 border-dashed rounded-full animate-spin"></div>
+      </div>
+    );
+  }
+  const isAdmin = user?.dashboardRole === "Admin";
+  const isSpecialist = user?.role === "Specialist";
+  const isUser = user?.role === "Client";
+
+  // {isAdmin && (
+  //   <div className="text-sm text-gray-400 px-4 py-2">ADMIN</div>
+  // )}
 
   const toggleSidebar = () => setIsOpen(!isOpen);
   const toggleDropdown = (label) => {
@@ -83,7 +100,8 @@ const Sidebar = () => {
             componentName=""
           />
         
-
+{/* {isAdmin && ( */}
+        
     <div className="mb-1">
             <MenuItem 
               icon={Package} 
@@ -109,7 +127,7 @@ const Sidebar = () => {
               </div>
             )}
           </div>
-
+{/* )} */}
 
 
          

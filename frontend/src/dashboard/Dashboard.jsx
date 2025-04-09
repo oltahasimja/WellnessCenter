@@ -29,6 +29,7 @@ import Review from './Review';
 function Dashboard() {
   axios.defaults.withCredentials = true;
   useAuthCheck();
+  const { isChecking, isAuthenticated } = useAuthCheck();
   const { pathname } = useLocation();
   const navigate = useNavigate();
   
@@ -55,6 +56,19 @@ function Dashboard() {
       localStorage.setItem('editUserId', id);
     }
   }, [pathname]);  // Only pathname as a dependency
+
+   
+  if (isChecking) {
+    return (
+      <div className="flex items-center justify-center min-h-screen dark:bg-gray-900 bg-white">
+        <div className="w-16 h-16 border-4 border-blue-500 border-dashed rounded-full animate-spin"></div>
+      </div>
+    );
+  }
+  
+  if (!isAuthenticated) {
+    return <div className="flex justify-center items-center h-screen">Ju lutemi identifikohuni...</div>;
+  }
 
   const renderComponent = () => {
     switch (activeComponent) {

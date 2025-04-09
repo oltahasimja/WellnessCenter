@@ -246,12 +246,12 @@ const fetchUserData = async () => {
   if (loading) {
     return (
       <div className="flex flex-col">
-        <Navbar />
+        {/* <Navbar /> */}
         <div className="flex flex-1 mb-[2rem]">
-          <Sidebar />
-          <div className={`p-6 flex-1 ${theme === 'dark' ? 'bg-gray-800' : 'bg-gray-100'} flex items-center justify-center`}>
-            <div className={`text-lg ${theme === 'dark' ? 'text-white' : 'text-gray-800'}`}>Loading...</div>
-          </div>
+          {/* <Sidebar /> */}
+          <div className="flex items-center justify-center min-h-screen dark:bg-gray-900 bg-white">
+        <div className="w-16 h-16 border-4 border-blue-500 border-dashed rounded-full animate-spin"></div>
+      </div>
         </div>
       </div>
     );

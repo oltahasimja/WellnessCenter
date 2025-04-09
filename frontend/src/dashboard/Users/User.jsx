@@ -163,9 +163,11 @@ const User = ({ setActiveComponent }) => {
     const exportToExcel = () => {
       if (userList.length === 0) return;
     
-      const filteredUserList = userList.map(({ password, profileImage, __v, roleId, ...rest }) => ({
+      const filteredUserList = userList.map(({ password, dashboardRoleId, profileImage, __v, roleId, countryId, cityId, ...rest }) => ({
         ...rest,
-        role: roleId && roleId.name ? roleId.name : "No Role Assigned" 
+        role: roleId && roleId.name ? roleId.name : "No Role Assigned",
+        country: countryId && countryId.name ? countryId.name : "No Country",
+        city: cityId && cityId.name ? cityId.name : "No City"
       }));
     
       const worksheet = XLSX.utils.json_to_sheet(filteredUserList);
@@ -178,9 +180,11 @@ const User = ({ setActiveComponent }) => {
     const exportToJSON = () => {
       if (userList.length === 0) return;
     
-      const filteredUserList = userList.map(({ password, profileImage , __v , roleId, ...rest }) => ({
+      const filteredUserList = userList.map(({ password, profileImage, dashboardRoleId, __v, roleId, countryId, cityId, ...rest }) => ({
         ...rest,
-        role: roleId && roleId.name ? roleId.name : "No Role Assigned"
+        role: roleId && roleId.name ? roleId.name : "No Role Assigned",
+        country: countryId && countryId.name ? countryId.name : "No Country",
+        city: cityId && cityId.name ? cityId.name : "No City"
       }));
     
       const jsonContent = JSON.stringify(filteredUserList, null, 2);

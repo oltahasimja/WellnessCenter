@@ -187,13 +187,12 @@ async update(id, data) {
       email: data.email,
       username: data.username,
       roleId: data.roleId,
-      dashboardRoleId: data.dashboardRoleId,
+      dashboardRoleId: data.dashboardRoleId || null,
       birthday: data.birthday,
       gender: data.gender,
       number: data.number
     });
 
-    // Përditëso vendndodhjen
     if (data.country) {
       let country = await Country.findOne({ where: { name: data.country } });
       if (!country) country = await Country.create({ name: data.country });
@@ -207,24 +206,19 @@ async update(id, data) {
       await mysqlUser.setCity(city);
     }
 
-    // Përditëso imazhin e profilit
     if (data.profileImage !== undefined) {
       if (data.profileImage === null) {
-        // Fshi imazhin ekzistues nëse ekziston
         if (mysqlUser.ProfileImage) {
           await mysqlUser.ProfileImage.destroy();
         }
         await mysqlUser.setProfileImage(null);
       } else {
-        // Përditëso ose krijo imazhin e ri
         let profileImageRecord;
         
         if (mysqlUser.ProfileImage) {
-          // Përditëso imazhin ekzistues
           profileImageRecord = await ProfileImage.findByPk(mysqlUser.ProfileImage.id);
           await profileImageRecord.update({ name: data.profileImage });
         } else {
-          // Krijo një imazh të ri
           profileImageRecord = await ProfileImage.create({ 
             name: data.profileImage,
             userId: id
@@ -235,20 +229,18 @@ async update(id, data) {
       }
     }
 
-    // Përditëso MongoDB
     const mongoUpdateData = {
       name: data.name,
       lastName: data.lastName,
       email: data.email,
       username: data.username,
       roleId: data.roleId,
-      dashboardRoleId: data.dashboardRoleId,
-      birthday: data.birthday,
+      dashboardRoleId: data.dashboardRoleId || null,   
+     birthday: data.birthday,
       gender: data.gender,
       number: data.number
     };
 
-    // Përditëso referencat e vendndodhjes
     if (mysqlUser.Country) {
       let countryMongo = await CountryMongo.findOne({ mysqlId: mysqlUser.Country.id.toString() });
       if (!countryMongo) {

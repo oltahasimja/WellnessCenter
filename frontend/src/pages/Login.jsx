@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Navigate } from 'react-router-dom';
 import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google';
 import ThemeSwitcher from "../components/ThemeSwitcher"; 
+import useAuthCheck from '../hook/useAuthCheck'; 
 
 
 const Login = () => {
+  const { isChecking, isAuthenticated } = useAuthCheck();
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [message, setMessage] = useState('');
@@ -13,28 +15,19 @@ const Login = () => {
 
     axios.defaults.withCredentials = true;
 
-
-
-    useEffect(() => {
-      const checkLoginStatus = async () => {
-        try {
-          const response = await axios.get("http://localhost:5000/user", { 
-            withCredentials: true 
-          });
-          
-          if (response.data.user) {
-            navigate("/dashboard");
-          }
-        } catch (error) {
-          console.log("Përdoruesi nuk është i kyçur.");
-        }
-      };
+    if (isChecking) {
+      return (
+        <div className="flex items-center justify-center min-h-screen dark:bg-gray-900 bg-white">
+          <div className="w-16 h-16 border-4 border-blue-500 border-dashed rounded-full animate-spin"></div>
+        </div>
+      );
+    }
     
-      checkLoginStatus();
-    }, [navigate]);
+  
+    if (isAuthenticated) return <Navigate to="/dashboard" />;
 
-        
 
+      
       const handleSubmit = async (e) => {
         e.preventDefault();
         try {

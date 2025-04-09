@@ -405,28 +405,44 @@ function EditUser({ setActiveComponent }) {
           {dashboardroleList.length > 0 && (
   <div>
     <label className={`block ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`} htmlFor="dashboardRoleId">Dashboard Role</label>
-    <select
-      id="dashboardRoleId"
-      name="dashboardRoleId"
-      value={formData.dashboardRoleId || ''}
-      onChange={handleInputChange}
-      className={`w-full p-2 rounded border ${theme === 'dark' ? 'bg-gray-600 border-gray-500 text-white' : 'bg-white border-gray-300'}`}
-    >
-      <option value="">Select Dashboard Role</option>
-      {userData?.dashboardRoleId && (
-        <option value={userData.dashboardRoleId.mysqlId || userData.dashboardRoleId}>
-          {userData.dashboardRoleId.name}
-        </option>
-      )}
-      
-      {dashboardroleList
-        .filter(role => role.mysqlId !== (userData?.dashboardRoleId?.mysqlId || userData?.dashboardRoleId))
-        .map(role => (
-          <option key={role.mysqlId || role._id} value={role.mysqlId || role._id}>
-            {role.name}
+    <div className="flex items-center gap-2">
+      <select
+        id="dashboardRoleId"
+        name="dashboardRoleId"
+        value={formData.dashboardRoleId || ''}
+        onChange={handleInputChange}
+        className={`w-full p-2 rounded border ${theme === 'dark' ? 'bg-gray-600 border-gray-500 text-white' : 'bg-white border-gray-300'}`}
+      >
+        <option value="">Select Dashboard Role</option>
+        {userData?.dashboardRoleId && (
+          <option value={userData.dashboardRoleId.mysqlId || userData.dashboardRoleId}>
+            {userData.dashboardRoleId.name}
           </option>
-        ))}
-    </select>
+        )}
+        
+        {dashboardroleList
+          .filter(role => role.mysqlId !== (userData?.dashboardRoleId?.mysqlId || userData?.dashboardRoleId))
+          .map(role => (
+            <option key={role.mysqlId || role._id} value={role.mysqlId || role._id}>
+              {role.name}
+            </option>
+          ))}
+      </select>
+      {formData.dashboardRoleId && (
+        <button
+          type="button"
+          onClick={() => {
+            setFormData(prev => ({
+              ...prev,
+              dashboardRoleId: null
+            }));
+          }}
+          className={`px-3 py-2 rounded-md ${theme === 'dark' ? 'bg-red-600 hover:bg-red-700' : 'bg-red-500 hover:bg-red-600'} text-white`}
+        >
+          Remove Role
+        </button>
+      )}
+    </div>
   </div>
 )}
         </div>
