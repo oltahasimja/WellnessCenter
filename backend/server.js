@@ -259,14 +259,16 @@ app.post('/logout', (req, res) => {
   res.status(200).json({ message: 'U çkyçët me sukses.' });
 });
 
-
 const Role = require('./infrastructure/database/models/Role');
-const RoleMongo = require('./infrastructure/database/models/RoleMongo')
+const RoleMongo = require('./infrastructure/database/models/RoleMongo');
+const DashboardRole = require('./infrastructure/database/models/DashboardRole');
+const DashboardRoleMongo = require('./infrastructure/database/models/DashboardRoleMongo');
 
 const createDefaultRoles = async () => {
   try {
     await sequelize.sync(); 
 
+    // Rolet e zakonshme
     const roles = ['Client', 'Fizioterapeut', 'Nutricionist', 'Trajner', 'Psikolog'];
 
     for (let roleName of roles) {
@@ -290,6 +292,36 @@ const createDefaultRoles = async () => {
             name: roleName,
           });
           console.log(`Roli '${roleName}' u krijua në MongoDB (ekzistonte vetëm në MySQL).`);
+        }
+      }
+    }
+
+    // Rolet e Dashboard-it
+    const dashboardRoles = ['Admin', 'Owner'];
+
+    for (let roleName of dashboardRoles) {
+      // Create or find the role in MySQL
+      const [dashboardRole, created] = await DashboardRole.findOrCreate({
+        where: { name: roleName },
+        defaults: { name: roleName },
+      });
+
+      if (created) {
+        await DashboardRoleMongo.create({
+          mysqlId: dashboardRole.id.toString(),
+          name: roleName,
+        });
+        console.log(`Roli i Dashboard '${roleName}' u krijua në të dyja databazat.`);
+      } else {
+        const existingMongoDashboardRole = await DashboardRoleMongo.findOne({ 
+          mysqlId: dashboardRole.id.toString() 
+        });
+        if (!existingMongoDashboardRole) {
+          await DashboardRoleMongo.create({
+            mysqlId: dashboardRole.id.toString(),
+            name: roleName,
+          });
+          console.log(`Roli i Dashboard '${roleName}' u krijua në MongoDB (ekzistonte vetëm në MySQL).`);
         }
       }
     }

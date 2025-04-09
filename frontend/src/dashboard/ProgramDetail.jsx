@@ -20,7 +20,9 @@ const ProgramDetail = () => {
   const [showListForm, setShowListForm] = useState(false);
   const [editingListId, setEditingListId] = useState(null);
   const [editedListName, setEditedListName] = useState('');
-  
+  const [isCardModalOpen, setIsCardModalOpen] = useState(false);
+const [selectedCard, setSelectedCard] = useState(null);
+const [selectedListId, setSelectedListId] = useState(null);
   useEffect(() => {
     const checkLoginStatus = async () => {
       try {
@@ -36,6 +38,7 @@ const ProgramDetail = () => {
     };
     checkLoginStatus();
   }, [navigate]);
+
   useEffect(() => {
     const fetchProgramData = async () => {
       if (!currentUser) return;
@@ -126,7 +129,8 @@ const ProgramDetail = () => {
                 priority: card.priority,
                 dueDate: card.dueDate,
                 labels: card.labels || [],
-                checklist: card.checklist || []
+                checklist: card.checklist || [],
+                attachments : card.attachments || []
               }));
 
             return {
@@ -152,28 +156,68 @@ const ProgramDetail = () => {
     }
   }, [id, currentUser]);
 
+  const fetchLists = async () => {
+    try {
+      const [listsRes, cardsRes] = await Promise.all([
+        axios.get('http://localhost:5000/api/list'),
+        axios.get('http://localhost:5000/api/card')
+      ]);
+  
+      const boardLists = listsRes.data
+        .filter(list => list.programId && (list.programId._id === id || list.programId.mysqlId === id))
+        .map(list => {
+          const listCards = cardsRes.data
+            .filter(card => card.listId && (card.listId._id === list._id || card.listId.mysqlId === list.mysqlId))
+            .map(card => ({
+              id: card.mysqlId || card._id,
+              text: card.title,
+              description: card.description,
+              priority: card.priority,
+              dueDate: card.dueDate,
+              labels: card.labels || [],
+              checklist: card.checklist || []
+            }));
+  
+          return {
+            id: list.mysqlId || list._id,
+            title: list.name,
+            cards: listCards,
+            inputText: ''
+          };
+        });
+  
+      setLists(boardLists);
+    } catch (error) {
+      console.error("Error fetching lists:", error);
+    }
+  };
+
   const handleAddList = async () => {
     if (!newListName.trim()) {
       alert('Please enter a list name');
       return;
     }
-    
+  
     try {
       const response = await axios.post('http://localhost:5000/api/list', {
         name: newListName,
         programId: id,
-        createdById: currentUser.id
+        createdById: currentUser.id,
       });
-      
-      // Add the new list to our state
+  
       const newList = {
         id: response.data.mysqlId || response.data._id,
         title: response.data.name,
-        cards: []
+        cards: [],
       };
-      setLists([...lists, newList]);
+  
+      // Option 1: Optimistic update (preferred)
+      setLists(prev => [...prev, newList]);
       setNewListName('');
       setShowListForm(false);
+  
+      // Option 2: Refetch lists (if you need fresh data)
+      await fetchLists();
     } catch (error) {
       console.error('Error creating list:', error);
       alert('Failed to create list: ' + (error.response?.data?.message || error.message));
@@ -427,6 +471,11 @@ const saveListEdit = async (listId) => {
       alert('Failed to create card: ' + (error.response?.data?.message || error.message));
     }
   };
+  const handleCardClick = (listId, card) => {
+    setSelectedCard(card);
+    setSelectedListId(listId);
+    setIsCardModalOpen(true);
+  };
 
   const handleEditCard = async (cardId, updates) => {
     try {
@@ -646,6 +695,7 @@ return(
                       {...provided.draggableProps}
                       {...provided.dragHandleProps}
                       className="bg-white p-3 rounded-md shadow-md mb-2 cursor-pointer"
+                          onClick={() => handleCardClick(list.id, card)}
                     >
                       <div className="font-medium">{card.text}</div>
                       {card.description && (
@@ -666,6 +716,100 @@ return(
                               {label}
                             </span>
                           ))}
+                        </div>
+                      )}  {isCardModalOpen && selectedCard && (
+                        <div 
+                          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+                          onClick={() => setIsCardModalOpen(false)}
+                        >
+                          <div 
+                            className="bg-white rounded-lg shadow-xl w-full max-w-md mx-4"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <div className="p-6">
+                              <div className="flex justify-between items-start mb-4">
+                                <h2 className="text-2xl font-bold">Card Details</h2>
+                                <button 
+                                  onClick={() => setIsCardModalOpen(false)}
+                                  className="text-gray-500 hover:text-gray-700 text-2xl"
+                                >
+                                  &times;
+                                </button>
+                              </div>
+                              
+                              <div className="space-y-4">
+                                <div>
+                                  <label className="block text-sm font-medium text-gray-700 mb-1">Title</label>
+                                  <input 
+                                    type="text"
+                                    value={selectedCard.text}
+                                    onChange={(e) => setSelectedCard({...selectedCard, text: e.target.value})}
+                                    className="w-full border p-2 rounded-md"
+                                  />
+                                </div>
+                                
+                                <div>
+                                  <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                                  <textarea
+                                    value={selectedCard.description || ''}
+                                    onChange={(e) => setSelectedCard({...selectedCard, description: e.target.value})}
+                                    className="w-full border p-2 rounded-md"
+                                    rows="3"
+                                  />
+                                </div>
+                                
+                                <div>
+                                  <label className="block text-sm font-medium text-gray-700 mb-1">Due Date</label>
+                                  <input 
+                                    type="datetime-local"
+                                    value={selectedCard.dueDate || ''}
+                                    onChange={(e) => setSelectedCard({...selectedCard, dueDate: e.target.value})}
+                                    className="w-full border p-2 rounded-md"
+                                  />
+                                </div>
+                                
+                                <div>
+                                  <label className="block text-sm font-medium text-gray-700 mb-1">Priority</label>
+                                  <select
+                                    value={selectedCard.priority || 'medium'}
+                                    onChange={(e) => setSelectedCard({...selectedCard, priority: e.target.value})}
+                                    className="w-full border p-2 rounded-md"
+                                  >
+                                    <option value="low">Low</option>
+                                    <option value="medium">Medium</option>
+                                    <option value="high">High</option>
+                                  </select>
+                                </div>
+                                
+                                <div className="flex justify-end space-x-3 mt-6">
+                                  <button
+                                    onClick={() => setIsCardModalOpen(false)}
+                                    className="px-4 py-2 border border-gray-300 rounded-md"
+                                  >
+                                    Cancel
+                                  </button>
+                                  <button
+                                    onClick={async () => {
+                                      try {
+                                        await handleEditCard(selectedCard.id, {
+                                          title: selectedCard.text,
+                                          description: selectedCard.description,
+                                          priority: selectedCard.priority,
+                                          dueDate: selectedCard.dueDate
+                                        });
+                                        setIsCardModalOpen(false);
+                                      } catch (error) {
+                                        console.error('Error updating card:', error);
+                                      }
+                                    }}
+                                    className="px-4 py-2 bg-blue-500 text-white rounded-md"
+                                  >
+                                    Save Changes
+                                  </button>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
                         </div>
                       )}
                     </div>
@@ -704,6 +848,7 @@ return(
             ))}
           </div>
         </DragDropContext>
+     
       </div>
     </div>
   );

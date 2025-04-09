@@ -1,4 +1,4 @@
-
+const nodemailer = require('nodemailer');
 const UserProgramsRepository = require("../../infrastructure/repository/UserProgramsRepository");
 const UserProgramsPort = require("../../application/ports/UserProgramsPort");
 const UserProgramsUseCase = require("../../application/use-cases/UserProgramsUseCase");
@@ -24,14 +24,62 @@ const getUserProgramsById = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
+
+const transporter = nodemailer.createTransport({
+  service: 'gmail',
+  auth: {
+    user: process.env.EMAIL_USER,  // email address from which to send
+    pass: process.env.EMAIL_PASS   // password of the email
+  }
+});
+
 const createUserPrograms = async (req, res) => {
   try {
+    console.log("Received data for creation:", req.body);
+    
     const newResource = await UseCase.create(req.body);
+    console.log("Successfully created in MongoDB:", newResource);
+    
+    const userId = req.body.userId;
+    const programId = req.body.programId;
+    
+    const UserRepository = require("../../infrastructure/repository/UserRepository");
+    const ProgramRepository = require("../../infrastructure/repository/ProgramRepository");
+    
+    const user = await UserRepository.findById(userId);
+    const program = await ProgramRepository.findById(programId);
+    
+    if (user && user.email && program) {
+      const mailOptions = {
+        from: process.env.EMAIL_USER,
+        to: user.email,
+        subject: `Program ${program.title} invite`,
+        text: `You have been added to the program ${program.title}`
+      };
+      
+      try {
+        await transporter.sendMail(mailOptions);
+        console.log('Confirmation email sent to:', user.email);
+      } catch (emailError) {
+        console.error('Error sending email:', emailError);
+      }
+    } else {
+      // console.log("Cannot send email - user or program data not found");
+      // console.log("User data:", user);
+      // console.log("Program data:", program);
+    }
+   
     res.status(201).json(newResource);
+    
   } catch (error) {
+    console.error('Error in createUserPrograms:', error);
     res.status(500).json({ message: error.message });
   }
 };
+
+
+
 const updateUserPrograms = async (req, res) => {
   try {
     const updatedResource = await UseCase.update(req.params.id, req.body);
