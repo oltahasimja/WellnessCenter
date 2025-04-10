@@ -5,49 +5,64 @@ const Product = () => {
   const [formData, setFormData] = useState({});
   const [productList, setProductList] = useState([]);
   const [categoryList, setCategoryList] = useState([]);
+  const [cart, setCart] = useState([]);
 
   useEffect(() => {
     fetchProducts();
     fetchCategories();
+    const storedCart = JSON.parse(localStorage.getItem("cart")) || [];
+    setCart(storedCart);
   }, []);
 
   const fetchProducts = async () => {
-    const response = await axios.get('http://localhost:5000/api/product');
-    setProductList(response.data);
+    try {
+      const response = await axios.get('http://localhost:5000/api/product');
+      setProductList(response.data);
+    } catch (error) {
+      console.error('Error fetching products:', error);
+      alert('Failed to fetch products');
+    }
   };
 
   const fetchCategories = async () => {
-    const response = await axios.get('http://localhost:5000/api/category');
-    setCategoryList(response.data);
-  }; 
+    try {
+      const response = await axios.get('http://localhost:5000/api/category');
+      setCategoryList(response.data);
+    } catch (error) {
+      console.error('Error fetching categories:', error);
+      alert('Failed to fetch categories');
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
 
     if (!formData.category) {
-        alert('Please select a category');
-        return;
+      alert('Please select a category');
+      return;
     }
 
     const dataToSubmit = {
-        name: formData.name,
-        description: formData.description,
-        price: formData.price,
-        category: formData.category,
-        image: formData.image,
+      name: formData.name,
+      description: formData.description,
+      price: parseFloat(formData.price),
+      category: formData.category,
+      image: formData.image,
     };
 
-
-    if (formData.id) {
+    try {
+      if (formData.id) {
         await axios.put(`http://localhost:5000/api/product/${formData.id}`, dataToSubmit);
-    } else {
+      } else {
         await axios.post('http://localhost:5000/api/product', dataToSubmit);
+      }
+      fetchProducts();
+      setFormData({});
+    } catch (error) {
+      console.error('Error submitting product:', error);
+      alert('Failed to submit product');
     }
-
-    fetchProducts();
-    setFormData({});
-};
+  };
 
   const handleEdit = (item) => {
     const editData = { ...item };
@@ -56,49 +71,39 @@ const Product = () => {
     }
     setFormData(editData);
   };
-
+  
   const handleDelete = async (id) => {
     await axios.delete(`http://localhost:5000/api/product/${id}`);
     fetchProducts();
   };
+  
 
-  // base64 image upload
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (file) {
       const reader = new FileReader();
       reader.onloadend = () => {
-        setFormData({ ...formData, image: reader.result }); 
+        setFormData({ ...formData, image: reader.result });
       };
       reader.readAsDataURL(file);
     }
   };
 
-  const handlePriceChange = (e) => {
-    let value = e.target.value;
+  const addToCart = (product) => {
+    const updatedCart = [...cart];
+    const existingItem = updatedCart.find(item => item.id === product.id);
 
-    value = value.replace('€', '').trim();  
-
+    if (existingItem) {
+      existingItem.quantity += 1;
+    } else {
+      updatedCart.push({ ...product, quantity: 1 });
+    }
     
-    if (value === '' || !isNaN(value)) {
-      setFormData({ ...formData, price: value });
-    }
-  };
 
-  const handleAddToCart = async (product) => {
-    const cartId = "someCartId"; // Get the correct cartId based on your app's logic (e.g., from context or global state)
-    try {
-      // Call the backend API to add the product to the cart
-      await axios.post('http://localhost:5000/api/cart', { productId: product.id, quantity: 1, cartId });
-  
-      // Handle success (e.g., show a success message or update cart count)
-      alert('Product added to cart!');
-    } catch (err) {
-      // Handle error if needed
-      alert('Failed to add product to cart. Please try again.');
-    }
+    setCart(updatedCart);
+    localStorage.setItem("cart", JSON.stringify(updatedCart));
+    alert("Product added to cart!");
   };
-  
 
   return (
     <div className="flex justify-center items-center min-h-screen bg-gray-100">
@@ -122,31 +127,32 @@ const Product = () => {
             onChange={(e) => setFormData({ ...formData, description: e.target.value })}
             className="border p-3 rounded-md w-full focus:ring-2 focus:ring-blue-500 outline-none"
           />
-        {/* price & currency */}
+          
+          {/* price */}
           <input
-            type="text"
+            type="number"
             placeholder="price"
-            value={formData.price !== undefined && formData.price !== '' ? `${new Intl.NumberFormat('en-US').format(formData.price)}€` : ''}
-            onChange={handlePriceChange} 
+            value={formData.price || ''}
+            onChange={(e) => {
+              const numericValue = parseFloat(e.target.value);
+              setFormData({ ...formData, price: isNaN(numericValue) ? '' : numericValue });
+            }}
             className="border p-3 rounded-md w-full focus:ring-2 focus:ring-blue-500 outline-none"
           />
 
-          {/* categories */}
-      <select
-        value={formData.category || ''}
-        onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-        className="border p-3 rounded-md w-full focus:ring-2 focus:ring-blue-500 outline-none"
-      >
-        <option value="">Select Category</option>
-        {/* rendering dinamically */}
-        {categoryList.map((category) => (
-          <option key={category.id} value={category.id}>
-            {category.name}
-          </option>
-        ))}
-      </select>
+          <select
+            value={formData.category || ''}
+            onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+            className="border p-3 rounded-md w-full focus:ring-2 focus:ring-blue-500 outline-none"
+          >
+            <option value="">Select Category</option>
+            {categoryList.map((category) => (
+              <option key={category.id} value={category.id}>
+                {category.name}
+              </option>
+            ))}
+          </select>
 
-          {/* image */}
           <input
             type="file"
             accept="image/*"
@@ -175,16 +181,18 @@ const Product = () => {
             <tbody className="text-gray-700 text-sm font-light">
               {productList.length > 0 ? (
                 productList.map((item) => (
-                  <tr key={item.mysqlId || item.id} className="border-b border-gray-200 hover:bg-gray-100">
+                  <tr key={`${item.id}-${item.name}`} className="border-b border-gray-200 hover:bg-gray-100">
                     <td className="py-3 px-6 text-left">{item.name}</td>
                     <td className="py-3 px-6 text-left">{item.description}</td>
-                    <td className="py-3 px-6 text-left">{new Intl.NumberFormat('en-US').format(item.price)}&nbsp;€</td>
+                    <td className="py-3 px-6 text-left">{new Intl.NumberFormat('en-US').format(item.price)} €</td>
                     <td className="py-3 px-6 text-left">{item.category}</td>
-                    <td className="py-3 px-6 text-left">{item.image && <img src={item.image} alt={item.name} className="w-16 h-16 object-cover rounded" />}</td>
+                    <td className="py-3 px-6 text-left">
+                      {item.image && <img src={item.image} alt={item.name} className="w-16 h-16 object-cover rounded" />}
+                    </td>
                     <td className="py-3 px-6 flex justify-center space-x-2">
                       <button onClick={() => handleEdit(item)} className="bg-yellow-500 hover:bg-yellow-600 text-white py-1 px-3 rounded-md text-sm">Edit</button>
                       <button onClick={() => handleDelete(item.mysqlId || item.id)} className="bg-red-500 hover:bg-red-600 text-white py-1 px-3 rounded-md text-sm">Delete</button>
-                      <button onClick={handleAddToCart} className="bg-green-500 hover:bg-green-300 text-white py-1 px-3 rounded-md text-sm">Add To Cart</button>
+                      <button onClick={() => addToCart(item)} className="bg-green-500 hover:bg-green-600 text-white py-1 px-3 rounded-md text-sm">Add to Cart</button>
                     </td>
                   </tr>
                 ))
