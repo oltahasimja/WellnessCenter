@@ -7,7 +7,7 @@ import {
   Calendar,  UserCircle2,  CheckSquare,  FileText,   Table,  FileInput,  MessageCircle,
     Mail, Menu,  ChevronDown,  Github, Trello,LogOut, ListCheck,Clipboard, Antenna,
   Users, Layers, Shield, CalendarClock, GraduationCap, ListOrdered, Package, Tags,
-  ClipboardList, UserPlus, ShoppingCart
+  ClipboardList, UserPlus, ShoppingCart,Star
 
 } from 'lucide-react';
 
@@ -253,6 +253,37 @@ const Sidebar = () => {
               </div>
             )}
           </div>
+
+
+          {/* Manage Orders Dropdown */}
+
+         <div className="mb-1">
+       <MenuItem 
+       icon={ClipboardList} 
+       label="Manage Order" 
+       hasDropdown={true}
+      />
+      {openDropdown === 'Manage Order' && isOpen && (
+      <div className={`ml-12 mt-1 space-y-1 ${theme === 'dark' ? 'bg-gray-800' : 'bg-gray-50'} rounded-md p-1`}>
+      <div 
+        className="flex items-center px-3 py-2 hover:bg-blue-100 dark:hover:bg-gray-700 rounded cursor-pointer"
+        onClick={() => handleMenuItemClick('order')}
+      >
+        <ClipboardList className="w-5 h-5 mr-2" />
+        <span>Orders</span>
+         </div>
+          <div 
+            className="flex items-center px-3 py-2 hover:bg-blue-100 dark:hover:bg-gray-700 rounded cursor-pointer"
+            onClick={() => handleMenuItemClick('review')}
+           >
+            <Star className="w-5 h-5 mr-2" />
+            <span>Reviews</span>
+           </div>
+             </div>
+           )}
+         </div>
+
+
 
           <MenuItem 
             icon={CalendarClock} 

@@ -15,6 +15,7 @@ import Card from './dashboard/Card';
 import TrainingApplication from './dashboard/TrainingApplication';
 import TrainingDetail from './dashboard/TrainingDetail';
 import Order from './dashboard/Order';
+import Review from './dashboard/Review';
 
 
 const AppRoutes = () => {
@@ -45,6 +46,7 @@ const AppRoutes = () => {
         <Route path="/card" element={<Card />} />
         <Route path="/training/:id" element={<TrainingDetail />} />
         <Route path="/order" element={<Order />} />
+        <Route path="/review" element={<Review/>}/>
       
       </Routes>
     </Router>

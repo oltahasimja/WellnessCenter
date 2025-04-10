@@ -23,6 +23,7 @@ import CreateAppointment from './Appointment/CreateAppointment';
 import Product from './Product';
 import Category from './Category';
 import Cart from './Cart';
+import Review from './Review';
 
 
 function Dashboard() {
@@ -76,6 +77,7 @@ function Dashboard() {
       case "product": return <Product />;
       case "category": return <Category />;
       case "cart": return <Cart />;
+      case "review" : return <Review/>;
      
       case "": 
       case null:
