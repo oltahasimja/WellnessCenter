@@ -1,5 +1,6 @@
 
 const mongoose = require('mongoose');
+const bcrypt = require('bcryptjs');
 const { ObjectId } = require('mongoose').Types;
 const User = require("../database/models/User");
 const UserMongo = require("../database/models/UserMongo");
@@ -344,6 +345,42 @@ async update(id, data) {
       throw error;
     }
   }
+
+  // In UserRepository class
+async updatePassword(id, currentPassword, newPassword) {
+  try {
+    // 1. Find user in MongoDB (for password verification)
+    const mongoUser = await UserMongo.findOne({ mysqlId: id.toString() });
+    if (!mongoUser) {
+      throw new Error("User not found");
+    }
+
+    // 2. Verify current password
+    const isMatch = await bcrypt.compare(currentPassword, mongoUser.password);
+    if (!isMatch) {
+      throw new Error("Current password is incorrect");
+    }
+
+    // 3. Hash new password
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    // 4. Update password in MySQL
+    const mysqlUser = await User.findByPk(id);
+    if (!mysqlUser) {
+      throw new Error("MySQL user not found");
+    }
+    await mysqlUser.update({ password: hashedPassword });
+
+    // 5. Update password in MongoDB
+    mongoUser.password = hashedPassword;
+    await mongoUser.save();
+
+    return true;
+  } catch (error) {
+    console.error("Error updating password:", error);
+    throw error;
+  }
+}
 
 }
 

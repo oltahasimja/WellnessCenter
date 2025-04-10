@@ -88,6 +88,14 @@ const User = sequelize.define('User', {
     },
     allowNull: true,
   },
+  resetPasswordToken: {
+    type: DataTypes.STRING,
+    allowNull: true
+  },
+  resetPasswordExpires: {
+    type: DataTypes.DATE,
+    allowNull: true
+  }
 });
 
 Role.hasMany(User, { foreignKey: 'roleId' });

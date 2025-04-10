@@ -6,6 +6,9 @@ class UserUseCase {
   async getSpecialists() {
     return await this.port.getSpecialists();
   }
+  async updatePassword(id, currentPassword, newPassword) {
+  return await this.port.updatePassword(id, currentPassword, newPassword);
+}
 
   async getAll() {
     return await this.port.getAll();

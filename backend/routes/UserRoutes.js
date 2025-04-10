@@ -9,7 +9,8 @@ const {
   updateUser, 
   deleteUser,
   getSpecialists,
-  getUsersByRole
+  getUsersByRole,
+  updatePassword
 } = require("../adapters/controllers/UserController");
 
  const { isAuthenticated } = require('../middlewares/authMiddleware');
@@ -22,6 +23,7 @@ router.get('/:id', isAuthenticated, getUserById);
 router.get('/role/:roleId', isAuthenticated, getUsersByRole);  
 router.post('/', createUser);
 router.put('/:id', isAuthenticated, updateUser);
+router.put('/:id/password', updatePassword);
 router.delete('/:id', isAuthenticated, deleteUser);
 
 module.exports = router;

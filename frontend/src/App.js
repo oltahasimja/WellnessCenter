@@ -16,6 +16,8 @@ import TrainingApplication from './dashboard/TrainingApplication';
 import TrainingDetail from './dashboard/TrainingDetail';
 import Order from './dashboard/Order';
 import Review from './dashboard/Review';
+import ForgotPassword from './components/ForgotPassword';
+import ResetPassword from './components/ResetPassword';
 
 
 const AppRoutes = () => {
@@ -47,6 +49,9 @@ const AppRoutes = () => {
         <Route path="/training/:id" element={<TrainingDetail />} />
         <Route path="/order" element={<Order />} />
         <Route path="/review" element={<Review/>}/>
+
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password/:token" element={<ResetPassword />} />
       
       </Routes>
     </Router>
