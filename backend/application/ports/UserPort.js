@@ -6,6 +6,9 @@ class UserPort {
   async getSpecialists() {
     return await this.repository.getSpecialists();
   }
+  async updatePassword(id, currentPassword, newPassword) {
+  return await this.repository.updatePassword(id, currentPassword, newPassword);
+  }
 
   async getAll() {
     return await this.repository.findAll();

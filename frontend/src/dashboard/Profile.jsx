@@ -18,6 +18,14 @@ function Profile() {
     country: '',
     city: ''
   });
+  const [passwordData, setPasswordData] = useState({
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: ''
+  });
+  const [passwordError, setPasswordError] = useState('');
+  const [passwordSuccess, setPasswordSuccess] = useState('');
+  const [showPasswordSection, setShowPasswordSection] = useState(false);
   const [countryList, setCountryList] = useState([]);
   const [cityList, setCityList] = useState([]);
   const [selectedCountry, setSelectedCountry] = useState('');
@@ -77,40 +85,39 @@ function Profile() {
 
   useEffect(() => {
     // Fetch user data
-  // In your fetchUserData function:
-const fetchUserData = async () => {
-  try {
-    setLoading(true);
-    const response = await axios.get('http://localhost:5000/user', {
-      withCredentials: true
-    });
-    
-    if (response.data.user) {
-      setUserData(response.data.user);
-      const user = response.data.user;
-      setFormData({
-        birthday: user.birthday ? user.birthday.split('T')[0] : '',
-        gender: user.gender || '',
-        number: user.number || '',
-        country: user.countryId || '', // Use countryId for form
-        city: user.cityId || '', // Use cityId for form
-        profileImage: user.profileImageId || null
-      });
-      
-      // Set selected country and city names for display
-      setSelectedCountry(user.country || '');
-      setSelectedCity(user.city || '');
-    } else {
-      navigate('/login');
-    }
-  } catch (err) {
-    setError('Failed to fetch user data');
-    console.error('Error fetching user data:', err);
-    navigate('/login');
-  } finally {
-    setLoading(false);
-  }
-};
+    const fetchUserData = async () => {
+      try {
+        setLoading(true);
+        const response = await axios.get('http://localhost:5000/user', {
+          withCredentials: true
+        });
+        
+        if (response.data.user) {
+          setUserData(response.data.user);
+          const user = response.data.user;
+          setFormData({
+            birthday: user.birthday ? user.birthday.split('T')[0] : '',
+            gender: user.gender || '',
+            number: user.number || '',
+            country: user.countryId || '', // Use countryId for form
+            city: user.cityId || '', // Use cityId for form
+            profileImage: user.profileImageId || null
+          });
+          
+          // Set selected country and city names for display
+          setSelectedCountry(user.country || '');
+          setSelectedCity(user.city || '');
+        } else {
+          navigate('/login');
+        }
+      } catch (err) {
+        setError('Failed to fetch user data');
+        console.error('Error fetching user data:', err);
+        navigate('/login');
+      } finally {
+        setLoading(false);
+      }
+    };
 
     fetchUserData();
     fetchCountries(); // Fetch countries on component mount
@@ -155,10 +162,6 @@ const fetchUserData = async () => {
     reader.readAsDataURL(file);
   };
 
-  // const handleEditToggle = () => {
-  //   setEditing(!editing);
-  // };
-
   const handleEditToggle = (item) => {
     // Create a copy of the item to avoid direct modification
     const editData = { ...item };
@@ -167,12 +170,24 @@ const fetchUserData = async () => {
     }
     setEditing(editData);
   };
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
       [name]: value
     }));
+  };
+
+  const handlePasswordInputChange = (e) => {
+    const { name, value } = e.target;
+    setPasswordData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+    // Clear error message when user starts typing
+    if (passwordError) setPasswordError('');
+    if (passwordSuccess) setPasswordSuccess('');
   };
 
   const handleRemovePhoto = async () => {
@@ -231,10 +246,6 @@ const fetchUserData = async () => {
       
       setUserData(response.data.user);
       setEditing(false);
-      // setMessage('Të dhënat u përditësuan me sukses!');
-      
-      // Fshi mesazhin pas 3 sekondash
-      // setTimeout(() => setMessage(''), 3000);
       
     } catch (error) {
       console.error('Error updating profile:', error);
@@ -242,16 +253,108 @@ const fetchUserData = async () => {
     }
   };
 
+  const handlePasswordSubmit = async (e) => {
+    e.preventDefault();
+    setPasswordError('');
+    setPasswordSuccess('');
+  
+    // Validate passwords
+    if (!passwordData.currentPassword) {
+      setPasswordError('Current password is required');
+      return;
+    }
+  
+    if (!passwordData.newPassword) {
+      setPasswordError('New password is required');
+      return;
+    }
+  
+    if (passwordData.newPassword.length < 8) {
+      setPasswordError('Password must be at least 8 characters long');
+      return;
+    }
+  
+    if (passwordData.newPassword !== passwordData.confirmPassword) {
+      setPasswordError('New passwords do not match');
+      return;
+    }
+  
+    try {
+      // Use the correct ID field from your userData
+      const userId = userData?.id;
+      if (!userId) {
+        throw new Error('User ID not found in user data');
+      }
+  
+      // Debug log
+      console.log('Attempting password update for user:', {
+        userId,
+        email: userData.email
+      });
+  
+      // Send password update request
+      const response = await axios.put(
+        `http://localhost:5000/api/user/${userId}/password`,
+        {
+          currentPassword: passwordData.currentPassword,
+          newPassword: passwordData.newPassword
+        },
+        {
+          withCredentials: true,
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+  
+      // Reset password fields
+      setPasswordData({
+        currentPassword: '',
+        newPassword: '',
+        confirmPassword: ''
+      });
+  
+      setPasswordSuccess('Password updated successfully');
+  
+      // Hide password section after successful update
+      setTimeout(() => {
+        setShowPasswordSection(false);
+        setPasswordSuccess('');
+      }, 3000);
+  
+    } catch (error) {
+      console.error('Password update error:', {
+        error: error.message,
+        response: error.response?.data,
+        config: error.config
+      });
+  
+      setPasswordError(
+        error.response?.data?.message || 
+        'Failed to update password. Please try again.'
+      );
+    }
+  };
+
+  const togglePasswordSection = () => {
+    setShowPasswordSection(!showPasswordSection);
+    // Reset password data and errors when toggling
+    setPasswordData({
+      currentPassword: '',
+      newPassword: '',
+      confirmPassword: ''
+    });
+    setPasswordError('');
+    setPasswordSuccess('');
+  };
 
   if (loading) {
     return (
       <div className="flex flex-col">
-        {/* <Navbar /> */}
         <div className="flex flex-1 mb-[2rem]">
-          {/* <Sidebar /> */}
           <div className="flex items-center justify-center min-h-screen dark:bg-gray-900 bg-white">
-        <div className="w-16 h-16 border-4 border-blue-500 border-dashed rounded-full animate-spin"></div>
-      </div>
+            <div className="w-16 h-16 border-4 border-blue-500 border-dashed rounded-full animate-spin"></div>
+          </div>
         </div>
       </div>
     );
@@ -260,9 +363,7 @@ const fetchUserData = async () => {
   if (error) {
     return (
       <div className="flex flex-col">
-        {/* <Navbar /> */}
         <div className="flex flex-1 mb-[2rem]">
-          {/* <Sidebar /> */}
           <div className={`p-6 flex-1 ${theme === 'dark' ? 'bg-gray-800' : 'bg-gray-100'} flex items-center justify-center`}>
             <div className="text-lg text-red-500">{error}</div>
           </div>
@@ -275,9 +376,7 @@ const fetchUserData = async () => {
 
   return (
     <div className="h-screen flex flex-col">
-      {/* <Navbar /> */}
       <div className="flex flex-1 mb-[2rem]">
-        {/* <Sidebar /> */}
         <div className={`p-6 flex-1 ${theme === 'dark' ? 'bg-gray-800' : 'bg-gray-100'}`}>
           <div className={`max-w-10xl mx-auto p-6 rounded-lg shadow-md ${theme === 'dark' ? 'bg-gray-700' : 'bg-white'}`}>
             {/* Header with Edit Button */}
@@ -286,26 +385,33 @@ const fetchUserData = async () => {
                 <h1 className={`text-3xl font-bold mb-2 ${theme === 'dark' ? 'text-white' : 'text-gray-800'}`}>Profile</h1>
                 <div className={`border-b ${theme === 'dark' ? 'border-gray-600' : 'border-gray-200'}`}></div>
               </div>
-              <button
-           onClick={() => handleEditToggle(userData)}
-        className={`px-4 py-2 rounded-md ${theme === 'dark' ? 'bg-blue-600 hover:bg-blue-700' : 'bg-blue-500 hover:bg-blue-600'} text-white`}
-              >
-                {editing ? 'Cancel' : 'Edit Profile'}
-              </button>
+              <div className="flex space-x-2">
+                <button
+                  onClick={togglePasswordSection}
+                  className={`px-4 py-2 rounded-md ${theme === 'dark' ? 'bg-purple-600 hover:bg-purple-700' : 'bg-purple-500 hover:bg-purple-600'} text-white`}
+                >
+                  {showPasswordSection ? 'Hide Password Reset' : 'Change Password'}
+                </button>
+                <button
+                  onClick={() => handleEditToggle(userData)}
+                  className={`px-4 py-2 rounded-md ${theme === 'dark' ? 'bg-blue-600 hover:bg-blue-700' : 'bg-blue-500 hover:bg-blue-600'} text-white`}
+                >
+                  {editing ? 'Cancel' : 'Edit Profile'}
+                </button>
+              </div>
             </div>
 
             {/* Profile Section */}
             <div className="mb-8">
-              {/* <h2 className={`text-2xl font-semibold mb-4 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>Profile</h2> */}
               <div className="flex items-center mb-6">
-              <div className="relative group">
+                <div className="relative group">
                   <div className={`w-24 h-24 rounded-full flex items-center justify-center overflow-hidden shadow-md ${theme === 'dark' ? 'bg-blue-900' : 'bg-blue-100'}`}>
                     {userData.profileImage ? (
                       <img 
-                      src={`data:image/jpeg;base64,${userData.profileImage}`}
-                      alt="Profile"
-                      className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-                    />
+                        src={`data:image/jpeg;base64,${userData.profileImage}`}
+                        alt="Profile"
+                        className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                      />
                     ) : (
                       <span className={`text-3xl font-bold ${theme === 'dark' ? 'text-blue-300' : 'text-blue-600'}`}>
                         {initials}
@@ -354,6 +460,74 @@ const fetchUserData = async () => {
               </div>
               <div className={`border-b ${theme === 'dark' ? 'border-gray-600' : 'border-gray-200'}`}></div>
             </div>
+
+            {/* Password Reset Section */}
+            {showPasswordSection && (
+              <div className="mb-8">
+                <h2 className={`text-xl font-semibold mb-4 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>Change Password</h2>
+                <form onSubmit={handlePasswordSubmit} className="space-y-4">
+                  {passwordError && (
+                    <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+                      {passwordError}
+                    </div>
+                  )}
+                  {passwordSuccess && (
+                    <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded">
+                      {passwordSuccess}
+                    </div>
+                  )}
+                  <div className="flex flex-col md:grid-cols-2 gap-4">
+                    <div>
+                      <label className={`block ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`} htmlFor="currentPassword">Current Password</label>
+                      <input
+                        type="password"
+                        id="currentPassword"
+                        name="currentPassword"
+                        value={passwordData.currentPassword}
+                        onChange={handlePasswordInputChange}
+                        className={`w-full p-2 rounded border ${theme === 'dark' ? 'bg-gray-600 border-gray-500 text-white' : 'bg-white border-gray-300'}`}
+                        required
+                      />
+                    </div>
+                    <div></div>
+                    <div>
+                      <label className={`block ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`} htmlFor="newPassword">New Password</label>
+                      <input
+                        type="password"
+                        id="newPassword"
+                        name="newPassword"
+                        value={passwordData.newPassword}
+                        onChange={handlePasswordInputChange}
+                        className={`w-full p-2 rounded border ${theme === 'dark' ? 'bg-gray-600 border-gray-500 text-white' : 'bg-white border-gray-300'}`}
+                        required
+                        minLength={8}
+                      />
+                    </div>
+                    <div>
+                      <label className={`block ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`} htmlFor="confirmPassword">Confirm New Password</label>
+                      <input
+                        type="password"
+                        id="confirmPassword"
+                        name="confirmPassword"
+                        value={passwordData.confirmPassword}
+                        onChange={handlePasswordInputChange}
+                        className={`w-full p-2 rounded border ${theme === 'dark' ? 'bg-gray-600 border-gray-500 text-white' : 'bg-white border-gray-300'}`}
+                        required
+                      />
+                    </div>
+                  </div>
+                  <div className="flex justify-start">
+                    <button
+                      type="submit"
+                      className={`px-4 py-2 rounded-md ${theme === 'dark' ? 'bg-green-600 hover:bg-green-700' : 'bg-green-500 hover:bg-green-600'} text-white`}
+                    >
+                      Update Password
+                    </button>
+                  </div>
+                </form>
+                <div className={`mt-4 border-b ${theme === 'dark' ? 'border-gray-600' : 'border-gray-200'}`}></div>
+              </div>
+            )}
 
             {/* Personal Information */}
             <div className="mb-8">
@@ -426,45 +600,45 @@ const fetchUserData = async () => {
                   
                   {/* Address Section */}
                   <div className="mb-6">
-            <h2 className={`text-xl font-semibold mb-4 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>Address</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className={`block ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`} htmlFor="country">Country</label>
-                <select
-                  id="country"
-                  name="country"
-                  value={selectedCountry}
-                  onChange={handleCountryChange}
-                  className={`w-full p-2 rounded border ${theme === 'dark' ? 'bg-gray-600 border-gray-500 text-white' : 'bg-white border-gray-300'}`}
-                >
-                  <option value="">Select Country</option>
-                  {countryList.map((country) => (
-                    <option key={country.country} value={country.country}>
-                      {country.country}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label className={`block ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`} htmlFor="city">City/State</label>
-                <select
-                  id="city"
-                  name="city"
-                  value={selectedCity}
-                  onChange={handleCityChange}
-                  disabled={!selectedCountry}
-                  className={`w-full p-2 rounded border ${theme === 'dark' ? 'bg-gray-600 border-gray-500 text-white' : 'bg-white border-gray-300'}`}
-                >
-                  <option value="">Select City</option>
-                  {cityList.map((city, index) => (
-                    <option key={index} value={city}>
-                      {city}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
-          </div>
+                    <h2 className={`text-xl font-semibold mb-4 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>Address</h2>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className={`block ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`} htmlFor="country">Country</label>
+                        <select
+                          id="country"
+                          name="country"
+                          value={selectedCountry}
+                          onChange={handleCountryChange}
+                          className={`w-full p-2 rounded border ${theme === 'dark' ? 'bg-gray-600 border-gray-500 text-white' : 'bg-white border-gray-300'}`}
+                        >
+                          <option value="">Select Country</option>
+                          {countryList.map((country) => (
+                            <option key={country.country} value={country.country}>
+                              {country.country}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                      <div>
+                        <label className={`block ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`} htmlFor="city">City/State</label>
+                        <select
+                          id="city"
+                          name="city"
+                          value={selectedCity}
+                          onChange={handleCityChange}
+                          disabled={!selectedCountry}
+                          className={`w-full p-2 rounded border ${theme === 'dark' ? 'bg-gray-600 border-gray-500 text-white' : 'bg-white border-gray-300'}`}
+                        >
+                          <option value="">Select City</option>
+                          {cityList.map((city, index) => (
+                            <option key={index} value={city}>
+                              {city}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+                  </div>
                   
                   <div className="flex justify-end">
                     <button

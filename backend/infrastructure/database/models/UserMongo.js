@@ -68,6 +68,8 @@ const userSchema = new Schema({
     ref: 'CityMongo', 
     index: true  
   },
+  resetPasswordToken: String,
+  resetPasswordExpires: Date
 }, { timestamps: true });
 
 const UserMongo = mongoose.model('UserMongo', userSchema);

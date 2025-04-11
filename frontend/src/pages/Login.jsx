@@ -145,6 +145,16 @@ const Login = () => {
                         />
                     </GoogleOAuthProvider>
                 </div>
+
+                <div className=" flex items-center justify-center mt-1">
+                        <button 
+                          type="button"
+                          onClick={() => navigate('/forgot-password')}
+                          className="text-sm text-blue-600 hover:text-blue-800 dark:text-blue-400"
+                        >
+                          Forgot password?
+                        </button>
+                      </div>
             <div className="text-gray-500 flex text-center flex-col mt-4 items-center text-sm">
               <p className="cursor-default">
                 By signing in, you agree to our

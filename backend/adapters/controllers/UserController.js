@@ -147,6 +147,22 @@ const deleteUser = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
+const updatePassword = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { currentPassword, newPassword } = req.body;
+
+    await UseCase.updatePassword(id, currentPassword, newPassword);
+
+    res.json({ message: "Password updated successfully" });
+  } catch (error) {
+    console.error("Error updating password:", error);
+    res.status(400).json({ 
+      message: error.message || "Failed to update password" 
+    });
+  }
+};
 module.exports = { 
   getAllUsers, 
   getUserById, 
@@ -154,5 +170,6 @@ module.exports = {
   updateUser, 
   deleteUser,
   getSpecialists,
-  getUsersByRole
+  getUsersByRole,
+  updatePassword
 };
