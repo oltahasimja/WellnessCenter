@@ -471,6 +471,124 @@ const saveListEdit = async (listId) => {
       alert('Failed to create card: ' + (error.response?.data?.message || error.message));
     }
   };
+  const [removedAttachments, setRemovedAttachments] = useState([]);
+const [selectedFiles, setSelectedFiles] = useState([]);
+const [newChecklistItem, setNewChecklistItem] = useState('');
+const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB limit
+
+const handleFileChange = (e) => {
+  setSelectedFiles(prevFiles => [...prevFiles, ...Array.from(e.target.files)]);
+};
+
+const uploadFiles = async () => {
+  // Keep existing attachments that weren't removed
+  const keptAttachments = selectedCard.attachments?.filter(att => 
+    !removedAttachments.includes(att._id || att.name)
+  ) || [];
+  
+  // Process only new files (not marked as existing)
+  const newFiles = selectedFiles.filter(file => !file.isExisting);
+  const newAttachments = await Promise.all(
+    newFiles.map(async file => {
+      if (file.size > MAX_FILE_SIZE) {
+        console.warn(`File ${file.name} is too large (max 5MB)`);
+        return null;
+      }
+      
+      try {
+        return await convertToBase64(file);
+      } catch (error) {
+        console.error('Error converting file:', file.name, error);
+        return null;
+      }
+    })
+  );
+  
+  return [...keptAttachments, ...newAttachments.filter(Boolean)];
+};
+
+const convertToBase64 = (file) => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve({
+      name: file.name,
+      type: file.type,
+      size: file.size,
+      data: reader.result.split(',')[1]
+    });
+    reader.onerror = error => reject(error);
+    reader.readAsDataURL(file);
+  });
+};
+
+const addChecklistItem = () => {
+  if (newChecklistItem.trim()) {
+    setSelectedCard({
+      ...selectedCard,
+      checklist: [...(selectedCard.checklist || []), { text: newChecklistItem, completed: false }]
+    });
+    setNewChecklistItem('');
+  }
+};
+
+const removeFile = (index) => {
+  const file = selectedFiles[index];
+  
+  // If it's an existing attachment, track its ID for deletion on the server
+  if (file.isExisting && file._id) {
+    setRemovedAttachments(prev => [...prev, file._id]);
+  }
+  
+  // Remove file from the selectedFiles array
+  setSelectedFiles(prev => prev.filter((_, i) => i !== index));
+  
+  // Also remove the attachment from selectedCard.attachments if it exists there
+  if (selectedCard.attachments && selectedCard.attachments.length > 0) {
+    setSelectedCard(prev => ({
+      ...prev,
+      attachments: prev.attachments.filter(att => {
+        // For existing attachments with _id
+        if (file._id && att._id) {
+          return att._id.toString() !== file._id.toString();
+        }
+        // For new files being uploaded (match by name)
+        return att.name !== file.name;
+      })
+    }));
+  }
+};
+
+const toggleChecklistItem = (index) => {
+  const updatedChecklist = [...selectedCard.checklist];
+  updatedChecklist[index].completed = !updatedChecklist[index].completed;
+  setSelectedCard({
+    ...selectedCard,
+    checklist: updatedChecklist
+  });
+};
+
+const removeChecklistItem = (index) => {
+  setSelectedCard({
+    ...selectedCard,
+    checklist: selectedCard.checklist.filter((_, i) => i !== index)
+  });
+};
+
+const addLabel = (label) => {
+  if (!selectedCard.labels.includes(label)) {
+    setSelectedCard({
+      ...selectedCard,
+      labels: [...selectedCard.labels, label]
+    });
+  }
+};
+
+const removeLabel = (labelToRemove) => {
+  setSelectedCard({
+    ...selectedCard,
+    labels: selectedCard.labels.filter(label => label !== labelToRemove)
+  });
+};
   const handleCardClick = (listId, card) => {
     setSelectedCard(card);
     setSelectedListId(listId);
@@ -717,13 +835,13 @@ return(
                             </span>
                           ))}
                         </div>
-                      )}  {isCardModalOpen && selectedCard && (
+                      )} {isCardModalOpen && selectedCard && (
                         <div 
                           className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
                           onClick={() => setIsCardModalOpen(false)}
                         >
                           <div 
-                            className="bg-white rounded-lg shadow-xl w-full max-w-md mx-4"
+                            className="bg-white rounded-lg shadow-xl w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto"
                             onClick={(e) => e.stopPropagation()}
                           >
                             <div className="p-6">
@@ -758,27 +876,195 @@ return(
                                   />
                                 </div>
                                 
-                                <div>
-                                  <label className="block text-sm font-medium text-gray-700 mb-1">Due Date</label>
-                                  <input 
-                                    type="datetime-local"
-                                    value={selectedCard.dueDate || ''}
-                                    onChange={(e) => setSelectedCard({...selectedCard, dueDate: e.target.value})}
-                                    className="w-full border p-2 rounded-md"
-                                  />
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                  <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Due Date</label>
+                                    <input 
+                                      type="datetime-local"
+                                      value={selectedCard.dueDate || ''}
+                                      onChange={(e) => setSelectedCard({...selectedCard, dueDate: e.target.value})}
+                                      className="w-full border p-2 rounded-md"
+                                    />
+                                  </div>
+                                  
+                                  <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Priority</label>
+                                    <select
+                                      value={selectedCard.priority || 'medium'}
+                                      onChange={(e) => setSelectedCard({...selectedCard, priority: e.target.value})}
+                                      className="w-full border p-2 rounded-md"
+                                    >
+                                      <option value="low">Low</option>
+                                      <option value="medium">Medium</option>
+                                      <option value="high">High</option>
+                                    </select>
+                                  </div>
                                 </div>
                                 
                                 <div>
-                                  <label className="block text-sm font-medium text-gray-700 mb-1">Priority</label>
-                                  <select
-                                    value={selectedCard.priority || 'medium'}
-                                    onChange={(e) => setSelectedCard({...selectedCard, priority: e.target.value})}
-                                    className="w-full border p-2 rounded-md"
-                                  >
-                                    <option value="low">Low</option>
-                                    <option value="medium">Medium</option>
-                                    <option value="high">High</option>
-                                  </select>
+                                  <label className="block text-sm font-medium text-gray-700 mb-1">Labels</label>
+                                  <div className="flex space-x-2 mb-2">
+                                    {['Frontend', 'Backend', 'Bug', 'Feature', 'Urgent'].map(label => (
+                                      <button
+                                        key={label}
+                                        type="button"
+                                        onClick={() => addLabel(label)}
+                                        className="px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded-md hover:bg-blue-200"
+                                      >
+                                        + {label}
+                                      </button>
+                                    ))}
+                                  </div>
+                                  <div className="flex flex-wrap gap-2">
+                                    {selectedCard.labels?.map(label => (
+                                      <span key={label} className="flex items-center bg-gray-200 px-2 py-1 rounded-md text-sm">
+                                        {label}
+                                        <button 
+                                          type="button"
+                                          onClick={() => removeLabel(label)}
+                                          className="ml-1 text-gray-600 hover:text-red-500"
+                                        >
+                                          ×
+                                        </button>
+                                      </span>
+                                    ))}
+                                  </div>
+                                </div>
+                                
+                                <div>
+  <label className="block text-sm font-medium text-gray-700 mb-1">Attachments</label>
+  <input 
+    type="file"
+    multiple
+    onChange={handleFileChange}
+    className="border p-2 rounded-md w-full"
+    accept="image/*,.pdf,.doc,.docx"
+  />
+  
+  <div className="mt-2 space-y-2">
+    {/* Display existing attachments */}
+    {selectedCard.attachments?.map((file, index) => {
+      const fileKey = file._id || file.name || index;
+      const isImage = file.type?.startsWith('image/') || 
+                    (file.name && /\.(jpg|jpeg|png|gif)$/i.test(file.name));
+      
+      return (
+        <div key={fileKey} className="flex flex-col border rounded p-2">
+          <div className="flex items-center justify-between">
+            <span className="text-sm text-gray-600">{file.name}</span>
+            <button 
+              type="button"
+              onClick={() => removeFile(index)}
+              className="ml-2 text-red-500 hover:text-red-700 hover:bg-red-50 p-1 rounded"
+              title="Remove file"
+            >
+              ×
+            </button>
+          </div>
+          
+          {isImage && file.data && (
+            <div className="mt-2">
+              <img 
+                src={`data:${file.type || 'image/jpeg'};base64,${file.data}`}
+                alt={file.name}
+                className="max-h-40 max-w-full border rounded"
+                onError={(e) => {
+                  e.target.onerror = null;
+                  e.target.src = '/placeholder-image.png';
+                }}
+              />
+            </div>
+          )}
+          
+          {file.size && (
+            <div className="text-xs text-gray-400 mt-1">
+              {Math.round(file.size / 1024)} KB
+            </div>
+          )}
+        </div>
+      );
+    })}
+    
+    {/* Display newly selected files before upload */}
+    {selectedFiles.map((file, index) => {
+      if (file.isExisting) return null; // Skip existing files that are already displayed above
+      
+      const isImage = file.type?.startsWith('image/');
+      const previewUrl = isImage ? URL.createObjectURL(file) : null;
+      
+      return (
+        <div key={`new-${index}`} className="flex flex-col border rounded p-2">
+          <div className="flex items-center justify-between">
+            <span className="text-sm text-gray-600">{file.name}</span>
+            <button 
+              type="button"
+              onClick={() => removeFile(index)}
+              className="ml-2 text-red-500 hover:text-red-700 hover:bg-red-50 p-1 rounded"
+              title="Remove file"
+            >
+              ×
+            </button>
+          </div>
+          
+          {previewUrl && (
+            <div className="mt-2">
+              <img 
+                src={previewUrl}
+                alt={file.name}
+                className="max-h-40 max-w-full border rounded"
+              />
+            </div>
+          )}
+          
+          <div className="text-xs text-gray-400 mt-1">
+            {Math.round(file.size / 1024)} KB
+          </div>
+        </div>
+      );
+    })}
+  </div>
+</div>
+                                
+                                <div>
+                                  <label className="block text-sm font-medium text-gray-700 mb-1">Checklist</label>
+                                  <div className="flex space-x-2">
+                                    <input
+                                      type="text"
+                                      placeholder="Add checklist item"
+                                      value={newChecklistItem}
+                                      onChange={(e) => setNewChecklistItem(e.target.value)}
+                                      className="border p-2 rounded-md flex-grow"
+                                    />
+                                    <button
+                                      type="button"
+                                      onClick={addChecklistItem}
+                                      className="bg-blue-500 text-white px-3 py-2 rounded-md"
+                                    >
+                                      Add
+                                    </button>
+                                  </div>
+                                  <div className="mt-2 space-y-1">
+                                    {selectedCard.checklist?.map((item, index) => (
+                                      <div key={index} className="flex items-center">
+                                        <input
+                                          type="checkbox"
+                                          checked={item.completed || false}
+                                          onChange={() => toggleChecklistItem(index)}
+                                          className="mr-2"
+                                        />
+                                        <span className={item.completed ? 'line-through text-gray-500' : ''}>
+                                          {item.text}
+                                        </span>
+                                        <button
+                                          type="button"
+                                          onClick={() => removeChecklistItem(index)}
+                                          className="ml-auto text-red-500"
+                                        >
+                                          ×
+                                        </button>
+                                      </div>
+                                    ))}
+                                  </div>
                                 </div>
                                 
                                 <div className="flex justify-end space-x-3 mt-6">
@@ -791,13 +1077,25 @@ return(
                                   <button
                                     onClick={async () => {
                                       try {
+                                        // Upload files first if there are any
+                                        const attachments = selectedFiles.length > 0 
+                                          ? await uploadFiles() 
+                                          : selectedCard.attachments || [];
+                                        
                                         await handleEditCard(selectedCard.id, {
                                           title: selectedCard.text,
                                           description: selectedCard.description,
                                           priority: selectedCard.priority,
-                                          dueDate: selectedCard.dueDate
+                                          dueDate: selectedCard.dueDate,
+                                          labels: selectedCard.labels || [],
+                                          checklist: selectedCard.checklist || [],
+                                          attachments: attachments,
+                                          removedAttachments: removedAttachments
                                         });
+                                        
                                         setIsCardModalOpen(false);
+                                        setSelectedFiles([]);
+                                        setRemovedAttachments([]);
                                       } catch (error) {
                                         console.error('Error updating card:', error);
                                       }
@@ -812,6 +1110,7 @@ return(
                           </div>
                         </div>
                       )}
+          
                     </div>
                   )}
                 </Draggable>
