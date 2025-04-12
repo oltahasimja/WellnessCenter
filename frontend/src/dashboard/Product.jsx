@@ -35,34 +35,54 @@ const Product = () => {
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
-
+    e.preventDefault(); // Prevents form from refreshing the page.
+  
     if (!formData.category) {
       alert('Please select a category');
       return;
     }
-
-    const dataToSubmit = {
-      name: formData.name,
-      description: formData.description,
-      price: parseFloat(formData.price),
-      category: formData.category,
-      image: formData.image,
-    };
-
+  
     try {
-      if (formData.id) {
-        await axios.put(`http://localhost:5000/api/product/${formData.id}`, dataToSubmit);
-      } else {
-        await axios.post('http://localhost:5000/api/product', dataToSubmit);
+      // Fetch existing products to check for duplicates
+      const fetchResponse = await fetch('http://localhost:5000/api/product');
+      const existingProducts = await fetchResponse.json();
+  
+      // Check if the product already exists based on name
+      const duplicate = existingProducts.some(
+        (product) => product.name.toLowerCase() === formData.name.trim().toLowerCase()
+      );
+  
+      if (duplicate) {
+        alert('A product with this name already exists');
+        return;
       }
-      fetchProducts();
-      setFormData({});
+  
+      // Prepare data to submit
+      const dataToSubmit = {
+        id: formData.id || undefined,  // If there's no id, set it to undefined for new product
+        name: formData.name,
+        description: formData.description,
+        price: parseFloat(formData.price),
+        category: formData.category,
+        image: formData.image,
+      };
+  
+      // If formData has an id, update the product; else, create a new one
+      if (formData.id) {
+        await axios.put(`http://localhost:5000/api/product/${formData.id}`, dataToSubmit); // Update
+      } else {
+        await axios.post('http://localhost:5000/api/product', dataToSubmit); // Create
+      }
+  
+      fetchProducts(); // Refresh the product list after adding or updating
+      setFormData({}); // Clear form
     } catch (error) {
-      console.error('Error submitting product:', error);
+      console.error('Error submitting product:', error.response?.data || error.message);
       alert('Failed to submit product');
     }
   };
+  
+  
 
   const handleEdit = (item) => {
     const editData = { ...item };

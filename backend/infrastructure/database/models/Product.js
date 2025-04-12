@@ -7,6 +7,12 @@ class Product extends Model {}
 
 Product.init(
   {
+    id: {
+      type: DataTypes.UUID,
+      defaultValue: DataTypes.UUIDV4, // This will automatically generate a unique UUID
+      allowNull: false,
+      primaryKey: true,
+    },
     name: {
       type: DataTypes.STRING,
       allowNull: false,
