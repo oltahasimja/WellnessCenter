@@ -6,6 +6,7 @@ const jwt = require('jsonwebtoken');
 const passport = require('passport');
 const nodemailer = require('nodemailer');
 const sequelize  = require('../../config/database');
+const { Op } = require('sequelize');
 
 const { OAuth2Client } = require('google-auth-library');
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
@@ -193,17 +194,29 @@ const googleAuth = async (req, res) => {
     })(req, res, next);
   };
   
-  const getByUsername = async (req, res) => {
+  const getByUsernameOrEmail = async (req, res) => {
     try {
-      const user = await User.findOne({ where: { username: req.params.username } });
-      if (!user) {
-        return res.status(404).json({ error: 'User not found' });
-      }
-      res.json(user);
+        const user = await User.findOne({ 
+            where: { 
+                [Op.or]: [
+                    { username: req.params.identifier },
+                    { email: req.params.identifier }
+                ]
+            } 
+        });
+        
+        if (user) {
+            return res.json({ 
+                exists: true,
+                type: user.username === req.params.identifier ? 'username' : 'email'
+            });
+        }
+        res.json({ exists: false });
     } catch (error) {
-      res.status(500).json({ error: error.message });
+        res.status(500).json({ error: error.message });
     }
-  };
+};
+
   
 
-  module.exports = {loginUser, getByUsername, googleAuth  };
+  module.exports = {loginUser, getByUsernameOrEmail, googleAuth  };

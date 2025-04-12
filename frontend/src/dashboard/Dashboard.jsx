@@ -4,6 +4,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import Sidebar from "../components/Sidebar";
 import Navbar from '../components/Navbar';
 import useAuthCheck from '../hook/useAuthCheck';
+// Import all components
 import List from './List';
 import UserPrograms from './UserPrograms';
 import User from './Users/User';
@@ -25,19 +26,62 @@ import Category from './Category';
 import Cart from './Cart';
 import Review from './Review';
 
-
 function Dashboard() {
   axios.defaults.withCredentials = true;
-  useAuthCheck();
-  const { isChecking, isAuthenticated } = useAuthCheck();
+  const { isChecking, isAuthenticated, user } = useAuthCheck();
   const { pathname } = useLocation();
   const navigate = useNavigate();
-  
-  // Use getActiveComponent directly inside useEffect
+
+  // Role checks
+  const isOwner = user?.dashboardRole === 'Owner';
+  const isSpecialist = ['Nutricionist', 'Fizioterapeut', 'Trajner', 'Psikolog'].includes(user?.role);
+  const isAdmin = user?.dashboardRole === 'Admin';
+  const AdminSpecialist = isAdmin || (isAdmin && isSpecialist);
+  const isClient = user?.role === 'Client' && user?.dashboardRole === 'User';
+
   const [activeComponent, setActiveComponent] = useState(() => {
     const pathParts = pathname.split('/');
     return pathParts.length > 2 ? pathParts[2] : localStorage.getItem('lastActiveComponent') || '';
   });
+
+  // Define component access map
+  const componentConfig = {
+    // Public components (available to all authenticated users)
+    profile: { component: <Profile />, access: true },
+    cart: { component: <Cart />, access: true },
+    appointment: { component: <Appointments />, access: true },
+    createappointment: { component: <CreateAppointment />, access: true },
+    
+    // Owner only components
+    users: { component: <User navigate={navigate} />, access: isOwner },
+    createuser: { component: <CreateUser navigate={navigate} />, access: isOwner },
+    edituser: { component: <EditUser navigate={navigate} />, access: isOwner },
+    roles: { component: <Role />, access: isOwner },
+    dashboardrole: { component: <DashboardRole />, access: isOwner },
+    
+ 
+  
+    // Admin, Specialist, or Owner components
+    program: { component: <Program />, access: AdminSpecialist || isOwner },
+    userprograms: { component: <UserPrograms />, access: AdminSpecialist || isOwner },
+    list: { component: <List />, access: AdminSpecialist || isOwner },
+    training: { component: <Training />, access: AdminSpecialist || isOwner },
+    trainingapplication: { component: <TrainingApplication />, access: AdminSpecialist || isOwner },
+    order: { component: <Order />, access: AdminSpecialist || isOwner },
+    product: { component: <Product />, access: AdminSpecialist || isOwner },
+    category: { component: <Category />, access: AdminSpecialist || isOwner },
+    review: { component: <Review />, access: AdminSpecialist || isOwner },
+    schedule: { component: <Schedule />, access: true },
+
+    
+    // Client or Specialist components
+    card: { component: <Card />, access: isClient || isSpecialist },
+    
+    // Default component (empty, null, undefined)
+    '': { component: <h1 className="text-2xl font-bold">Mirë se vini në Dashboard</h1>, access: true },
+    null: { component: <h1 className="text-2xl font-bold">Mirë se vini në Dashboard</h1>, access: true },
+    undefined: { component: <h1 className="text-2xl font-bold">Mirë se vini në Dashboard</h1>, access: true }
+  };
 
   useEffect(() => {
     const getActiveComponent = () => {
@@ -55,9 +99,15 @@ function Dashboard() {
       const id = pathname.split('/')[3];
       localStorage.setItem('editUserId', id);
     }
-  }, [pathname]);  // Only pathname as a dependency
+  }, [pathname]);
 
-   
+  useEffect(() => {
+    const config = componentConfig[activeComponent];
+    if (config && !config.access) {
+      navigate('/dashboard');
+    }
+  }, [activeComponent, user, navigate]);
+
   if (isChecking) {
     return (
       <div className="flex items-center justify-center min-h-screen dark:bg-gray-900 bg-white">
@@ -71,35 +121,24 @@ function Dashboard() {
   }
 
   const renderComponent = () => {
-    switch (activeComponent) {
-      case "users": return <User navigate={navigate} />;
-      case "profile": return <Profile />;
-      case "appointment": return <Appointments />;
-      case "createappointment": return <CreateAppointment />;
-      case "program": return <Program />;
-      case "createuser": return <CreateUser navigate={navigate} />;
-      case "edituser": return <EditUser navigate={navigate} />;
-      case "userprograms": return <UserPrograms />;
-      case "list": return <List />;
-      case "roles": return <Role />;
-      case "dashboardrole": return <DashboardRole />;
-      case "training": return <Training />;
-      case "trainingapplication": return <TrainingApplication />;
-      case "order": return <Order />;
-      case "card": return <Card />;
-      case "schedule": return <Schedule />;
-      case "product": return <Product />;
-      case "category": return <Category />;
-      case "cart": return <Cart />;
-      case "review" : return <Review/>;
-     
-      case "": 
-      case null:
-      case undefined:
-        return <h1 className="text-2xl font-bold">Mirë se vini në Dashboard</h1>;
-      default:
-        return <h1 className="text-2xl font-bold">Komponenti nuk u gjet</h1>;
+    const config = componentConfig[activeComponent];
+    
+    if (config) {
+      return config.access ? config.component : (
+        <div className="flex flex-col items-center justify-center h-full">
+          <h1 className="text-2xl font-bold mb-4">Nuk keni akses në këtë faqe</h1>
+          {/* <button 
+            onClick={() => navigate('/dashboard')}
+            className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+          >
+            Kthehu në Dashboard
+          </button> */}
+        </div>
+      );
     }
+    
+    // Default for unknown components
+    return <h1 className="text-2xl font-bold">Komponenti nuk u gjet</h1>;
   };
 
   return (
@@ -113,7 +152,6 @@ function Dashboard() {
         <div className="p-6 flex-1 bg-gray-100 dark:bg-gray-800 overflow-auto h-screen" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
           {renderComponent()}
         </div>
-
       </div>
     </div>
   );

@@ -27,13 +27,15 @@ const Sidebar = () => {
       </div>
     );
   }
-  const isAdmin = user?.dashboardRole === "Admin";
-  const isSpecialist = user?.role === "Specialist";
-  const isUser = user?.role === "Client";
+   const isOwner = user?.dashboardRole === 'Owner';
+  const isAdmin = user?.dashboardRole === 'Admin';
+  const isSpecialist = ['Nutricionist', 'Fizioterapeut', 'Trajner', 'Psikolog'].includes(user?.role);
+  // const isClient = user?.role === 'Client' && user?.dashboardRole === 'User';
 
-  // {isAdmin && (
-  //   <div className="text-sm text-gray-400 px-4 py-2">ADMIN</div>
-  // )}
+  
+  // const AdminSpecialist = isAdmin || (isAdmin && isSpecialist);
+
+
 
   const toggleSidebar = () => setIsOpen(!isOpen);
   const toggleDropdown = (label) => {
@@ -100,7 +102,7 @@ const Sidebar = () => {
             componentName=""
           />
         
-{/* {isAdmin && ( */}
+{(isAdmin || isOwner) && (
         
     <div className="mb-1">
             <MenuItem 
@@ -126,37 +128,7 @@ const Sidebar = () => {
                 </div>
               </div>
             )}
-          </div>
-{/* )} */}
-
-
-         
-
-        <div className="mb-1">
-            <MenuItem 
-              icon={Calendar} 
-              label="Manage Appointment" 
-              hasDropdown={true}
-            />
-            {openDropdown === 'Manage Appointment' && isOpen && (
-              <div className={`ml-12 mt-1 space-y-1 ${theme === 'dark' ? 'bg-gray-800' : 'bg-gray-50'} rounded-md p-1`}>
-                <div 
-                  className="flex items-center px-3 py-2 hover:bg-blue-100 dark:hover:bg-gray-700 rounded cursor-pointer"
-                  onClick={() => handleMenuItemClick('appointment')}
-                >
-                  <Table className="w-5 h-5 mr-2" />
-                  <span>Appointments</span>
-                </div>
-                <div 
-                  className="flex items-center px-3 py-2 hover:bg-blue-100 dark:hover:bg-gray-700 rounded cursor-pointer"
-                  onClick={() => handleMenuItemClick('createappointment')}
-                >
-                  <UserPlus className="w-5 h-5 mr-2" />
-                  <span>Create Appointment</span>
-                </div>
-              </div>
-            )}
-          </div>
+        
 
           <div className="mb-1">
             <MenuItem 
@@ -195,6 +167,8 @@ const Sidebar = () => {
 
 
           {/* Manage Users Dropdown */}
+          {(isOwner) && (
+
           <div className="mb-1">
             <MenuItem 
               icon={Users} 
@@ -219,7 +193,11 @@ const Sidebar = () => {
                 </div>
               </div>
             )}
-          </div>
+         
+         
+
+
+
 
           <div className="mb-1">
             <MenuItem 
@@ -246,6 +224,8 @@ const Sidebar = () => {
               </div>
             )}
           </div>
+ </div>
+)}
           <div className="mb-1">
             <MenuItem 
               icon={GraduationCap} 
@@ -302,12 +282,52 @@ const Sidebar = () => {
          </div>
 
 
+         <MenuItem 
+            icon={ClipboardList} 
+            label="Order" 
+            componentName="order"
+          />
+          <MenuItem 
+            icon={Antenna} 
+            label="Board" 
+            componentName="board"
+          />
 
           <MenuItem 
             icon={CalendarClock} 
             label="Schedule" 
             componentName="schedule"
           />
+
+</div> )} 
+
+
+      <div className="mb-1">
+            <MenuItem 
+              icon={Calendar} 
+              label="Manage Appointment" 
+              hasDropdown={true}
+            />
+            {openDropdown === 'Manage Appointment' && isOpen && (
+              <div className={`ml-12 mt-1 space-y-1 ${theme === 'dark' ? 'bg-gray-800' : 'bg-gray-50'} rounded-md p-1`}>
+                <div 
+                  className="flex items-center px-3 py-2 hover:bg-blue-100 dark:hover:bg-gray-700 rounded cursor-pointer"
+                  onClick={() => handleMenuItemClick('appointment')}
+                >
+                  <Table className="w-5 h-5 mr-2" />
+                  <span>Appointments</span>
+                </div>
+                <div 
+                  className="flex items-center px-3 py-2 hover:bg-blue-100 dark:hover:bg-gray-700 rounded cursor-pointer"
+                  onClick={() => handleMenuItemClick('createappointment')}
+                >
+                  <UserPlus className="w-5 h-5 mr-2" />
+                  <span>Create Appointment</span>
+                </div>
+              </div>
+            )}
+          </div>
+
 
            
           <MenuItem 
@@ -320,16 +340,6 @@ const Sidebar = () => {
 
         
 
-          <MenuItem 
-            icon={ClipboardList} 
-            label="Order" 
-            componentName="order"
-          />
-          <MenuItem 
-            icon={Antenna} 
-            label="Board" 
-            componentName="board"
-          />
            <MenuItem 
             icon={MessageCircle} 
             label="Chat" 
