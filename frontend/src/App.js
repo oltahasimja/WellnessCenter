@@ -13,6 +13,7 @@ import Training from './dashboard/Training';
 import Certification from './dashboard/Certification';
 import Card from './dashboard/Card';
 import TrainingApplication from './dashboard/TrainingApplication';
+import ScheduleTraining from './dashboard/ScheduleTraining';
 import TrainingDetail from './dashboard/TrainingDetail';
 import Order from './dashboard/Order';
 import Review from './dashboard/Review';
@@ -42,6 +43,7 @@ const AppRoutes = () => {
         <Route path="/training" element={<Training />} />
         <Route path="/certification" element={<Certification />} />
         <Route path="/trainingapplication" element={<TrainingApplication />} />
+        <Route path="/scheduleTraining" element={<ScheduleTraining />} />
         <Route path="/userprograms" element={<UserProgram />} />
         <Route path="/programs" element={<Program />} />
         <Route path="/programs/:id" element={<ProgramDetail />} />

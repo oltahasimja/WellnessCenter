@@ -1,4 +1,3 @@
-
 require('dotenv').config();
 const express = require('express');
 const session = require('express-session');
@@ -170,6 +169,97 @@ app.get('/user', isAuthenticated, async (req, res) => {
   }
 });
 
+
+const createDefaultRolesAndOwner = async () => {
+  try {
+    await sequelize.sync();
+
+    // 1. Krijo rolet (si më parë)
+    const roles = ['Client', 'Fizioterapeut', 'Nutricionist', 'Trajner', 'Psikolog'];
+    for (let roleName of roles) {
+      const [role, created] = await Role.findOrCreate({ where: { name: roleName } });
+      if (created) {
+        await RoleMongo.create({ mysqlId: role.id.toString(), name: roleName });
+        console.log(`Roli '${roleName}' u krijua në MySQL & MongoDB.`);
+      }
+    }
+
+    // 2. Krijo rolet e Dashboard (Admin, Owner)
+    const dashboardRoles = ['Admin', 'Owner'];
+    for (let roleName of dashboardRoles) {
+      const [dashboardRole, created] = await DashboardRole.findOrCreate({ where: { name: roleName } });
+      if (created) {
+        await DashboardRoleMongo.create({ mysqlId: dashboardRole.id.toString(), name: roleName });
+        console.log(`Roli i Dashboard '${roleName}' u krijua në MySQL & MongoDB.`);
+      }
+    }
+
+    const ownerDashboardRole = await DashboardRole.findOne({ where: { name: 'Owner' } });
+    if (!ownerDashboardRole) {
+      throw new Error('Owner role nuk ekziston!');
+    }
+
+    const existingOwner = await User.findOne({ where: { email: 'owner@gmail.com' } });
+    
+    if (!existingOwner) {
+      const randomPassword = 'owner'; 
+      const hashedPassword = await bcrypt.hash(randomPassword, 10);
+
+
+      const newOwner = await User.create({
+        username: 'owner',
+        email: 'owner@gmail.com',
+        password: hashedPassword,
+        dashboardRoleId: ownerDashboardRole.id,
+        name: 'owner',
+        lastName: 'Account',
+        roleId: 1, 
+        number: '123456789'
+        // countryId: 1,
+        // cityId: 1,
+      });
+
+      await UserMongo.create({
+        mysqlId: newOwner.id.toString(),
+        username: 'owner',
+        email: 'owner@gmail.com',
+        dashboardRole: 'Owner',
+        name: 'Owner',
+        password: hashedPassword,
+        lastName: 'Account',
+        number: '123456789'
+        // countryId: '1',
+        // cityId: '1',
+        // roleId: '1',
+
+      });
+
+      console.log('Owner user u krijua me sukses në të dyja databazat!');
+    } else {
+      console.log('Owner user ekziston tashmë në MySQL.');
+      
+      // Kontrollo nëse ekziston në MongoDB (nëse jo, krijoje)
+      const existingOwnerMongo = await UserMongo.findOne({ mysqlId: existingOwner.id.toString() });
+      if (!existingOwnerMongo) {
+        await UserMongo.create({
+          mysqlId: existingOwner.id.toString(),
+          username: 'owner',
+          email: 'owner@gmail.com',
+          dashboardRole: 'Owner',
+          name: 'Owner',
+          lastName: 'Account'
+        });
+        console.log('Owner user u shtua në MongoDB (ekzistonte vetëm në MySQL).');
+      }
+    }
+  } catch (err) {
+    console.error("Gabim gjatë krijimit të owner user:", err);
+  }
+};
+
+createDefaultRolesAndOwner();
+
+
 const UserMongo = require('./infrastructure/database/models/UserMongo');
 const CountryMongo = require('./infrastructure/database/models/CountryMongo');
 const CityMongo = require('./infrastructure/database/models/CityMongo');
@@ -269,73 +359,6 @@ app.post('/logout', (req, res) => {
 
 
 
-const createDefaultRoles = async () => {
-  try {
-    await sequelize.sync(); 
-
-    // Rolet e zakonshme
-    const roles = ['Client', 'Fizioterapeut', 'Nutricionist', 'Trajner', 'Psikolog'];
-
-    for (let roleName of roles) {
-      // Create or find the role in MySQL
-      const [role, created] = await Role.findOrCreate({
-        where: { name: roleName },
-        defaults: { name: roleName },
-      });
-
-      if (created) {
-        await RoleMongo.create({
-          mysqlId: role.id.toString(),
-          name: roleName,
-        });
-        console.log(`Roli '${roleName}' u krijua në të dyja databazat.`);
-      } else {
-        const existingMongoRole = await RoleMongo.findOne({ mysqlId: role.id.toString() });
-        if (!existingMongoRole) {
-          await RoleMongo.create({
-            mysqlId: role.id.toString(),
-            name: roleName,
-          });
-          console.log(`Roli '${roleName}' u krijua në MongoDB (ekzistonte vetëm në MySQL).`);
-        }
-      }
-    }
-
-    // Rolet e Dashboard-it
-    const dashboardRoles = ['Admin', 'Owner'];
-
-    for (let roleName of dashboardRoles) {
-      // Create or find the role in MySQL
-      const [dashboardRole, created] = await DashboardRole.findOrCreate({
-        where: { name: roleName },
-        defaults: { name: roleName },
-      });
-
-      if (created) {
-        await DashboardRoleMongo.create({
-          mysqlId: dashboardRole.id.toString(),
-          name: roleName,
-        });
-        console.log(`Roli i Dashboard '${roleName}' u krijua në të dyja databazat.`);
-      } else {
-        const existingMongoDashboardRole = await DashboardRoleMongo.findOne({ 
-          mysqlId: dashboardRole.id.toString() 
-        });
-        if (!existingMongoDashboardRole) {
-          await DashboardRoleMongo.create({
-            mysqlId: dashboardRole.id.toString(),
-            name: roleName,
-          });
-          console.log(`Roli i Dashboard '${roleName}' u krijua në MongoDB (ekzistonte vetëm në MySQL).`);
-        }
-      }
-    }
-  } catch (err) {
-    console.error("Gabim gjatë krijimit të rolave:", err);
-  }
-};
-
-createDefaultRoles();
 
 
 app.use(passport.initialize());
@@ -353,6 +376,3 @@ sequelize.sync().then(() => {
 //    console.log('Database synced successfully');
     app.listen(PORT, () => console.log(`Server: ${PORT} OK`))
 }).catch((err) => console.log(err));
-
-
-
