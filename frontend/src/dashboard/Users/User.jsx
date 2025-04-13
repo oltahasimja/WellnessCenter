@@ -8,6 +8,7 @@ import { useTheme } from "../../components/ThemeContext";
 import DeleteConfirmation from "../../components/DeleteConfirmation";
 import * as XLSX from 'xlsx';
 import { saveAs } from 'file-saver';
+import useAuthCheck from "../../hook/useAuthCheck";
 
 const User = ({ setActiveComponent }) => {
   const { theme } = useTheme();
@@ -23,6 +24,8 @@ const User = ({ setActiveComponent }) => {
   const [itemToDelete, setItemToDelete] = useState(null);
   const [itemNameToDelete, setItemNameToDelete] = useState("");
   const [showDownloadDropdown, setShowDownloadDropdown] = useState(false);
+  const { isChecking, isAuthenticated, user } = useAuthCheck();
+
     const navigate = useNavigate();
   
 
@@ -60,7 +63,8 @@ const User = ({ setActiveComponent }) => {
   };
 
 
-  
+  const isOwner = user?.dashboardRole === 'Owner';
+
   
   
 
@@ -463,14 +467,24 @@ const User = ({ setActiveComponent }) => {
                         Edit
                       </button>
 
-                                <button
-                                  onClick={() => handleDeleteClick(item.mysqlId || item.id, item.name)}
-                                  className="bg-red-500 hover:bg-red-600 text-white py-2 px-4 rounded-lg text-lg"
-                                >
-                                  Delete
-                                </button>
-                              </>
-                            )}
+                      {isOwner ? (
+        <button
+          onClick={() => handleDeleteClick(item.mysqlId || item.id, item.name)}
+          className="bg-red-500 hover:bg-red-600 text-white py-2 px-4 rounded-lg text-lg"
+        >
+          Delete
+        </button>
+      ) : (
+        <button
+          disabled
+          className="bg-red-300 text-white py-2 px-4 rounded-lg text-lg cursor-not-allowed"
+          title="Only Owners can delete users"
+        >
+          Delete
+        </button>
+      )}
+    </>
+  )}
                           </td>
                         </tr>
                       ))

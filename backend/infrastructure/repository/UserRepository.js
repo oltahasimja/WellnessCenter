@@ -44,7 +44,10 @@ class UserRepository {
             .populate('countryId')
             .populate('cityId')
             .populate('dashboardRoleId')
-            // .populate('profileImageId')
+            .populate({
+              path: 'profileImageId',
+              select: 'id name'  
+            })
             .lean();
     } catch (error) {
         console.error("MongoDB findAll failed:", error);
@@ -52,21 +55,23 @@ class UserRepository {
     }
 }
   
-  async findById(id) {
-    try {
-      return await UserMongo.findOne({ mysqlId: id.toString() })
+async findById(id) {
+  try {
+    return await UserMongo.findOne({ mysqlId: id.toString() })
       .populate('roleId')
       .populate('countryId')
       .populate('cityId')
       .populate('dashboardRoleId')
-      // .populate('profileImageId')
+      .populate({
+        path: 'profileImageId',
+        select: 'id name'  
+      })
       .lean();
-    } catch (error) {
-      console.error("MongoDB findById failed:", error);
-      throw error;
-    }
+  } catch (error) {
+    console.error("MongoDB findById failed:", error);
+    throw error;
   }
-  
+}
   async create(data) {
     try {
         console.log("Creating User:", data);
@@ -175,12 +180,16 @@ class UserRepository {
 async update(id, data) {
   try {
     const mysqlUser = await User.findByPk(id, {
-      include: [Country, City, ProfileImage]
+      include: [Country, City, ProfileImage, DashboardRole]
     });
 
     if (!mysqlUser) {
       throw new Error("User not found in MySQL");
     }
+    if (data.dashboardRoleId !== undefined) {
+      await mysqlUser.setDashboardRole(data.dashboardRoleId);
+    }
+
 
     await mysqlUser.update({
       name: data.name,
@@ -188,7 +197,7 @@ async update(id, data) {
       email: data.email,
       username: data.username,
       roleId: data.roleId,
-      dashboardRoleId: data.dashboardRoleId || null,
+      dashboardRoleId: data.dashboardRoleId,
       birthday: data.birthday,
       gender: data.gender,
       number: data.number
@@ -236,7 +245,7 @@ async update(id, data) {
       email: data.email,
       username: data.username,
       roleId: data.roleId,
-      dashboardRoleId: data.dashboardRoleId || null,   
+      dashboardRoleId: data.dashboardRoleId,
      birthday: data.birthday,
       gender: data.gender,
       number: data.number

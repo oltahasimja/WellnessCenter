@@ -4,6 +4,8 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import Sidebar from "../components/Sidebar";
 import Navbar from '../components/Navbar';
 import useAuthCheck from '../hook/useAuthCheck';
+import AccessDenied from './AccessDenied'; // Import the new component
+
 // Import all components
 import List from './List';
 import UserPrograms from './UserPrograms';
@@ -53,14 +55,12 @@ function Dashboard() {
     createappointment: { component: <CreateAppointment />, access: true },
     
     // Owner only components
-    users: { component: <User navigate={navigate} />, access: isOwner },
-    createuser: { component: <CreateUser navigate={navigate} />, access: isOwner },
-    edituser: { component: <EditUser navigate={navigate} />, access: isOwner },
+    users: { component: <User navigate={navigate} />, access: AdminSpecialist || isOwner },
+    createuser: { component: <CreateUser navigate={navigate} />, access: AdminSpecialist || isOwner },
+    edituser: { component: <EditUser navigate={navigate} />, access: AdminSpecialist || isOwner },
     roles: { component: <Role />, access: isOwner },
     dashboardrole: { component: <DashboardRole />, access: isOwner },
     
- 
-  
     // Admin, Specialist, or Owner components
     program: { component: <Program />, access: AdminSpecialist || isOwner },
     userprograms: { component: <UserPrograms />, access: AdminSpecialist || isOwner },
@@ -72,25 +72,26 @@ function Dashboard() {
     category: { component: <Category />, access: AdminSpecialist || isOwner },
     review: { component: <Review />, access: AdminSpecialist || isOwner },
     schedule: { component: <Schedule />, access: true },
-
     
     // Client or Specialist components
     card: { component: <Card />, access: isClient || isSpecialist },
     
-    // Default component (empty, null, undefined)
+    // Default component
     '': { component: <h1 className="text-2xl font-bold">Mirë se vini në Dashboard</h1>, access: true },
     null: { component: <h1 className="text-2xl font-bold">Mirë se vini në Dashboard</h1>, access: true },
     undefined: { component: <h1 className="text-2xl font-bold">Mirë se vini në Dashboard</h1>, access: true }
   };
 
   useEffect(() => {
+    let isMounted = true; // Track mounted state
+
     const getActiveComponent = () => {
       const pathParts = pathname.split('/');
       return pathParts.length > 2 ? pathParts[2] : '';
     };
 
     const component = getActiveComponent();
-    if (component) {
+    if (component && isMounted) {
       setActiveComponent(component);
       localStorage.setItem('lastActiveComponent', component);
     }
@@ -99,13 +100,25 @@ function Dashboard() {
       const id = pathname.split('/')[3];
       localStorage.setItem('editUserId', id);
     }
+
+    return () => {
+      isMounted = false; // Cleanup
+    };
   }, [pathname]);
 
   useEffect(() => {
-    const config = componentConfig[activeComponent];
-    if (config && !config.access) {
-      navigate('/dashboard');
+    let isMounted = true;
+
+    if (isMounted) {
+      const config = componentConfig[activeComponent];
+      if (config && !config.access) {
+        navigate('/dashboard');
+      }
     }
+
+    return () => {
+      isMounted = false;
+    };
   }, [activeComponent, user, navigate]);
 
   if (isChecking) {
@@ -124,20 +137,9 @@ function Dashboard() {
     const config = componentConfig[activeComponent];
     
     if (config) {
-      return config.access ? config.component : (
-        <div className="flex flex-col items-center justify-center h-full">
-          <h1 className="text-2xl font-bold mb-4">Nuk keni akses në këtë faqe</h1>
-          {/* <button 
-            onClick={() => navigate('/dashboard')}
-            className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-          >
-            Kthehu në Dashboard
-          </button> */}
-        </div>
-      );
+      return config.access ? config.component : <AccessDenied />;
     }
     
-    // Default for unknown components
     return <h1 className="text-2xl font-bold">Komponenti nuk u gjet</h1>;
   };
 

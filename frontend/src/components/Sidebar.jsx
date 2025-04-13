@@ -167,7 +167,7 @@ const Sidebar = () => {
 
 
           {/* Manage Users Dropdown */}
-          {(isOwner) && (
+          {(isOwner || isAdmin) && (
 
           <div className="mb-1">
             <MenuItem 

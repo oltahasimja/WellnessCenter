@@ -71,7 +71,7 @@ const Card = () => {
   const uploadFiles = async () => {
     // Keep existing attachments that weren't removed
     const keptAttachments = formData.attachments?.filter(att => 
-      !removedAttachments.includes(att._id || att.name)
+      !removedAttachments.includes(att._id?.toString())
     ) || [];
     
     // Process only new files (not marked as existing)
@@ -95,7 +95,6 @@ const Card = () => {
     
     return [...keptAttachments, ...newAttachments.filter(Boolean)];
   };
-
   const convertToBase64 = (file) => {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
@@ -128,24 +127,11 @@ const Card = () => {
       return;
     }
   
-    if (!formData.title || !formData.title.trim()) {
-      toast.error('Title is required');
-      return;
-    }
-  
-    if (!formData.listId) {
-      toast.error('Please select a list');
-      return;
-    }
-  
     try {
-      // Upload new attachments if there are any
       const uploadedAttachments = selectedFiles.length > 0 
         ? await uploadFiles() 
         : [];
   
-      console.log(`Removed attachments to send: ${removedAttachments.join(', ')}`);
-      
       const payload = {
         ...formData,
         id: formData.id,
@@ -159,7 +145,7 @@ const Card = () => {
         attachments: uploadedAttachments,
         checklist: formData.checklist || [],
         isArchived: Boolean(formData.isArchived),
-        removedAttachments: removedAttachments // Send list of attachment IDs to remove
+        removedAttachments: removedAttachments // Make sure this is included
       };
   
       const endpoint = formData.id 
@@ -168,11 +154,8 @@ const Card = () => {
   
       const method = formData.id ? 'put' : 'post';
   
-      console.log('Submitting payload:', JSON.stringify(payload));
-  
       const response = await axios[method](endpoint, payload, {
         withCredentials: true,
-        timeout: 10000,
         headers: {
           'Content-Type': 'application/json'
         }
@@ -185,17 +168,7 @@ const Card = () => {
       }
     } catch (error) {
       console.error('Submission error:', error);
-      let errorMessage = 'Failed to save card';
-      
-      if (error.response) {
-        errorMessage = error.response.data?.message || 
-                      error.response.statusText || 
-                      `Server error (${error.response.status})`;
-      } else if (error.request) {
-        errorMessage = 'No response from server. Check your connection.';
-      }
-      
-      toast.error(errorMessage);
+      toast.error(error.response?.data?.message || 'Failed to save card');
     }
   };
 
@@ -204,11 +177,8 @@ const Card = () => {
 // Updated handleEdit function for Card.jsx
 const handleEdit = async (item) => {
   try {
-    console.log("Editing card:", item.mysqlId || item.id);
     const response = await axios.get(`http://localhost:5000/api/card/${item.mysqlId || item.id}`);
     const fullCardData = response.data;
-    
-    console.log("Full card data received:", fullCardData);
     
     const editData = { 
       ...fullCardData,
@@ -216,29 +186,23 @@ const handleEdit = async (item) => {
       listId: fullCardData.listId?.mysqlId || fullCardData.listId
     };
     
+    // Reset removed attachments
     setRemovedAttachments([]);
     
     // Process attachments
     let existingAttachments = [];
     if (fullCardData.attachments && fullCardData.attachments.length > 0) {
       existingAttachments = fullCardData.attachments.map(attachment => {
-        // Make sure _id is handled properly
-        const attachmentId = attachment._id ? attachment._id.toString() : null;
-        
-        // Create a File-like object for existing attachments
         return {
-          _id: attachmentId, // Store as string, not as Object
-          name: attachment.name || `Attachment-${attachmentId}`,
+          _id: attachment._id ? attachment._id.toString() : null,
+          name: attachment.name || `Attachment-${attachment._id}`,
           type: attachment.type || 'application/octet-stream',
           size: attachment.size || 0,
           data: attachment.data,
-          lastModified: Date.now(),
           isExisting: true
         };
       });
     }
-    
-    console.log(`Processed ${existingAttachments.length} attachments`);
     
     setFormData({
       ...editData,
@@ -246,7 +210,6 @@ const handleEdit = async (item) => {
     });
     
     setSelectedFiles(existingAttachments);
-    
   } catch (error) {
     console.error('Error fetching card details:', error);
     toast.error(`Failed to load card details: ${error.message}`);
@@ -276,32 +239,28 @@ const handleEdit = async (item) => {
   const removeFile = (index) => {
     const file = selectedFiles[index];
     
-    // If it's an existing attachment, track its ID for deletion on the server
+    // If it's an existing attachment, track its ID for deletion
     if (file.isExisting && file._id) {
-      console.log(`Marking attachment for deletion: ${file._id}`);
       setRemovedAttachments(prev => [...prev, file._id]);
     }
     
-    // Remove file from the selectedFiles array
-    setSelectedFiles(prev => prev.filter((_, i) => i !== index));
+    // Remove from selectedFiles
+    const updatedFiles = [...selectedFiles];
+    updatedFiles.splice(index, 1);
+    setSelectedFiles(updatedFiles);
     
-    // Also remove the attachment from formData.attachments if it exists there
+    // Remove from formData.attachments if it exists there
     if (formData.attachments && formData.attachments.length > 0) {
       setFormData(prev => ({
         ...prev,
         attachments: prev.attachments.filter(att => {
-          // For existing attachments with _id
           if (file._id && att._id) {
             return att._id.toString() !== file._id.toString();
           }
-          // For new files being uploaded (match by name)
           return att.name !== file.name;
         })
       }));
     }
-  
-    console.log(`File removed: ${file.name}`);
-    console.log(`Current removedAttachments: ${removedAttachments.join(', ')}`);
   };
 
   const toggleChecklistItem = (index) => {

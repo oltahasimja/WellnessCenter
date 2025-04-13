@@ -93,8 +93,8 @@ function EditUser({ setActiveComponent }) {
           birthday: userResponse.data.birthday ? userResponse.data.birthday.split('T')[0] : '',
           gender: userResponse.data.gender,
           roleId: userResponse.data.roleId?.mysqlId || userResponse.data.roleId,
-          dashboardRoleId: userResponse.data.dashboardRoleId?.mysqlId || userResponse.data.dashboardRoleId
-
+          dashboardRoleId: userResponse.data.dashboardRoleId?.mysqlId || userResponse.data.dashboardRoleId,
+          profileImage: userResponse.profileImageId || null
         });
         
         // Update the selected country and city
@@ -117,6 +117,45 @@ function EditUser({ setActiveComponent }) {
     fetchData();
     fetchCountries();
   }, []);
+
+  const handleImageUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+  
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/jfif'];
+    if (!allowedTypes.includes(file.type)) {
+      alert('Ju lutem zgjidhni një foto në formatin JPEG, PNG ose JFIF');
+      return;
+    }
+  
+    if (file.size > 5 * 1024 * 1024) {
+      alert('Foto duhet të jetë më e vogël se 5MB');
+      return;
+    }
+  
+    const reader = new FileReader();
+    reader.onloadend = async () => {
+      try {
+        const base64Image = reader.result.split(',')[1]; // Heq header-in
+        
+        await axios.put(`http://localhost:5000/api/user/${userData.id}`, {
+          profileImage: base64Image
+        }, {
+          withCredentials: true
+        });
+        
+        // Rifresko të dhënat e përdoruesit
+        const response = await axios.get('http://localhost:5000/api/user', {
+          withCredentials: true
+        });
+        setUserData(response.data.user);
+      } catch (error) {
+        console.error('Error updating profile image:', error);
+        // setError('Failed to update profile image');
+      }
+    };
+    reader.readAsDataURL(file);
+  };
 
   const handleCountryChange = (e) => {
     const country = e.target.value;
@@ -265,11 +304,11 @@ function EditUser({ setActiveComponent }) {
             <div className="mb-8">
               <div className="flex items-center mb-6">
                 <div className="relative group">
-                  <div className={`w-24 h-24 rounded-full flex items-center justify-center overflow-hidden shadow-md ${theme === 'dark' ? 'bg-blue-900' : 'bg-blue-100'}`}>
+                <div className={`w-24 h-24 rounded-full flex items-center justify-center overflow-hidden shadow-md ${theme === 'dark' ? 'bg-blue-900' : 'bg-blue-100'}`}>
                     {userData.profileImage ? (
                       <img 
-                        src={userData.profileImage} 
-                        alt="Profile" 
+                        src={`data:image/jpeg;base64,${userData.profileImage}`}
+                        alt="Profile"
                         className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                       />
                     ) : (

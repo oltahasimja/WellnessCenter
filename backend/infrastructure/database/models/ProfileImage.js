@@ -5,9 +5,9 @@ const ProfileImage = sequelize.define('ProfileImage', {
     name: {
       type: DataTypes.TEXT,
       allowNull: false,
-      unique: true // Kjo ndihmon për të shmangur dyfishimin
+      // unique: true 
     },
-    userId: { // Shto këtë fushe për të lidhur direkt me përdoruesin
+    userId: { 
       type: DataTypes.INTEGER,
       allowNull: false,
       unique: true

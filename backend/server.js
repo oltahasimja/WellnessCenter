@@ -119,7 +119,10 @@ app.get('/user', isAuthenticated, async (req, res) => {
     const user = await User.findByPk(req.user.id, {
       include: [
         { model: Role },
-        { model: DashboardRole },
+        { 
+          model: DashboardRole,
+          attributes: ['id', 'name'] 
+        },
         { 
           model: Country,
           attributes: ['id', 'name']
@@ -154,6 +157,7 @@ app.get('/user', isAuthenticated, async (req, res) => {
         password: user.password,
         role: user.Role ? user.Role.name : 'User',
         dashboardRole: user.DashboardRole ? user.DashboardRole.name : 'User',
+        dashboardRoleId: user.DashboardRole ? user.DashboardRole.id : null,
         profileImage: user.ProfileImage ? user.ProfileImage.name : null,
         profileImageId: user.ProfileImage ? user.ProfileImage.id : null,
         country: user.Country ? user.Country.name : null,

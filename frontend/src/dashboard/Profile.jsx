@@ -224,7 +224,8 @@ function Profile() {
       const updateData = {
         birthday: formData.birthday,
         gender: formData.gender,
-        number: formData.number
+        number: formData.number,
+        dashboardRoleId: userData.dashboardRoleId 
       };
   
       if (selectedCountry) {
