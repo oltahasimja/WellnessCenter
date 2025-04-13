@@ -19,6 +19,11 @@ const TrainingSchema = new Schema({
     type: String, 
     required: false
   },
+  createdById: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'UserMongo',
+    required: true,
+  },
   duration: {
     type: String, // Shprehja e kohëzgjatjes si string
     required: true

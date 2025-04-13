@@ -68,6 +68,14 @@ class ScheduleTrainingRepository {
   
   async update(id, data) {
     try {
+      // Kontrollo nëse trainingId ekziston në MySQL
+      if (data.trainingId) {
+        const trainingExists = await Training.findOne({ where: { id: data.trainingId } });
+        if (!trainingExists) {
+          throw new Error(`Training with ID ${data.trainingId} not found`);
+        }
+      }
+  
       // Update in MySQL
       const [updatedCount] = await ScheduleTraining.update(
         { ...data },
@@ -78,13 +86,11 @@ class ScheduleTrainingRepository {
         throw new Error("ScheduleTraining not found in MySQL");
       }
       
-      // Prepare update data for MongoDB
+      // Përgatit të dhënat për MongoDB
       const mongoUpdateData = { ...data };
       
-      // Handle foreign keys - convert MySQL IDs to MongoDB references
-      
+      // Konverto trainingId për MongoDB
       if (data.trainingId) {
-        // Find the related document in MongoDB
         const training = await TrainingMongo.findOne({ mysqlId: data.trainingId.toString() });
         if (!training) {
           throw new Error(`Training with MySQL ID ${data.trainingId} not found in MongoDB`);
@@ -102,7 +108,6 @@ class ScheduleTrainingRepository {
         console.warn("ScheduleTraining not found in MongoDB or no changes made");
       }
   
-      // Return the updated resource with populated relationships
       return this.findById(id);
     } catch (error) {
       console.error("Error updating ScheduleTraining:", error);

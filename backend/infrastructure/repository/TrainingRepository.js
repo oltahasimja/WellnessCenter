@@ -1,20 +1,30 @@
-
 const mongoose = require('mongoose');
 const { ObjectId } = require('mongoose').Types;
 const Training = require("../database/models/Training");
 const TrainingMongo = require("../database/models/TrainingMongo");
-
+const UserMongo = require('../database/models/UserMongo');
 
 class TrainingRepository {
   // Read operations - Get from MongoDB with fallback to MySQL
   async findAll() {
     try {
-      // Get all from MongoDB with populated relationships
-      return await TrainingMongo.find().lean();
+      const trainings = await TrainingMongo.find()
+        .populate({
+          path: 'createdById',
+          select: 'name lastName email',
+          model: 'UserMongo' // Specifikoni modelin eksplicitisht
+        })
+        .lean();
+  
+      return trainings.map(training => ({
+        ...training,
+        creatorDisplayName: training.createdById 
+          ? `${training.createdById.name} ${training.createdById.lastName || ''}`.trim()
+          : 'Unknown'
+      }));
     } catch (error) {
-      // Fallback to MySQL if MongoDB fails
-      console.error("MongoDB findAll failed, falling back to MySQL:", error);
-      // return await Training.findAll({  });
+      console.error("Error fetching trainings:", error);
+      throw error;
     }
   }
   
@@ -32,28 +42,40 @@ class TrainingRepository {
   // Write operations - Write to both MongoDB and MySQL
   async create(data) {
     try {
-      console.log("Creating Training:", data);
+      // 1. First create in MySQL
+      const mysqlResource = await Training.create({
+        title: data.title,
+        category: data.category,
+        description: data.description,
+        duration: data.duration,
+        max_participants: data.max_participants,
+        createdById: data.createdById
+      });
+  
+      // 2. Find user in MongoDB by mysqlId (string comparison)
+      const user = await UserMongo.findOne({ mysqlId: data.createdById.toString() });
       
-      // First create in MySQL
-      const mysqlResource = await Training.create(data);
-      
-      // Prepare data for MongoDB
+      if (!user) {
+        throw new Error(`User with mysqlId ${data.createdById} not found in MongoDB`);
+      }
+  
+      // 3. Create in MongoDB using the user's _id (ObjectId)
       const mongoData = {
         mysqlId: mysqlResource.id.toString(),
-        ...data
+        title: data.title,
+        category: data.category,
+        description: data.description,
+        duration: data.duration,
+        max_participants: data.max_participants,
+        createdById: user._id // Correct: using MongoDB ObjectId
       };
-      
-      // Handle foreign keys - convert MySQL IDs to MongoDB references
-      
-      
-      // Create in MongoDB
-      const mongoResource = await TrainingMongo.create(mongoData);
-      console.log("Training saved in MongoDB:", mongoResource);
+  
+      await TrainingMongo.create(mongoData);
       
       return mysqlResource;
     } catch (error) {
       console.error("Error creating Training:", error);
-      throw new Error('Error creating Training: ' + error.message);
+      throw error;
     }
   }
   

@@ -1,11 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
 const Training = () => {
   const [formData, setFormData] = useState({});
   const [trainingList, setTrainingList] = useState([]);
-  
+  const [user, setUser] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const navigate = useNavigate();
+
   // Duration options
   const durationOptions = [
     '1 muaj',
@@ -18,42 +21,120 @@ const Training = () => {
   ];
 
   useEffect(() => {
-    fetchTrainings();
-  }, []);
+    const initializeData = async () => {
+      try {
+        // Check login status
+        const userResponse = await axios.get('http://localhost:5000/user', { withCredentials: true });
+        if (!userResponse.data.user) {
+          navigate('/login');
+          return;
+        }
+        setUser(userResponse.data.user);
+
+        // Fetch trainings
+        await fetchTrainings();
+      } catch (error) {
+        console.error('Error initializing data:', error);
+        navigate('/login');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    initializeData();
+  }, [navigate]);
 
   const fetchTrainings = async () => {
-    const response = await axios.get('http://localhost:5000/api/training');
-    setTrainingList(response.data);
-  };
+    try {
+      const response = await axios.get('http://localhost:5000/api/training', {
+        withCredentials: true
+      });
+      
+      console.log('API Response:', response.data); // Për debug
+      
+      const trainingsWithCreator = response.data.map(training => {
+        // Nëse createdById është objekt i plotë
+        if (training.createdById && typeof training.createdById === 'object') {
+          return {
+            ...training,
+            creatorDisplayName: `${training.createdById.name} ${training.createdById.lastName || ''}`.trim()
+          };
+        }
+        // Nëse kemi vetëm ID
+        return {
+          ...training,
+          creatorDisplayName: training.creatorName || 'Unknown'
+        };
+      });
   
+      setTrainingList(trainingsWithCreator);
+    } catch (error) {
+      console.error('Error fetching trainings:', error.response?.data || error.message);
+    }
+  };
+
+  const getCreatorDisplayName = (training) => {
+    if (training.creatorName) return training.creatorName;
+    if (training.createdById?.name) {
+      return `${training.createdById.name} ${training.createdById.lastName || ''}`.trim();
+    }
+    return 'Unknown';
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (formData.id) {
-      await axios.put(`http://localhost:5000/api/training/${formData.id}`, formData);
-    } else {
-      await axios.post('http://localhost:5000/api/training', formData);
+    if (!user) return;
+  
+    try {
+      const dataToSend = { 
+        ...formData, 
+        createdById: user.id
+      };
+  
+      if (formData.id) {
+        await axios.put(`http://localhost:5000/api/training/${formData.id}`, dataToSend);
+      } else {
+        await axios.post('http://localhost:5000/api/training', dataToSend);
+      }
+  
+      await fetchTrainings();
+      setFormData({});
+    } catch (error) {
+      console.error('Error saving training:', error.response?.data || error.message);
+      if (error.response?.data?.message === 'User not found in MongoDB') {
+        alert('User synchronization error. Please try again or contact support.');
+      }
     }
-    fetchTrainings();
-    setFormData({});
   };
 
   const handleEdit = (item) => {
-    const editData = { ...item };
-    if (item.mysqlId) {
-      editData.id = item.mysqlId;
-    }
-    setFormData(editData);
+    setFormData({
+      ...item,
+      id: item.mysqlId || item.id
+    });
   };
 
   const handleDelete = async (id) => {
-    await axios.delete(`http://localhost:5000/api/training/${id}`);
-    fetchTrainings();
+    try {
+      await axios.delete(`http://localhost:5000/api/training/${id}`);
+      await fetchTrainings();
+    } catch (error) {
+      console.error('Error deleting training:', error);
+    }
   };
 
   const handleParticipantsChange = (e) => {
-    const value = Math.min(Number(e.target.value), 10); // Limit to maximum 10
+    const value = Math.min(Math.max(Number(e.target.value), 1), 10);
     setFormData({ ...formData, max_participants: value });
   };
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center min-h-screen">
+        <div className="text-xl">Loading...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex justify-center items-center min-h-screen bg-gray-100">
@@ -63,23 +144,25 @@ const Training = () => {
         <form onSubmit={handleSubmit} className="mb-6 space-y-4">
           <input 
             type="text"
-            placeholder="title"
+            placeholder="Title"
             value={formData.title || ''}
             onChange={(e) => setFormData({ ...formData, title: e.target.value })}
             className="border p-3 rounded-md w-full focus:ring-2 focus:ring-blue-500 outline-none"
             required
           />
+          
           <input 
             type="text"
-            placeholder="category"
+            placeholder="Category"
             value={formData.category || ''}
             onChange={(e) => setFormData({ ...formData, category: e.target.value })}
             className="border p-3 rounded-md w-full focus:ring-2 focus:ring-blue-500 outline-none"
             required
           />
+          
           <input 
             type="text"
-            placeholder="description"
+            placeholder="Description"
             value={formData.description || ''}
             onChange={(e) => setFormData({ ...formData, description: e.target.value })}
             className="border p-3 rounded-md w-full focus:ring-2 focus:ring-blue-500 outline-none"
@@ -100,7 +183,7 @@ const Training = () => {
           
           <input 
             type="number"
-            placeholder="max_participants"
+            placeholder="Max Participants"
             value={formData.max_participants || ''}
             onChange={handleParticipantsChange}
             className="border p-3 rounded-md w-full focus:ring-2 focus:ring-blue-500 outline-none"
@@ -108,7 +191,11 @@ const Training = () => {
             max="10"
             required
           />
-          <button type="submit" className="w-full bg-blue-500 hover:bg-blue-600 text-white py-2 rounded-md font-semibold text-lg">
+          
+          <button 
+            type="submit" 
+            className="w-full bg-blue-500 hover:bg-blue-600 text-white py-2 rounded-md font-semibold text-lg transition-colors"
+          >
             {formData.id ? 'Përditëso' : 'Shto'}
           </button>
         </form>
@@ -121,8 +208,9 @@ const Training = () => {
                 <th className="py-3 px-6 text-left">Category</th>
                 <th className="py-3 px-6 text-left">Description</th>
                 <th className="py-3 px-6 text-left">Duration</th>
+                <th className="py-3 px-6 text-left">Created By</th>
                 <th className="py-3 px-6 text-left">Max Participants</th>
-                <th className="py-3 px-6 text-center">Veprime</th>
+                <th className="py-3 px-6 text-center">Actions</th>
               </tr>
             </thead>
             <tbody className="text-gray-700 text-sm font-light">
@@ -130,23 +218,39 @@ const Training = () => {
                 trainingList.map((item) => (
                   <tr key={item.mysqlId || item.id} className="border-b border-gray-200 hover:bg-gray-100">
                     <td className="py-3 px-6 text-left">
-                      <Link to={`/training/${item.mysqlId || item.id}`} className="text-blue-500 hover:underline">
+                      <Link 
+                        to={`/training/${item.mysqlId || item.id}`} 
+                        className="text-blue-500 hover:underline"
+                      >
                         {item.title}
                       </Link>
                     </td>
                     <td className="py-3 px-6 text-left">{item.category}</td>
                     <td className="py-3 px-6 text-left">{item.description}</td>
                     <td className="py-3 px-6 text-left">{item.duration}</td>
+                    <td className="py-3 px-6 text-left">{item.creatorDisplayName}</td>
                     <td className="py-3 px-6 text-left">{item.max_participants}</td>
                     <td className="py-3 px-6 flex justify-center space-x-2">
-                      <button onClick={() => handleEdit(item)} className="bg-yellow-500 hover:bg-yellow-600 text-white py-1 px-3 rounded-md text-sm">Edit</button>
-                      <button onClick={() => handleDelete(item.mysqlId || item.id)} className="bg-red-500 hover:bg-red-600 text-white py-1 px-3 rounded-md text-sm">Delete</button>
+                      <button 
+                        onClick={() => handleEdit(item)} 
+                        className="bg-yellow-500 hover:bg-yellow-600 text-white py-1 px-3 rounded-md text-sm transition-colors"
+                      >
+                        Edit
+                      </button>
+                      <button 
+                        onClick={() => handleDelete(item.mysqlId || item.id)} 
+                        className="bg-red-500 hover:bg-red-600 text-white py-1 px-3 rounded-md text-sm transition-colors"
+                      >
+                        Delete
+                      </button>
                     </td>
                   </tr>
                 ))
               ) : (
                 <tr>
-                  <td colSpan="6" className="text-center text-gray-500 py-4">Nuk ka të dhëna</td>
+                  <td colSpan="7" className="text-center text-gray-500 py-4">
+                    No data available
+                  </td>
                 </tr>
               )}
             </tbody>

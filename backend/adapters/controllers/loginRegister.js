@@ -44,7 +44,7 @@ const googleAuth = async (req, res) => {
           
           if (!mysqlUser) {
               const userRole = await Role.findOne({ 
-                  where: { name: 'User' },
+                  where: { name: 'Client' },
                   transaction: mysqlTransaction
               });
 
@@ -68,7 +68,7 @@ const googleAuth = async (req, res) => {
 
               // Create user in MongoDB
               try {
-                  const mongoRole = await RoleMongo.findOne({ name: 'User' });
+                  const mongoRole = await RoleMongo.findOne({ name: 'Client' });
                   if (!mongoRole) {
                       await mysqlTransaction.rollback();
                       return res.status(500).json({ error: 'MongoDB role not found' });

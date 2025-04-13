@@ -3,6 +3,7 @@ const express = require('express');
 const router = express.Router();
 const crypto = require('crypto');
 const bcrypt = require('bcryptjs');
+const { Op } = require('sequelize');
 const nodemailer = require('nodemailer');
 const User = require('../infrastructure/database/models/User'); 
 const UserMongo = require('../infrastructure/database/models/UserMongo');
@@ -67,39 +68,42 @@ router.post('/forgot-password', async (req, res) => {
 
 // Reset password route
 router.post('/reset-password', async (req, res) => {
-    try {
-      const { token, password } = req.body;
-      
-      const user = await User.findOne({
+  try {
+    const { token, password } = req.body;
+    
+    // Correct Sequelize query syntax for MySQL
+    const user = await User.findOne({
+      where: {
         resetPasswordToken: token,
-        resetPasswordExpires: { $gt: Date.now() }
-      });
-  
-      if (!user) {
-        return res.status(400).json({ message: 'Invalid or expired token' });
+        resetPasswordExpires: { [Op.gt]: Date.now() }
       }
-  
-      const hashedPassword = await bcrypt.hash(password, 10);
-      user.password = hashedPassword;
-      user.resetPasswordToken = undefined;
-      user.resetPasswordExpires = undefined;
-      await user.save();
-  
-      try {
-        const userMongo = await UserMongo.findOne({ email: user.email });
-        if (userMongo) {
-          userMongo.password = hashedPassword; 
-          await userMongo.save();
-        }
-      } catch (mongoError) {
-        console.error('Error updating password in MongoDB:', mongoError);
-      }
-  
-      res.json({ message: 'Password updated successfully!' });
-    } catch (error) {
-      console.error(error);
-      res.status(500).json({ message: 'Error resetting password' });
+    });
+
+    if (!user) {
+      return res.status(400).json({ message: 'Invalid or expired token' });
     }
-  });
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+    user.password = hashedPassword;
+    user.resetPasswordToken = null;
+    user.resetPasswordExpires = null;
+    await user.save();
+
+    try {
+      const userMongo = await UserMongo.findOne({ email: user.email });
+      if (userMongo) {
+        userMongo.password = hashedPassword; 
+        await userMongo.save();
+      }
+    } catch (mongoError) {
+      console.error('Error updating password in MongoDB:', mongoError);
+    }
+
+    res.json({ message: 'Password updated successfully!' });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Error resetting password' });
+  }
+});
 
 module.exports = router;

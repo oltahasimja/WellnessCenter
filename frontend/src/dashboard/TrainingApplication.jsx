@@ -9,7 +9,8 @@ const TrainingApplication = () => {
   const [trainingapplicationList, setTrainingApplicationList] = useState([]);
   const [trainingList, setTrainingList] = useState([]);
   const [loggedInUser, setLoggedInUser] = useState(null);
-  const [trainingCapacity, setTrainingCapacity] = useState({}); // Track training capacities
+  const [trainingCapacity, setTrainingCapacity] = useState({});
+  const [selectedTrainingSchedule, setSelectedTrainingSchedule] = useState(null);
   
   axios.defaults.withCredentials = true;
 
@@ -51,7 +52,16 @@ const TrainingApplication = () => {
     }
   };
 
-  // Calculate how many applications exist for each training
+  const fetchTrainingSchedule = async (trainingId) => {
+    try {
+      const response = await axios.get(`http://localhost:5000/api/scheduleTraining?trainingId=${trainingId}`);
+      setSelectedTrainingSchedule(response.data);
+    } catch (error) {
+      console.error("Error fetching training schedule:", error);
+      setSelectedTrainingSchedule(null);
+    }
+  };
+
   const calculateTrainingCapacity = (applications) => {
     const capacityMap = {};
     applications.forEach(app => {
@@ -59,6 +69,16 @@ const TrainingApplication = () => {
       capacityMap[trainingId] = (capacityMap[trainingId] || 0) + 1;
     });
     setTrainingCapacity(capacityMap);
+  };
+
+  const handleTrainingSelect = (e) => {
+    const trainingId = e.target.value;
+    setFormData({ ...formData, trainingId });
+    if (trainingId) {
+      fetchTrainingSchedule(trainingId);
+    } else {
+      setSelectedTrainingSchedule(null);
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -74,7 +94,6 @@ const TrainingApplication = () => {
       return;
     }
 
-    // Check if training is full (5 applications)
     if (trainingCapacity[formData.trainingId] >= 5) {
       alert('Nuk ka vende të lira në këtë trajnim! Maksimumi 5 aplikime janë pranuar.');
       return;
@@ -99,6 +118,7 @@ const TrainingApplication = () => {
         trainingId: '', 
         userId: loggedInUser.id 
       });
+      setSelectedTrainingSchedule(null);
     } catch (error) {
       console.error("Error submitting application:", error);
       alert(`Gabim gjatë aplikimit: ${error.response?.data?.message || error.message}`);
@@ -111,6 +131,7 @@ const TrainingApplication = () => {
       trainingId: item.trainingId?.mysqlId || item.trainingId,
       userId: loggedInUser.id
     });
+    fetchTrainingSchedule(item.trainingId?.mysqlId || item.trainingId);
   };
 
   const handleDelete = async (id) => {
@@ -124,7 +145,6 @@ const TrainingApplication = () => {
     }
   };
 
-  // Check if a training is full (5 applications)
   const isTrainingFull = (trainingId) => {
     return trainingCapacity[trainingId] >= 5;
   };
@@ -155,7 +175,7 @@ const TrainingApplication = () => {
                 <label className="block text-sm font-medium text-gray-700 mb-1">Trajnimi</label>
                 <select
                   value={formData.trainingId || ''}
-                  onChange={(e) => setFormData({ ...formData, trainingId: e.target.value })}
+                  onChange={handleTrainingSelect}
                   className="border p-3 rounded-md w-full focus:ring-2 focus:ring-blue-500 outline-none"
                   required
                 >
@@ -189,10 +209,23 @@ const TrainingApplication = () => {
                 {formData.id ? 'Përditëso' : 'Apliko'}
               </button>
             </form>
+
+            {selectedTrainingSchedule && selectedTrainingSchedule.length > 0 && (
+              <div className="mt-6 p-4 bg-gray-50 rounded-lg">
+                <h2 className="text-xl font-semibold mb-4">Orari i Trajnimit</h2>
+                {selectedTrainingSchedule.map((schedule, index) => (
+                  <div key={index} className="mb-4">
+                    <p><strong>Ditët:</strong> {schedule.workDays.join(', ')}</p>
+                    <p><strong>Koha e fillimit:</strong> {schedule.startTime}</p>
+                    <p><strong>Koha e përfundimit:</strong> {schedule.endTime}</p>
+                  </div>
+                ))}
+              </div>
+            )}
           </>
         )}
 
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto mt-6">
           <table className="w-full border-collapse shadow-md rounded-md bg-white">
             <thead>
               <tr className="bg-gray-200 text-gray-600 uppercase text-sm leading-normal">
