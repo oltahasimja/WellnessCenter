@@ -280,13 +280,6 @@ const Sidebar = () => {
              </div>
            )}
          </div>
-
-
-         <MenuItem 
-            icon={ClipboardList} 
-            label="Order" 
-            componentName="order"
-          />
           <MenuItem 
             icon={Antenna} 
             label="Board" 
