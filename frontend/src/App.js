@@ -24,6 +24,7 @@ import Category from './dashboard/Category';
 import Cart from './dashboard/Cart';
 import ClientOrderForm from './dashboard/ClientOrderForm';
 import Appointment from './pages/Appointment'
+import Schedule from './pages/Schedule'
 
 
 const AppRoutes = () => {
@@ -44,6 +45,7 @@ const AppRoutes = () => {
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/Appointment" element={<Appointment />} />
+        <Route path="/Schedule" element={<Schedule />} />
 
         <Route path="/dashboard/*" element={<Dashboard />} />
         <Route path="/list" element={<List />} />

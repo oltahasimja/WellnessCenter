@@ -176,13 +176,13 @@ const Login = () => {
             <div className="text-gray-500 flex text-center flex-col mt-4 items-center text-sm">
               <p className="cursor-default">
                 By signing in, you agree to our
-                <a className="group text-blue-400 transition-all duration-100 ease-in-out" href="#">
+                <a className="group text-blue-400 transition-all duration-100 ease-in-out pr-1 pl-1" href="#">
                   <span className="cursor-pointer bg-left-bottom bg-gradient-to-r from-blue-400 to-blue-400 bg-[length:0%_2px] bg-no-repeat group-hover:bg-[length:100%_2px] transition-all duration-500 ease-out">
                     Terms
                   </span>
                 </a>
                 and
-                <a className="group text-blue-400 transition-all duration-100 ease-in-out" href="#">
+                <a className="group text-blue-400 transition-all duration-100 ease-in-out pr-1 pl-1" href="#">
                   <span className="cursor-pointer bg-left-bottom bg-gradient-to-r from-blue-400 to-blue-400 bg-[length:0%_2px] bg-no-repeat group-hover:bg-[length:100%_2px] transition-all duration-500 ease-out">
                     Privacy Policy
                   </span>

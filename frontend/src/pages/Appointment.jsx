@@ -243,7 +243,7 @@ const WellnessCenter = () => {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 1 }}
-        className="relative bg-gradient-to-br from-blue-600 to-purple-600 text-white overflow-hidden"
+        className="relative bg-gradient-to-br from-teal-600 to-teal-400 text-white overflow-hidden"
       >
         {/* Animated background elements */}
         <div className="absolute inset-0 overflow-hidden">
@@ -332,17 +332,19 @@ const WellnessCenter = () => {
                       ease: "easeInOut"
                     } 
                   }}
-                  href="#services"
+                //   href="#services"
+                href='/dashboard/createappointment'
                   className="rounded-md bg-yellow-400 px-6 py-3 text-lg font-semibold text-gray-900 hover:bg-yellow-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-yellow-400 transition-all duration-300"
                 >
-                  Explore Services
+                  Book Now
                 </motion.a>
                 <motion.a 
                   whileHover={{ x: 5 }}
-                  href="#contact" 
+                  target='_blank'
+                  href="/schedule" 
                   className="text-lg font-semibold leading-6 text-white hover:text-yellow-200 transition-all duration-300 flex items-center"
                 >
-                  Contact us 
+                  Schedule
                   <motion.span 
                     animate={{ x: [0, 5, 0] }}
                     transition={{ 
@@ -460,7 +462,7 @@ const WellnessCenter = () => {
               </motion.span>
             </motion.div>
             <h2 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
-              Our <span className="text-blue-500">Integrated</span> Services
+              Our <span className="text-teal-500">Integrated</span> Services
             </h2>
             <p className="mt-4 max-w-2xl text-xl text-gray-600 mx-auto">
               Comprehensive care for your body and mind through our specialized services.
@@ -633,7 +635,7 @@ const WellnessCenter = () => {
                 </motion.span>
               </motion.div>
               <h2 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
-                Our <span className="text-purple-500">Holistic</span> Approach
+                Our <span className="text-teal-500">Holistic</span> Approach
               </h2>
               <p className="mt-6 text-lg leading-8 text-gray-600">
                 At our wellness center, we believe true health comes from addressing all aspects of wellbeing.
@@ -757,7 +759,7 @@ const WellnessCenter = () => {
             className="text-center mb-16"
           >
             <h2 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
-              Meet Our <span className="text-blue-600">Experts</span>
+              Meet Our <span className="text-teal-400">Experts</span>
             </h2>
             <p className="mt-4 max-w-2xl text-xl text-gray-600 mx-auto">
               Our team of certified professionals is dedicated to your wellness journey.
@@ -836,7 +838,7 @@ const WellnessCenter = () => {
             className="text-center mb-16"
           >
             <h2 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
-              Success <span className="text-blue-600">Stories</span>
+              Success <span className="text-teal-400">Stories</span>
             </h2>
             <p className="mt-4 max-w-2xl text-xl text-gray-600 mx-auto">
               Hear from our clients about their wellness journeys.
@@ -889,7 +891,7 @@ const WellnessCenter = () => {
         viewport={{ once: true }}
         transition={{ duration: 0.8 }}
         id="contact" 
-        className="bg-gradient-to-r from-blue-700 to-purple-600 py-16 sm:py-24 px-6 sm:px-8"
+        className="bg-gradient-to-r from-teal-700 to-teal-600 py-16 sm:py-24 px-6 sm:px-8"
       >
         <div className="max-w-7xl mx-auto">
           <div className="lg:grid lg:grid-cols-2 lg:gap-16 items-center">
@@ -901,12 +903,12 @@ const WellnessCenter = () => {
               className="mb-12 lg:mb-0"
             >
               <h2 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
-                Ready to Start Your <motion.span 
+                Ready to Book Your <motion.span 
                   animate={{ scale: [1, 1.05, 1] }}
                   transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
                   className="text-yellow-300 inline-block"
                 >
-                  Wellness Journey
+                  Appointment
                 </motion.span>?
               </h2>
               <p className="mt-6 text-lg leading-8 text-blue-100">
@@ -919,10 +921,10 @@ const WellnessCenter = () => {
                     boxShadow: "0 10px 25px -5px rgba(253, 224, 71, 0.3)"
                   }}
                   whileTap={{ scale: 0.98 }}
-                  href="#"
+                  href="/dashboard/createappointment"
                   className="rounded-md bg-yellow-400 px-6 py-3 text-lg font-semibold text-gray-900 shadow-sm hover:bg-yellow-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-yellow-400 transition-all duration-300 inline-block"
                 >
-                  Get in Touch
+                  Book Now
                 </motion.a>
               </div>
             </motion.div>
