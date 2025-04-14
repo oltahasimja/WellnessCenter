@@ -8,6 +8,7 @@ import Dashboard from './dashboard/Dashboard';
 import Program from './dashboard/Program';
 import List from './dashboard/List';
 import UserProgram from './dashboard/UserPrograms';
+import CardMember from './dashboard/CardMember';
 import ProgramDetail from './dashboard/ProgramDetail'; 
 import Training from './dashboard/Training';
 import Certification from './dashboard/Certification';
@@ -25,6 +26,8 @@ import Cart from './dashboard/Cart';
 import ClientOrderForm from './dashboard/ClientOrderForm';
 import Appointment from './pages/Appointment'
 import Schedule from './pages/Schedule'
+
+
 
 
 const AppRoutes = () => {
@@ -46,6 +49,7 @@ const AppRoutes = () => {
         <Route path="/register" element={<Register />} />
         <Route path="/Appointment" element={<Appointment />} />
         <Route path="/Schedule" element={<Schedule />} />
+        <Route path="/cardmember" element={<CardMember/>}/>
 
         <Route path="/dashboard/*" element={<Dashboard />} />
         <Route path="/list" element={<List />} />

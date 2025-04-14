@@ -27,7 +27,7 @@ import Product from './Product';
 import Category from './Category';
 import Cart from './Cart';
 import Review from './Review';
-
+import CardMember from './CardMember';
 function Dashboard() {
   axios.defaults.withCredentials = true;
   const { isChecking, isAuthenticated, user } = useAuthCheck();
@@ -64,6 +64,7 @@ function Dashboard() {
     // Admin, Specialist, or Owner components
     program: { component: <Program />, access: isSpecialist || isOwner },
     userprograms: { component: <UserPrograms />, access: isSpecialist || isOwner },
+    cardmember:{component:<CardMember/>,access:isSpecialist || isOwner },
     list: { component: <List />, access: isSpecialist || isOwner },
     training: { component: <Training />, access: isSpecialist || isOwner },
     trainingapplication: { component: <TrainingApplication />, access: isSpecialist || isOwner },
