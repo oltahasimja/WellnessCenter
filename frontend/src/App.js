@@ -19,6 +19,11 @@ import Order from './dashboard/Order';
 import Review from './dashboard/Review';
 import ForgotPassword from './components/ForgotPassword';
 import ResetPassword from './components/ResetPassword';
+import Product from './dashboard/Product';
+import Category from './dashboard/Category';
+import Cart from './dashboard/Cart';
+import ClientOrderForm from './dashboard/ClientOrderForm';
+
 
 
 const AppRoutes = () => {
@@ -51,6 +56,11 @@ const AppRoutes = () => {
         <Route path="/training/:id" element={<TrainingDetail />} />
         <Route path="/order" element={<Order />} />
         <Route path="/review" element={<Review/>}/>
+        <Route path="/product" element={<Product/>}/>
+        <Route path="/category" element={<Category/>}/>
+        <Route path="/cart" element={<Cart/>}/>
+        <Route path="/client-order-form" element={<ClientOrderForm/>}/>
+      
 
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password/:token" element={<ResetPassword />} />

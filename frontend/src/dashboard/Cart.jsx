@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom'; 
 
 const Cart = () => {
   const [cart, setCart] = useState([]);
+  const navigate = useNavigate();  
 
   useEffect(() => {
     const storedCart = JSON.parse(localStorage.getItem("cart")) || [];
     setCart(storedCart);
   }, []);
-
 
   const updateQuantity = (id, amount) => {
     const updatedCart = cart.map(item => {
@@ -20,15 +21,18 @@ const Cart = () => {
     localStorage.setItem("cart", JSON.stringify(updatedCart)); 
   };
 
-
   const removeFromCart = (id) => {
     const updatedCart = cart.filter(item => item.id !== id);
     setCart(updatedCart);
     localStorage.setItem("cart", JSON.stringify(updatedCart)); 
   };
 
- 
   const totalPrice = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+
+  const proceedToOrder = () => {
+    navigate('/client-order-form', { state: { cart } });
+  };
+  
 
   return (
     <div className="p-6 max-w-4xl mx-auto bg-white rounded-lg shadow-md">
@@ -83,7 +87,7 @@ const Cart = () => {
         </table>
       )}
       <h3 className="text-xl font-semibold mt-4">Total: €{totalPrice.toFixed(2)}</h3>
-      <button className="mt-4 bg-green-500 text-white px-6 py-2 rounded hover:bg-green-400 transition" disabled>
+      <button onClick={proceedToOrder} className="mt-4 bg-green-500 text-white px-6 py-2 rounded hover:bg-green-400 transition">
         Proceed to Order
       </button>
     </div>

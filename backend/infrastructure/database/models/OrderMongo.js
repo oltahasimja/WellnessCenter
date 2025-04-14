@@ -1,42 +1,43 @@
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
-
-const OrderSchema = new Schema({
+const orderSchema = new mongoose.Schema({
   mysqlId: {
     type: String,
     required: true,
-    index: true
   },
-
-  customerName: {
-    type: String,
-    required: true,
+  clientData: {
+    name: String,
+    lastname: String,
+    city: String,
+    street: String,
+    country: String,
+    email: String,
+    phone: String,
   },
-  productName: {
-    type: String,
-    required: true,
-  },
-  quantity: {
-    type: Number,
-    required: true,
-    default: 1,
-  },
-  pricePerUnit: {
-    type: Number,
-    required: true,
-  },
+  cart: [
+    {
+      productId: { 
+        type: String,
+        required: true 
+      },
+      quantity: { 
+        type: Number, 
+        default: 1 
+      },
+      price: Number,
+    }
+  ],
   totalPrice: {
     type: Number,
     required: true,
   },
-  orderDate: {
-    type: Date,
-    default: Date.now,
+  createdAt: { 
+    type: Date, 
+    default: Date.now 
   },
-}, { timestamps: true });
+});
 
+const Order = mongoose.model('Order', orderSchema);
 
-const OrderMongo = mongoose.model('OrderMongo', OrderSchema);
-
-module.exports = OrderMongo;
+module.exports = Order;
