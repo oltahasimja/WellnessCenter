@@ -18,31 +18,48 @@ const transporter = nodemailer.createTransport({
 
 // Forgot password route
 router.post('/forgot-password', async (req, res) => {
+  try {
+    const { email } = req.body;
+    const user = await User.findOne({ where: { email } });
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    const resetToken = crypto.randomBytes(20).toString('hex');
+    const resetTokenExpiry = Date.now() + 3600000; // 1 hour
+
+    console.log('Before MySQL update:', {
+      resetToken,
+      resetTokenExpiry,
+      currentValues: {
+        token: user.resetPasswordToken,
+        expires: user.resetPasswordExpires
+      }
+    });
+
+    // Update MySQL
+    user.resetPasswordToken = resetToken;
+    user.resetPasswordExpires = resetTokenExpiry;
+    await user.save();
+
+    console.log('After MySQL update:', {
+      token: user.resetPasswordToken,
+      expires: user.resetPasswordExpires
+    });
+
+    // Update MongoDB
     try {
-      const { email } = req.body;
-      const user = await User.findOne({ where: { email } });
-  
-      if (!user) {
-        return res.status(404).json({ message: 'User not found' });
+      const userMongo = await UserMongo.findOne({ email });
+      if (userMongo) {
+        userMongo.resetPasswordToken = resetToken;
+        userMongo.resetPasswordExpires = resetTokenExpiry;
+        await userMongo.save();
+        console.log('MongoDB update successful');
       }
-  
-      const resetToken = crypto.randomBytes(20).toString('hex');
-      const resetTokenExpiry = Date.now() + 3600000; // 1 hour
-  
-      user.resetPasswordToken = resetToken;
-      user.resetPasswordExpires = resetTokenExpiry;
-      await user.save();
-  
-      try {
-        const userMongo = await UserMongo.findOne({ email });
-        if (userMongo) {
-          userMongo.resetPasswordToken = resetToken;
-          userMongo.resetPasswordExpires = resetTokenExpiry;
-          await userMongo.save();
-        }
-      } catch (mongoError) {
-        console.error('Error updating token in MongoDB:', mongoError);
-      }
+    } catch (mongoError) {
+      console.error('Error updating token in MongoDB:', mongoError);
+    }
   
       // Send email
       const resetUrl = `http://localhost:3000/reset-password/${resetToken}`;
@@ -71,7 +88,6 @@ router.post('/reset-password', async (req, res) => {
   try {
     const { token, password } = req.body;
     
-    // Correct Sequelize query syntax for MySQL
     const user = await User.findOne({
       where: {
         resetPasswordToken: token,
@@ -84,19 +100,28 @@ router.post('/reset-password', async (req, res) => {
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
-    user.password = hashedPassword;
-    user.resetPasswordToken = null;
-    user.resetPasswordExpires = null;
-    await user.save();
+    
+    // Update MySQL
+    await user.update({
+      password: hashedPassword,
+      resetPasswordToken: null,
+      resetPasswordExpires: null
+    });
 
+    // Update MongoDB
     try {
-      const userMongo = await UserMongo.findOne({ email: user.email });
-      if (userMongo) {
-        userMongo.password = hashedPassword; 
-        await userMongo.save();
-      }
+      await UserMongo.updateOne(
+        { email: user.email },
+        { 
+          $set: {
+            password: hashedPassword,
+            resetPasswordToken: null,
+            resetPasswordExpires: null
+          }
+        }
+      );
     } catch (mongoError) {
-      console.error('Error updating password in MongoDB:', mongoError);
+      console.error('Error updating MongoDB:', mongoError);
     }
 
     res.json({ message: 'Password updated successfully!' });

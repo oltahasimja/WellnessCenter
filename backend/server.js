@@ -189,7 +189,7 @@ const createDefaultRolesAndOwner = async () => {
     }
 
     // 2. Krijo rolet e Dashboard (Admin, Owner)
-    const dashboardRoles = ['Admin', 'Owner'];
+    const dashboardRoles = ['Owner'];
     for (let roleName of dashboardRoles) {
       const [dashboardRole, created] = await DashboardRole.findOrCreate({ where: { name: roleName } });
       if (created) {
@@ -238,9 +238,9 @@ const createDefaultRolesAndOwner = async () => {
 
       });
 
-      console.log('Owner user u krijua me sukses në të dyja databazat!');
+      // console.log('Owner user u krijua me sukses në të dyja databazat!');
     } else {
-      console.log('Owner user ekziston tashmë në MySQL.');
+      // console.log('Owner user ekziston tashmë në MySQL.');
       
       // Kontrollo nëse ekziston në MongoDB (nëse jo, krijoje)
       const existingOwnerMongo = await UserMongo.findOne({ mysqlId: existingOwner.id.toString() });
@@ -253,7 +253,7 @@ const createDefaultRolesAndOwner = async () => {
           name: 'Owner',
           lastName: 'Account'
         });
-        console.log('Owner user u shtua në MongoDB (ekzistonte vetëm në MySQL).');
+        // console.log('Owner user u shtua në MongoDB (ekzistonte vetëm në MySQL).');
       }
     }
   } catch (err) {

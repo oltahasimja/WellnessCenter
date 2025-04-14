@@ -28,12 +28,12 @@ const Sidebar = () => {
     );
   }
    const isOwner = user?.dashboardRole === 'Owner';
-  const isAdmin = user?.dashboardRole === 'Admin';
+  // const isAdmin = user?.dashboardRole === 'Admin';
   const isSpecialist = ['Nutricionist', 'Fizioterapeut', 'Trajner', 'Psikolog'].includes(user?.role);
   // const isClient = user?.role === 'Client' && user?.dashboardRole === 'User';
 
   
-  // const AdminSpecialist = isAdmin || (isAdmin && isSpecialist);
+  //  const AdminSpecialist = isAdmin || (isAdmin && isSpecialist);
 
 
 
@@ -102,7 +102,7 @@ const Sidebar = () => {
             componentName=""
           />
         
-{(isAdmin || isOwner) && (
+{(isSpecialist || isOwner) && (
         
     <div className="mb-1">
             <MenuItem 
@@ -167,7 +167,7 @@ const Sidebar = () => {
 
 
           {/* Manage Users Dropdown */}
-          {(isOwner || isAdmin) && (
+          {(isOwner || isSpecialist) && (
 
           <div className="mb-1">
             <MenuItem 
@@ -280,6 +280,13 @@ const Sidebar = () => {
              </div>
            )}
          </div>
+
+
+         {/* <MenuItem 
+            icon={ClipboardList} 
+            label="Order" 
+            componentName="order"
+          /> */}
           <MenuItem 
             icon={Antenna} 
             label="Board" 

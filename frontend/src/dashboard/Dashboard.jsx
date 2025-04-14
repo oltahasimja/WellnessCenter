@@ -37,8 +37,8 @@ function Dashboard() {
   // Role checks
   const isOwner = user?.dashboardRole === 'Owner';
   const isSpecialist = ['Nutricionist', 'Fizioterapeut', 'Trajner', 'Psikolog'].includes(user?.role);
-  const isAdmin = user?.dashboardRole === 'Admin';
-  const AdminSpecialist = isAdmin || (isAdmin && isSpecialist);
+  // const isAdmin = user?.dashboardRole === 'Admin';
+  // const AdminSpecialist = isAdmin || (isAdmin && isSpecialist);
   const isClient = user?.role === 'Client' && user?.dashboardRole === 'User';
 
   const [activeComponent, setActiveComponent] = useState(() => {
@@ -55,23 +55,23 @@ function Dashboard() {
     createappointment: { component: <CreateAppointment />, access: true },
     
     // Owner only components
-    users: { component: <User navigate={navigate} />, access: AdminSpecialist || isOwner },
-    createuser: { component: <CreateUser navigate={navigate} />, access: AdminSpecialist || isOwner },
-    edituser: { component: <EditUser navigate={navigate} />, access: AdminSpecialist || isOwner },
+    users: { component: <User navigate={navigate} />, access: isSpecialist || isOwner },
+    createuser: { component: <CreateUser navigate={navigate} />, access: isSpecialist || isOwner },
+    edituser: { component: <EditUser navigate={navigate} />, access: isSpecialist || isOwner },
     roles: { component: <Role />, access: isOwner },
     dashboardrole: { component: <DashboardRole />, access: isOwner },
     
     // Admin, Specialist, or Owner components
-    program: { component: <Program />, access: AdminSpecialist || isOwner },
-    userprograms: { component: <UserPrograms />, access: AdminSpecialist || isOwner },
-    list: { component: <List />, access: AdminSpecialist || isOwner },
-    training: { component: <Training />, access: AdminSpecialist || isOwner },
-    trainingapplication: { component: <TrainingApplication />, access: AdminSpecialist || isOwner },
-    order: { component: <Order />, access: AdminSpecialist || isOwner },
-    product: { component: <Product />, access: AdminSpecialist || isOwner },
-    category: { component: <Category />, access: AdminSpecialist || isOwner },
-    review: { component: <Review />, access: AdminSpecialist || isOwner },
-    schedule: { component: <Schedule />, access: true },
+    program: { component: <Program />, access: isSpecialist || isOwner },
+    userprograms: { component: <UserPrograms />, access: isSpecialist || isOwner },
+    list: { component: <List />, access: isSpecialist || isOwner },
+    training: { component: <Training />, access: isSpecialist || isOwner },
+    trainingapplication: { component: <TrainingApplication />, access: isSpecialist || isOwner },
+    order: { component: <Order />, access: isSpecialist || isOwner },
+    product: { component: <Product />, access: isSpecialist || isOwner },
+    category: { component: <Category />, access: isSpecialist || isOwner },
+    review: { component: <Review />, access: isSpecialist || isOwner },
+    schedule: { component: <Schedule />, access: isOwner },
     
     // Client or Specialist components
     card: { component: <Card />, access: isClient || isSpecialist },

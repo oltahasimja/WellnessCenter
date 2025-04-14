@@ -23,7 +23,7 @@ import Product from './dashboard/Product';
 import Category from './dashboard/Category';
 import Cart from './dashboard/Cart';
 import ClientOrderForm from './dashboard/ClientOrderForm';
-
+import Appointment from './pages/Appointment'
 
 
 const AppRoutes = () => {
@@ -43,6 +43,8 @@ const AppRoutes = () => {
         <Route path="/" element={<Login />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/Appointment" element={<Appointment />} />
+
         <Route path="/dashboard/*" element={<Dashboard />} />
         <Route path="/list" element={<List />} />
         <Route path="/training" element={<Training />} />
