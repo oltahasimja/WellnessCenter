@@ -50,32 +50,19 @@ const TrainingDetail = () => {
         setLoading(true);
         setError(null);
         
-        // Check if user is a member of this training
         const trainingApplicationRes = await axios.get('http://localhost:5000/api/trainingapplication');
         
-        // Debug: Log the current user and training applications
-        console.log("Current User:", currentUser);
-        console.log("Training Applications:", trainingApplicationRes.data);
-        
         const isTrainingMember = trainingApplicationRes.data.some(ta => {
-          // Compare training ID (handle both string and number comparisons)
           const trainingMatch = ta.trainingId._id === id || 
                                ta.trainingId.mysqlId === id || 
                                ta.trainingId.mysqlId === String(id);
-          
-          // Compare user ID (handle both string and number comparisons)
           const userMatch = ta.userId._id === currentUser._id || 
                            String(ta.userId.mysqlId) === String(currentUser.id) ||
                            ta.userId.mysqlId === currentUser.id;
           
-          // Optional: Check if status is approved if needed
-          // const statusMatch = ta.status === 'approved';
-          
-          return trainingMatch && userMatch; // && statusMatch if using status check
+          return trainingMatch && userMatch;
         });
         
-        console.log("Is member:", isTrainingMember); // Debug log
-    
         if (!isTrainingMember) {
           setError("You don't have access to this training");
           setLoading(false);
@@ -84,22 +71,13 @@ const TrainingDetail = () => {
     
         setIsMember(true);
 
-        // Fetch training details
         const trainingRes = await axios.get(`http://localhost:5000/api/training/${id}`);
         if (!trainingRes.data) {
           setError("Training not found");
           return;
         }
         setTraining(trainingRes.data);
-        setFormData({
-          title: trainingRes.data.title,
-          category: trainingRes.data.category,
-          description: trainingRes.data.description,
-          duration: trainingRes.data.duration,
-          max_participants: trainingRes.data.max_participants
-        });
 
-        // Fetch members
         const trainingMembers = trainingApplicationRes.data.filter(ta => 
           ta.trainingId._id === id || ta.trainingId.mysqlId === id
         );
@@ -109,7 +87,8 @@ const TrainingDetail = () => {
           mysqlId: item.userId.mysqlId,
           name: item.userId.name,
           email: item.userId.email,
-          role: item.userId.roleId
+          role: item.userId.roleId,
+          status: item.status || 'në pritje'
         }));
         
         setMembers(membersList);
@@ -127,71 +106,128 @@ const TrainingDetail = () => {
     }
   }, [id, currentUser]);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const handleCompleteTraining = async (memberId) => {
     try {
-      await axios.put(`http://localhost:5000/api/training/${id}`, formData);
-      const response = await axios.get(`http://localhost:5000/api/training/${id}`);
-      setTraining(response.data);
-      alert('Training updated successfully!');
+      const trainingApplicationRes = await axios.get('http://localhost:5000/api/trainingapplication');
+      
+      const taToUpdate = trainingApplicationRes.data.find(ta => 
+        (ta.userId._id === memberId || ta.userId.mysqlId == memberId) && 
+        (ta.trainingId._id === id || ta.trainingId.mysqlId == id)
+      );
+  
+      if (!taToUpdate) {
+        throw new Error('Training application not found');
+      }
+  
+      const idToUpdate = taToUpdate.mysqlId || taToUpdate._id;
+      
+      // Prepare the update data
+      const updateData = {
+        status: 'miratuar'
+      };
+  
+      // Only include userId if it exists and is valid
+      if (taToUpdate.userId && (taToUpdate.userId._id || taToUpdate.userId.mysqlId)) {
+        updateData.userId = taToUpdate.userId.mysqlId || taToUpdate.userId._id;
+      }
+  
+      // Only include trainingId if it exists and is valid
+      if (taToUpdate.trainingId && (taToUpdate.trainingId._id || taToUpdate.trainingId.mysqlId)) {
+        updateData.trainingId = taToUpdate.trainingId.mysqlId || taToUpdate.trainingId._id;
+      }
+  
+      await axios.put(`http://localhost:5000/api/trainingapplication/${idToUpdate}`, updateData);
+  
+      const updatedTA = await axios.get('http://localhost:5000/api/trainingapplication');
+      const updatedMembers = updatedTA.data
+        .filter(ta => ta.trainingId._id === id || ta.trainingId.mysqlId == id)
+        .map(ta => ({
+          _id: ta.userId._id,
+          mysqlId: ta.userId.mysqlId,
+          name: ta.userId.name,
+          email: ta.userId.email,
+          role: ta.userId.roleId,
+          status: ta.status
+        }));
+      
+      setMembers(updatedMembers);
+      alert('Statusi u përditësua me sukses!');
     } catch (error) {
-      console.error('Error updating training:', error);
-      alert('Failed to update training: ' + (error.response?.data?.message || error.message));
+      console.error('Error updating status:', error);
+      alert('Gabim gjatë përditësimit të statusit: ' + (error.response?.data?.message || error.message));
     }
-  };
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: name === 'max_participants' ? Number(value) : value
-    }));
   };
 
   const handleAddMember = async (e) => {
     e.preventDefault();
     
     if (!newMemberEmail) {
-      alert('Please enter a user email');
+      alert('Ju lutem shkruani emailin e përdoruesit');
       return;
     }
   
     try {
-      // Find user by email
-      const usersRes = await axios.get('http://localhost:5000/api/user');
-      const userToAdd = usersRes.data.find(user => user.email === newMemberEmail);
-      
-      if (!userToAdd) {
-        throw new Error('User with this email not found');
+      // 1. First verify the training exists
+      if (!training) {
+        throw new Error('Trajnimi nuk u gjet');
       }
   
-      // Add to training application
-      await axios.post('http://localhost:5000/api/trainingapplication', {
-        userId: userToAdd.mysqlId || userToAdd._id,
-        trainingId: training.mysqlId || training._id,
-        invitedById: currentUser.id
-      });
-      
-      // Refresh members list
-      const trainingApplicationRes = await axios.get('http://localhost:5000/api/trainingapplication');
-      const trainingMembers = trainingApplicationRes.data.filter(ta => 
-        ta.trainingId._id === id || ta.trainingId.mysqlId === id
+      // 2. Find user by email (case insensitive)
+      const usersRes = await axios.get('http://localhost:5000/api/user');
+      const userToAdd = usersRes.data.find(user => 
+        user.email && user.email.toLowerCase() === newMemberEmail.toLowerCase()
       );
       
-      const membersList = trainingMembers.map(item => ({
+      if (!userToAdd) {
+        throw new Error(`Përdoruesi me email ${newMemberEmail} nuk u gjet`);
+      }
+  
+      // 3. Check if user is already a member
+      const isAlreadyMember = members.some(member => 
+        member.email && member.email.toLowerCase() === newMemberEmail.toLowerCase()
+      );
+      
+      if (isAlreadyMember) {
+        throw new Error('Ky përdorues është tashmë pjesë e këtij trajnimi');
+      }
+  
+      // 4. Prepare the data for the API call
+      const postData = {
+        userId: userToAdd.mysqlId || userToAdd._id,
+        trainingId: training.mysqlId || training._id,
+        status: 'në pritje'
+      };
+  
+      // Add invitedById only if currentUser exists
+      if (currentUser) {
+        postData.invitedById = currentUser.mysqlId || currentUser._id;
+      }
+  
+      // 5. Make the API call to add the member
+      await axios.post('http://localhost:5000/api/trainingapplication', postData);
+  
+      // 6. Refresh the members list
+      const trainingApplicationRes = await axios.get('http://localhost:5000/api/trainingapplication');
+      const trainingMembers = trainingApplicationRes.data.filter(ta => 
+        (ta.trainingId._id === id || ta.trainingId.mysqlId == id) &&
+        (ta.userId && (ta.userId._id || ta.userId.mysqlId))
+      );
+      
+      const updatedMembers = trainingMembers.map(item => ({
         _id: item.userId._id,
         mysqlId: item.userId.mysqlId,
-        name: item.userId.name,
-        email: item.userId.email,
-        role: item.userId.roleId
+        name: item.userId.name || 'Unknown',
+        email: item.userId.email || 'No email',
+        role: item.userId.roleId || 'member',
+        status: item.status || 'në pritje'
       }));
       
-      setMembers(membersList);
+      setMembers(updatedMembers);
       setNewMemberEmail('');
-      alert('Member added successfully');
+      alert('Përdoruesi u shtua me sukses!');
     } catch (error) {
-      console.error('Error adding member:', error);
-      alert('Failed to add member. ' + (error.response?.data?.message || error.message));
+      console.error('Gabim gjatë shtimit të anëtarit:', error);
+      alert('Gabim: ' + (error.response?.data?.message || error.message));
     }
   };
 
@@ -209,7 +245,6 @@ const TrainingDetail = () => {
     try {
       const trainingApplicationRes = await axios.get('http://localhost:5000/api/trainingapplication');
       
-      // Find the specific training application to delete
       const taToDelete = trainingApplicationRes.data.find(ta => 
         (ta.userId._id === deleteModal.memberId || ta.userId.mysqlId === deleteModal.memberId) && 
         (ta.trainingId._id === id || ta.trainingId.mysqlId === id)
@@ -222,7 +257,6 @@ const TrainingDetail = () => {
       const idToDelete = taToDelete.mysqlId || taToDelete._id;
       await axios.delete(`http://localhost:5000/api/trainingapplication/${idToDelete}`);
       
-      // Refresh members list
       const updatedTA = await axios.get('http://localhost:5000/api/trainingapplication');
       const updatedMembers = updatedTA.data
         .filter(ta => ta.trainingId._id === id || ta.trainingId.mysqlId === id)
@@ -255,165 +289,213 @@ const TrainingDetail = () => {
     });
   };
 
-  if (loading) return <div className="text-center p-8">Loading training details...</div>;
-  if (error) return <div className="text-center p-8 text-red-500">Error: {error}</div>;
-  if (!isMember) return <div className="text-center p-8 text-red-500">Access Denied</div>;
+  if (loading) return (
+    <div className="flex justify-center items-center min-h-screen bg-gray-50">
+      <div className="text-center p-8 bg-white rounded-lg shadow-md">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500 mx-auto mb-4"></div>
+        <p className="text-gray-700">Loading training details...</p>
+      </div>
+    </div>
+  );
+
+  if (error) return (
+    <div className="flex justify-center items-center min-h-screen bg-gray-50">
+      <div className="text-center p-8 bg-white rounded-lg shadow-md max-w-md">
+        <div className="text-red-500 text-4xl mb-4">⚠️</div>
+        <h2 className="text-xl font-bold text-gray-800 mb-2">Error</h2>
+        <p className="text-gray-600 mb-4">{error}</p>
+        <button 
+          onClick={() => navigate('/trainings')}
+          className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md"
+        >
+          Back to Trainings
+        </button>
+      </div>
+    </div>
+  );
+
+  if (!isMember) return (
+    <div className="flex justify-center items-center min-h-screen bg-gray-50">
+      <div className="text-center p-8 bg-white rounded-lg shadow-md max-w-md">
+        <div className="text-red-500 text-4xl mb-4">🔒</div>
+        <h2 className="text-xl font-bold text-gray-800 mb-2">Access Denied</h2>
+        <p className="text-gray-600 mb-4">You don't have permission to view this training.</p>
+        <button 
+          onClick={() => navigate('/trainings')}
+          className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md"
+        >
+          Back to Trainings
+        </button>
+      </div>
+    </div>
+  );
 
   return (
-    <div className="container mx-auto p-6">
-      <div className="bg-white rounded-lg shadow-md p-6">
-        <div className="flex justify-between items-start mb-6">
-          <div>
-            <h1 className="text-3xl font-bold">{training.title}</h1>
-            <p className="text-gray-600 mt-2">
-              Category: {training.category} | Duration: {training.duration} | 
-              Max Participants: {training.max_participants}
-            </p>
-            <p className="text-gray-600 mt-1">
-              Created by: {training.createdById?.name || 'Unknown'} | 
-              Created on: {new Date(training.createdAt).toLocaleDateString()}
-            </p>
-          </div>
-          <button 
-            onClick={() => navigate('/trainings')}
-            className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-md"
-          >
-            Back to Trainings
-          </button>
-        </div>
-        
-        <div className="mb-8">
-          <h2 className="text-xl font-semibold mb-2">Description</h2>
-          <p className="text-gray-700 mb-6 p-4 bg-gray-50 rounded">{training.description}</p>
-          
-          <h2 className="text-xl font-semibold mb-4">Training Members</h2>
-          
-          <form onSubmit={handleAddMember} className="mb-6 flex gap-2">
-            <input
-              type="email"
-              placeholder="Enter user email to invite"
-              value={newMemberEmail}
-              onChange={(e) => setNewMemberEmail(e.target.value)}
-              className="flex-grow border p-2 rounded-md"
-              required
-            />
-            <button 
-              type="submit" 
-              className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md"
-            >
-              Add Member
-            </button>
-          </form>
-          
-          {members.length > 0 ? (
-            <div className="border rounded-md overflow-hidden">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Name</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Email</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Role</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {members.map(member => (
-                    <tr key={member._id || member.mysqlId}>
-                      <td className="px-6 py-4 whitespace-nowrap">{member.name}</td>
-                      <td className="px-6 py-4 whitespace-nowrap">{member.email}</td>
-                      <td className="px-6 py-4 whitespace-nowrap">{member.role || 'Member'}</td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <button 
-                          onClick={() => handleRemoveClick(member._id || member.mysqlId, member.name)}
-                          className="text-red-500 hover:text-red-700"
-                        >
-                          Remove
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          ) : (
-            <p className="text-gray-500 text-center py-4">No members yet</p>
-          )}
-        </div>
-
-        <div className="bg-white p-6 rounded-lg shadow-md">
-          <h2 className="text-2xl font-bold mb-6">Edit Training</h2>
-          
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-6xl mx-auto">
+        <div className="bg-white rounded-xl shadow-md overflow-hidden">
+          {/* Training Header */}
+          <div className="bg-gradient-to-r from-blue-600 to-blue-800 p-6 text-white">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
               <div>
-                <label className="block text-gray-700 mb-1">Title</label>
-                <input
-                  type="text"
-                  name="title"
-                  value={formData.title}
-                  onChange={handleChange}
-                  className="border p-2 rounded-md w-full"
-                  required
-                />
+                <h1 className="text-2xl md:text-3xl font-bold">{training.title}</h1>
+                <div className="flex flex-wrap gap-x-4 gap-y-1 mt-2 text-sm md:text-base">
+                  <span className="flex items-center">
+                    <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                    </svg>
+                    {training.category}
+                  </span>
+                  <span className="flex items-center">
+                    <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    {training.duration}
+                  </span>
+                  <span className="flex items-center">
+                    <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                    </svg>
+                    Max: {training.max_participants}
+                  </span>
+                </div>
               </div>
-              
-              <div>
-                <label className="block text-gray-700 mb-1">Category</label>
-                <input
-                  type="text"
-                  name="category"
-                  value={formData.category}
-                  onChange={handleChange}
-                  className="border p-2 rounded-md w-full"
-                  required
-                />
-              </div>
-              
-              <div>
-                <label className="block text-gray-700 mb-1">Duration</label>
-                <input
-                  type="text"
-                  name="duration"
-                  value={formData.duration}
-                  onChange={handleChange}
-                  className="border p-2 rounded-md w-full"
-                  required
-                />
-              </div>
-              
-              <div>
-                <label className="block text-gray-700 mb-1">Max Participants</label>
-                <input
-                  type="number"
-                  name="max_participants"
-                  value={formData.max_participants}
-                  onChange={handleChange}
-                  className="border p-2 rounded-md w-full"
-                  required
-                />
-              </div>
-            </div>
-            
-            <div>
-              <label className="block text-gray-700 mb-1">Description</label>
-              <textarea
-                name="description"
-                value={formData.description}
-                onChange={handleChange}
-                className="border p-2 rounded-md w-full h-32"
-                required
-              />
-            </div>
-            
-            <div className="flex justify-end pt-4">
-              <button
-                type="submit"
-                className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md"
+              <button 
+                onClick={() => navigate('/trainings')}
+                className="bg-white bg-opacity-20 hover:bg-opacity-30 text-white px-4 py-2 rounded-md flex items-center transition-all"
               >
-                Update Training
+                <svg className="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                </svg>
+                Back to Trainings
               </button>
             </div>
-          </form>
+          </div>
+
+          {/* Training Content */}
+          <div className="p-6">
+            {/* Description Section */}
+            <div className="mb-8">
+              <h2 className="text-xl font-semibold mb-3 text-gray-800 border-b pb-2">Description</h2>
+              <div className="bg-blue-50 p-4 rounded-lg border border-blue-100">
+                <p className="text-gray-700">{training.description}</p>
+              </div>
+            </div>
+
+            {/* Members Section */}
+            <div className="mb-8">
+              <h2 className="text-xl font-semibold mb-3 text-gray-800 border-b pb-2">Training Members</h2>
+              
+              {/* Add Member Form */}
+              <form onSubmit={handleAddMember} className="mb-6 flex flex-col sm:flex-row gap-3">
+                <div className="flex-grow relative">
+                  <input
+                    type="email"
+                    placeholder="Enter user email to invite"
+                    value={newMemberEmail}
+                    onChange={(e) => setNewMemberEmail(e.target.value)}
+                    className="w-full border border-gray-300 p-2 pl-10 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    required
+                  />
+                  <svg className="absolute left-3 top-3 h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                  </svg>
+                </div>
+                <button 
+                  type="submit" 
+                  className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md flex items-center justify-center transition-colors"
+                >
+                  <svg className="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+                  </svg>
+                  Add Member
+                </button>
+              </form>
+              
+              {/* Members Table */}
+              {members.length > 0 ? (
+                <div className="border rounded-lg overflow-hidden shadow-sm">
+                  <div className="overflow-x-auto">
+                    <table className="min-w-full divide-y divide-gray-200">
+                      <thead className="bg-gray-50">
+                        <tr>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Role</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody className="bg-white divide-y divide-gray-200">
+                        {members.map(member => (
+                          <tr key={member._id || member.mysqlId} className="hover:bg-gray-50">
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <div className="flex items-center">
+                                <div className="flex-shrink-0 h-10 w-10 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 font-medium">
+                                  {member.name.charAt(0).toUpperCase()}
+                                </div>
+                                <div className="ml-4">
+                                  <div className="text-sm font-medium text-gray-900">{member.name}</div>
+                                </div>
+                              </div>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{member.email}</td>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                                ${member.role === 'admin' ? 'bg-purple-100 text-purple-800' : 
+                                  member.role === 'trainer' ? 'bg-blue-100 text-blue-800' : 
+                                  'bg-green-100 text-green-800'}`}>
+                                {member.role || 'Member'}
+                              </span>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                                ${member.status === 'miratuar' ? 'bg-green-100 text-green-800' : 
+                                  'bg-yellow-100 text-yellow-800'}`}>
+                                {member.status || 'në pritje'}
+                              </span>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap space-x-2">
+                              <button 
+                                onClick={() => handleCompleteTraining(member._id || member.mysqlId)}
+                                className={`inline-flex items-center px-3 py-1 rounded-md text-sm font-medium 
+                                  ${member.status === 'miratuar' ? 
+                                    'bg-gray-200 text-gray-600 cursor-not-allowed' : 
+                                    'bg-green-600 hover:bg-green-700 text-white'}`}
+                                disabled={member.status === 'miratuar'}
+                              >
+                                <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                </svg>
+                                {member.status === 'miratuar' ? 'Completed' : 'Complete'}
+                              </button>
+                              <button 
+                                onClick={() => handleRemoveClick(member._id || member.mysqlId, member.name)}
+                                className="inline-flex items-center px-3 py-1 bg-red-600 hover:bg-red-700 text-white rounded-md text-sm font-medium"
+                              >
+                                <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                </svg>
+                                Remove
+                              </button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              ) : (
+                <div className="text-center py-8 bg-gray-50 rounded-lg border border-dashed border-gray-300">
+                  <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                  </svg>
+                  <h3 className="mt-2 text-sm font-medium text-gray-900">No members yet</h3>
+                  <p className="mt-1 text-sm text-gray-500">Invite members by entering their email above.</p>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
       </div>
 

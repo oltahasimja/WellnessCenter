@@ -54,8 +54,14 @@ const TrainingApplication = () => {
 
   const fetchTrainingSchedule = async (trainingId) => {
     try {
-      const response = await axios.get(`http://localhost:5000/api/scheduleTraining?trainingId=${trainingId}`);
-      setSelectedTrainingSchedule(response.data);
+      const response = await axios.get(`http://localhost:5000/api/scheduleTraining`);
+      // Filtrojmë oraret duke krahasuar ID e trajnimit
+      const filteredSchedules = response.data.filter(schedule => {
+        // Kontrollojmë nëse trainingId është objekt ose string
+        const scheduleTrainingId = schedule.trainingId?.mysqlId || schedule.trainingId;
+        return scheduleTrainingId === trainingId;
+      });
+      setSelectedTrainingSchedule(filteredSchedules);
     } catch (error) {
       console.error("Error fetching training schedule:", error);
       setSelectedTrainingSchedule(null);
@@ -212,7 +218,7 @@ const TrainingApplication = () => {
 
             {selectedTrainingSchedule && selectedTrainingSchedule.length > 0 && (
               <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-                <h2 className="text-xl font-semibold mb-4">Orari i Trajnimit</h2>
+                <h2 className="text-xl font-semibold mb-4">Orari i Trajnimit të Selektuar</h2>
                 {selectedTrainingSchedule.map((schedule, index) => (
                   <div key={index} className="mb-4">
                     <p><strong>Ditët:</strong> {schedule.workDays.join(', ')}</p>
