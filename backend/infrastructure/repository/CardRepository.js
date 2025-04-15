@@ -142,7 +142,7 @@ class CardRepository {
       if (!mysqlCard) {
         throw new Error("Card not found in MySQL");
       }
-  
+
       // Prepare the MySQL update data
       const mysqlUpdateData = {
         title: data.title || mysqlCard.title,
@@ -150,22 +150,22 @@ class CardRepository {
         priority: data.priority || mysqlCard.priority || "medium",
         updatedAt: new Date()
       };
-  
+
       // Handle listId if provided
       if (data.listId) {
         mysqlUpdateData.listId = data.listId;
       }
-  
+
       // Update in MySQL first
       await Card.update(mysqlUpdateData, { where: { id } });
-  
+
       // Now handle MongoDB update
       const existingMongoCard = await CardMongo.findOne({ mysqlId: id.toString() });
       if (!existingMongoCard) {
         console.warn(`Card with MySQL ID ${id} not found in MongoDB`);
         return mysqlCard;
       }
-  
+
       // Prepare MongoDB update data
       const mongoUpdateData = {
         title: mysqlUpdateData.title,
@@ -173,7 +173,7 @@ class CardRepository {
         priority: mysqlUpdateData.priority,
         updatedAt: mysqlUpdateData.updatedAt
       };
-  
+
       // Handle listId for MongoDB
       if (data.listId) {
         const mongoList = await ListMongo.findOne({ mysqlId: data.listId.toString() });
@@ -181,38 +181,42 @@ class CardRepository {
           mongoUpdateData.listId = mongoList._id;
         }
       }
-  
-      // Handle attachments
+
+      // Handle attachments - this is the critical part
       if (data.attachments || data.removedAttachments) {
-        const existingAttachments = existingMongoCard.attachments || [];
-        const removedAttachments = data.removedAttachments || [];
+        // Get current attachments (as ObjectIds)
+        const currentAttachments = existingMongoCard.attachments || [];
         
         // Filter out removed attachments
-        const keptAttachments = existingAttachments.filter(attId => 
-          !removedAttachments.includes(attId.toString())
+        const keptAttachments = currentAttachments.filter(attId => 
+          !(data.removedAttachments || []).includes(attId.toString())
         );
-  
-        // Add new attachments
-        const newAttachments = data.attachments || [];
-        const savedAttachments = await Promise.all(
-          newAttachments.map(async attachment => {
-            if (attachment._id) return attachment._id; // Already exists
+
+        // Process new attachments
+        const newAttachments = await Promise.all(
+          (data.attachments || []).map(async attachment => {
+            // If attachment already has _id, it's existing - just keep the reference
+            if (attachment._id) {
+              return attachment._id;
+            }
             
-            const newAttachment = new AttachmentMongo({
+            // Create new attachment document
+            const newAttachment = await AttachmentMongo.create({
               name: attachment.name,
               type: attachment.type,
               size: attachment.size,
               data: attachment.data,
               cardId: existingMongoCard._id
             });
-            await newAttachment.save();
+            
             return newAttachment._id;
           })
         );
-  
-        mongoUpdateData.attachments = [...keptAttachments, ...savedAttachments];
+
+        // Combine kept and new attachments
+        mongoUpdateData.attachments = [...keptAttachments, ...newAttachments];
       }
-  
+
       // Update in MongoDB
       const updatedMongoCard = await CardMongo.findOneAndUpdate(
         { mysqlId: id.toString() },
@@ -223,7 +227,7 @@ class CardRepository {
         { path: 'listId', model: 'ListMongo' },
         { path: 'attachments', model: 'AttachmentMongo' }
       ]);
-  
+
       return updatedMongoCard ? updatedMongoCard.toObject() : mysqlCard;
     } catch (error) {
       console.error("Error updating Card:", error);

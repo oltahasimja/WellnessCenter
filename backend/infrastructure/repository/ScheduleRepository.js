@@ -25,7 +25,7 @@ class ScheduleRepository {
       const schedules = await ScheduleMongo.find(query)
         .populate({
           path: 'specialistId',
-          select: 'name lastName mysqlId',
+          select: 'name lastName profileImageId mysqlId',
           model: 'UserMongo',
           populate: { 
             path: 'roleId', 

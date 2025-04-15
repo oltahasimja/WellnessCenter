@@ -20,9 +20,20 @@ const ProgramDetail = () => {
   const [showListForm, setShowListForm] = useState(false);
   const [editingListId, setEditingListId] = useState(null);
   const [editedListName, setEditedListName] = useState('');
+  const [deleteModal, setDeleteModal] = useState({
+    isOpen: false,
+    memberId: null,
+    memberName: ''
+  });
+
+
   const [isCardModalOpen, setIsCardModalOpen] = useState(false);
-const [selectedCard, setSelectedCard] = useState(null);
-const [selectedListId, setSelectedListId] = useState(null);
+  const [selectedCard, setSelectedCard] = useState(null);
+  const [selectedListId, setSelectedListId] = useState(null);
+  const [selectedFiles, setSelectedFiles] = useState([]);
+  const [newChecklistItem, setNewChecklistItem] = useState('');
+  const [removedAttachments, setRemovedAttachments] = useState([]);
+
   useEffect(() => {
     const checkLoginStatus = async () => {
       try {
@@ -48,16 +59,13 @@ const [selectedListId, setSelectedListId] = useState(null);
         
         const userProgramsRes = await axios.get('http://localhost:5000/api/userprograms');
         
-        // Check if user is a member of the program
         const isProgramMember = userProgramsRes.data.some(userProgram => {
           if (!userProgram || !userProgram.userId) return false;
           
-          // Check user match
           const userMatches = 
             userProgram.userId._id === currentUser.id.toString() || 
             userProgram.userId.mysqlId === currentUser.id.toString();
           
-          // Check program match (only if programId exists)
           const programMatches = userProgram.programId && (
             userProgram.programId._id === id || 
             userProgram.programId.mysqlId === id
@@ -74,7 +82,6 @@ const [selectedListId, setSelectedListId] = useState(null);
 
         setIsMember(true);
 
-        // Fetch the program details
         const programRes = await axios.get(`http://localhost:5000/api/program/${id}`);
         if (!programRes.data || programRes.data.message === "Program not found") {
           setError("Program not found");
@@ -82,7 +89,6 @@ const [selectedListId, setSelectedListId] = useState(null);
         }
         setProgram(programRes.data);
 
-        // Filter and map members with proper null checks
         const membersList = userProgramsRes.data
           .filter(userProgram => 
             userProgram.programId && (
@@ -100,13 +106,11 @@ const [selectedListId, setSelectedListId] = useState(null);
         
         setMembers(membersList);
 
-        // Fetch lists and cards
         const [listsRes, cardsRes] = await Promise.all([
           axios.get('http://localhost:5000/api/list'),
           axios.get('http://localhost:5000/api/card')
         ]);
 
-        // Process lists and cards
         const boardLists = listsRes.data
           .filter(list => 
             list.programId && (
@@ -130,7 +134,7 @@ const [selectedListId, setSelectedListId] = useState(null);
                 dueDate: card.dueDate,
                 labels: card.labels || [],
                 checklist: card.checklist || [],
-                attachments : card.attachments || []
+                attachments: card.attachments || []
               }));
 
             return {
@@ -211,18 +215,17 @@ const [selectedListId, setSelectedListId] = useState(null);
         cards: [],
       };
   
-      // Option 1: Optimistic update (preferred)
       setLists(prev => [...prev, newList]);
       setNewListName('');
       setShowListForm(false);
   
-      // Option 2: Refetch lists (if you need fresh data)
       await fetchLists();
     } catch (error) {
       console.error('Error creating list:', error);
       alert('Failed to create list: ' + (error.response?.data?.message || error.message));
     }
   };
+
   const handleDeleteList = async (listId) => {
     try {
       await axios.delete(`http://localhost:5000/api/list/${listId}`);
@@ -232,177 +235,158 @@ const [selectedListId, setSelectedListId] = useState(null);
       alert('Failed to delete list: ' + (error.response?.data?.message || error.message));
     }
   };
-  // List editing functions
-const startListEdit = (list) => {
-  setEditingListId(list.id);
-  setEditedListName(list.title);
-};
 
-const cancelListEdit = () => {
-  setEditingListId(null);
-  setEditedListName('');
-};
+  const startListEdit = (list) => {
+    setEditingListId(list.id);
+    setEditedListName(list.title);
+  };
 
-const saveListEdit = async (listId) => {
-  try {
-    await axios.put(`http://localhost:5000/api/list/${listId}`, {
-      name: editedListName
-    });
-    
-    // Update local state
-    setLists(lists.map(list => 
-      list.id === listId ? { ...list, title: editedListName } : list
-    ));
-    
+  const cancelListEdit = () => {
     setEditingListId(null);
     setEditedListName('');
-  } catch (error) {
-    console.error('Error updating list:', error);
-    alert('Failed to update list: ' + (error.response?.data?.message || error.message));
-  }
-};
+  };
+
+  const saveListEdit = async (listId) => {
+    try {
+      await axios.put(`http://localhost:5000/api/list/${listId}`, {
+        name: editedListName
+      });
+      
+      setLists(lists.map(list => 
+        list.id === listId ? { ...list, title: editedListName } : list
+      ));
+      
+      setEditingListId(null);
+      setEditedListName('');
+    } catch (error) {
+      console.error('Error updating list:', error);
+      alert('Failed to update list: ' + (error.response?.data?.message || error.message));
+    }
+  };
 
   const handleAddMember = async (e) => {
-     e.preventDefault();
-     
-     if (!newMemberEmail) {
-       alert('Please enter a user email');
-       return;
-     }
-   
-     try {
-       // Find user by email
-       const usersRes = await axios.get('http://localhost:5000/api/user');
-       const userToAdd = usersRes.data.find(user => user.email === newMemberEmail);
-       
-       if (!userToAdd) {
-         throw new Error('User with this email not found');
-       }
-   
-       // Get current program
-       const programRes = await axios.get(`http://localhost:5000/api/program/${id}`);
-       if (!programRes.data) {
-         throw new Error('Program not found');
-       }
-   
-       // Use the plural endpoint and consistent ID field
-       await axios.post('http://localhost:5000/api/userprograms', {
-         userId: userToAdd.mysqlId, // or _id depending on your backend
-         programId: programRes.data.mysqlId, // or _id
-         invitedById: "1" // Replace with actual logged-in user's ID
-       });
-       
-       // Refresh members list
-       const userProgramsRes = await axios.get('http://localhost:5000/api/userprograms');
-       const programMembers = userProgramsRes.data.filter(
-         userProgram => userProgram.programId._id === id || userProgram.programId.mysqlId === id
-       );
-       
-       const membersList = programMembers.map(item => ({
-         _id: item.userId._id,
-         name: item.userId.name,
-         email: item.userId.email,
-         role: item.userId.roleId
-       }));
-       
-       setMembers(membersList);
-       setNewMemberEmail('');
-       alert('Member added successfully');
-     } catch (error) {
-       console.error('Error adding member:', error);
-       alert('Failed to add member. ' + (error.response?.data?.message || error.message));
-     }
-   };
-   const [deleteModal, setDeleteModal] = useState({
-     isOpen: false,
-     memberId: null,
-     memberName: ''
-   });
-   const handleRemoveClick = (memberId, memberName) => {
-     setDeleteModal({
-       isOpen: true,
-       memberId,
-       memberName
-     });
-   };
-   
-   const handleDeleteConfirm = async () => {
-     if (!deleteModal.memberId) return;
-   
-     try {
-       // First get all user programs to find the correct association
-       const userProgramsRes = await axios.get('http://localhost:5000/api/userprograms');
-       
-       // Find the specific user-program association to delete
-       const userProgramToDelete = userProgramsRes.data.find(up => 
-         (up.userId._id === deleteModal.memberId || up.userId.mysqlId == deleteModal.memberId) && 
-         (up.programId._id === id || up.programId.mysqlId == id)
-       );
-   
-       if (!userProgramToDelete) {
-         throw new Error('User-program association not found');
-       }
-   
-       // Use mysqlId if available, otherwise fall back to _id
-       const idToDelete = userProgramToDelete.mysqlId || userProgramToDelete._id;
-       
-       // Delete using the same endpoint as UserPrograms
-       await axios.delete(`http://localhost:5000/api/userprograms/${idToDelete}`);
-       
-       // Refresh the members list by refetching data
-       const updatedUserPrograms = await axios.get('http://localhost:5000/api/userprograms');
-       const updatedMembers = updatedUserPrograms.data
-         .filter(up => up.programId._id === id || up.programId.mysqlId == id)
-         .map(up => ({
-           _id: up.userId._id,
-           mysqlId: up.userId.mysqlId,
-           name: up.userId.name,
-           email: up.userId.email,
-           role: up.userId.roleId
-         }));
-       
-       setMembers(updatedMembers);
-     } catch (error) {
-       console.error('Error removing member:', error);
-       // You might want to add toast notification here instead of alert
-     } finally {
-       setDeleteModal({
-         isOpen: false,
-         memberId: null,
-         memberName: ''
-       });
-     }
-   };
-   
-   const handleDeleteCancel = () => {
-     setDeleteModal({
-       isOpen: false,
-       memberId: null,
-       memberName: ''
-     });
-   };
+    e.preventDefault();
+    
+    if (!newMemberEmail) {
+      alert('Please enter a user email');
+      return;
+    }
+  
+    try {
+      const usersRes = await axios.get('http://localhost:5000/api/user');
+      const userToAdd = usersRes.data.find(user => user.email === newMemberEmail);
+      
+      if (!userToAdd) {
+        throw new Error('User with this email not found');
+      }
+  
+      const programRes = await axios.get(`http://localhost:5000/api/program/${id}`);
+      if (!programRes.data) {
+        throw new Error('Program not found');
+      }
+  
+      await axios.post('http://localhost:5000/api/userprograms', {
+        userId: userToAdd.mysqlId,
+        programId: programRes.data.mysqlId,
+        invitedById: "1"
+      });
+      
+      const userProgramsRes = await axios.get('http://localhost:5000/api/userprograms');
+      const programMembers = userProgramsRes.data.filter(
+        userProgram => userProgram.programId._id === id || userProgram.programId.mysqlId === id
+      );
+      
+      const membersList = programMembers.map(item => ({
+        _id: item.userId._id,
+        name: item.userId.name,
+        email: item.userId.email,
+        role: item.userId.roleId
+      }));
+      
+      setMembers(membersList);
+      setNewMemberEmail('');
+      alert('Member added successfully');
+    } catch (error) {
+      console.error('Error adding member:', error);
+      alert('Failed to add member. ' + (error.response?.data?.message || error.message));
+    }
+  };
 
-   const handleDragEnd = async (result) => {
+  const handleRemoveClick = (memberId, memberName) => {
+    setDeleteModal({
+      isOpen: true,
+      memberId,
+      memberName
+    });
+  };
+  
+  const handleDeleteConfirm = async () => {
+    if (!deleteModal.memberId) return;
+  
+    try {
+      const userProgramsRes = await axios.get('http://localhost:5000/api/userprograms');
+      
+      const userProgramToDelete = userProgramsRes.data.find(up => 
+        (up.userId._id === deleteModal.memberId || up.userId.mysqlId == deleteModal.memberId) && 
+        (up.programId._id === id || up.programId.mysqlId == id)
+      );
+  
+      if (!userProgramToDelete) {
+        throw new Error('User-program association not found');
+      }
+  
+      const idToDelete = userProgramToDelete.mysqlId || userProgramToDelete._id;
+      
+      await axios.delete(`http://localhost:5000/api/userprograms/${idToDelete}`);
+      
+      const updatedUserPrograms = await axios.get('http://localhost:5000/api/userprograms');
+      const updatedMembers = updatedUserPrograms.data
+        .filter(up => up.programId._id === id || up.programId.mysqlId == id)
+        .map(up => ({
+          _id: up.userId._id,
+          mysqlId: up.userId.mysqlId,
+          name: up.userId.name,
+          email: up.userId.email,
+          role: up.userId.roleId
+        }));
+      
+      setMembers(updatedMembers);
+    } catch (error) {
+      console.error('Error removing member:', error);
+    } finally {
+      setDeleteModal({
+        isOpen: false,
+        memberId: null,
+        memberName: ''
+      });
+    }
+  };
+  
+  const handleDeleteCancel = () => {
+    setDeleteModal({
+      isOpen: false,
+      memberId: null,
+      memberName: ''
+    });
+  };
+
+  const handleDragEnd = async (result) => {
     if (!result.destination) return;
   
     const { source, destination } = result;
     
-    // Find the actual lists and card
     const sourceList = lists.find((list) => list.id === source.droppableId);
     const destList = lists.find((list) => list.id === destination.droppableId);
     const [movedCard] = sourceList.cards.splice(source.index, 1);
   
     try {
-      // Get the destination list's full data to access both MongoDB and MySQL IDs
       const listRes = await axios.get(`http://localhost:5000/api/list/${destination.droppableId}`);
       
-      // Update the card with both ID types
       await axios.put(`http://localhost:5000/api/card/${movedCard.id}`, {
-        listId: listRes.data.mysqlId, // For MySQL
-        mongoListId: listRes.data._id // For MongoDB
+        listId: listRes.data.mysqlId,
+        mongoListId: listRes.data._id
       });
   
-      // Update local state
       if (source.droppableId === destination.droppableId) {
         sourceList.cards.splice(destination.index, 0, movedCard);
         setLists(
@@ -423,14 +407,12 @@ const saveListEdit = async (listId) => {
       }
     } catch (error) {
       console.error('Error moving card:', error);
-      // Revert the change in UI if API fails
       sourceList.cards.splice(source.index, 0, movedCard);
       setLists([...lists]);
       alert('Failed to move card: ' + (error.response?.data?.message || error.message));
     }
   };
 
-  // Add a new card to the "To Do" list
   const addCard = async (listId) => {
     const list = lists.find(l => l.id === listId);
     const cardText = list.inputText;
@@ -443,23 +425,26 @@ const saveListEdit = async (listId) => {
         listId: listId,
         createdById: currentUser.id
       });
-  
+      
       const newCard = {
-        id: response.data.mysqlId || response.data._id,
+        id: response.data.id || response.data.mysqlId || response.data._id,
+        mysqlId: response.data.id || response.data.mysqlId,
+        mongoId: response.data._id,
         text: response.data.title,
         description: response.data.description,
         priority: response.data.priority,
         dueDate: response.data.dueDate,
         labels: response.data.labels || [],
-        checklist: response.data.checklist || []
+        checklist: response.data.checklist || [],
+        attachments: response.data.attachments || []
       };
-  
+      
       const updatedLists = lists.map((list) => {
         if (list.id === listId) {
           return {
             ...list,
             cards: [...list.cards, newCard],
-            inputText: '' // Clear the input after adding
+            inputText: ''
           };
         }
         return list;
@@ -471,147 +456,71 @@ const saveListEdit = async (listId) => {
       alert('Failed to create card: ' + (error.response?.data?.message || error.message));
     }
   };
-  const [removedAttachments, setRemovedAttachments] = useState([]);
-const [selectedFiles, setSelectedFiles] = useState([]);
-const [newChecklistItem, setNewChecklistItem] = useState('');
-const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB limit
 
-const handleFileChange = (e) => {
-  setSelectedFiles(prevFiles => [...prevFiles, ...Array.from(e.target.files)]);
-};
-
-const uploadFiles = async () => {
-  // Keep existing attachments that weren't removed
-  const keptAttachments = selectedCard.attachments?.filter(att => 
-    !removedAttachments.includes(att._id || att.name)
-  ) || [];
-  
-  // Process only new files (not marked as existing)
-  const newFiles = selectedFiles.filter(file => !file.isExisting);
-  const newAttachments = await Promise.all(
-    newFiles.map(async file => {
-      if (file.size > MAX_FILE_SIZE) {
-        console.warn(`File ${file.name} is too large (max 5MB)`);
-        return null;
+  const handleCardClick = async (listId, card) => {
+    try {
+      setSelectedListId(listId);
+      
+      // Show loading state if needed
+      // setIsLoading(true);
+      
+      // Fetch detailed card data including attachments
+      const cardDetails = await fetchCardDetails(card.id);
+      
+      setSelectedCard(cardDetails);
+      setIsCardModalOpen(true);
+      
+      // Initialize state for existing attachments
+      if (cardDetails.attachments && cardDetails.attachments.length > 0) {
+        // No need to set selectedFiles for existing attachments
+        // They will be shown directly from selectedCard.attachments
       }
       
-      try {
-        return await convertToBase64(file);
-      } catch (error) {
-        console.error('Error converting file:', file.name, error);
-        return null;
-      }
-    })
-  );
-  
-  return [...keptAttachments, ...newAttachments.filter(Boolean)];
-};
-
-const convertToBase64 = (file) => {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve({
-      name: file.name,
-      type: file.type,
-      size: file.size,
-      data: reader.result.split(',')[1]
-    });
-    reader.onerror = error => reject(error);
-    reader.readAsDataURL(file);
-  });
-};
-
-const addChecklistItem = () => {
-  if (newChecklistItem.trim()) {
-    setSelectedCard({
-      ...selectedCard,
-      checklist: [...(selectedCard.checklist || []), { text: newChecklistItem, completed: false }]
-    });
-    setNewChecklistItem('');
-  }
-};
-
-const removeFile = (index) => {
-  const file = selectedFiles[index];
-  
-  // If it's an existing attachment, track its ID for deletion on the server
-  if (file.isExisting && file._id) {
-    setRemovedAttachments(prev => [...prev, file._id]);
-  }
-  
-  // Remove file from the selectedFiles array
-  setSelectedFiles(prev => prev.filter((_, i) => i !== index));
-  
-  // Also remove the attachment from selectedCard.attachments if it exists there
-  if (selectedCard.attachments && selectedCard.attachments.length > 0) {
-    setSelectedCard(prev => ({
-      ...prev,
-      attachments: prev.attachments.filter(att => {
-        // For existing attachments with _id
-        if (file._id && att._id) {
-          return att._id.toString() !== file._id.toString();
-        }
-        // For new files being uploaded (match by name)
-        return att.name !== file.name;
-      })
-    }));
-  }
-};
-
-const toggleChecklistItem = (index) => {
-  const updatedChecklist = [...selectedCard.checklist];
-  updatedChecklist[index].completed = !updatedChecklist[index].completed;
-  setSelectedCard({
-    ...selectedCard,
-    checklist: updatedChecklist
-  });
-};
-
-const removeChecklistItem = (index) => {
-  setSelectedCard({
-    ...selectedCard,
-    checklist: selectedCard.checklist.filter((_, i) => i !== index)
-  });
-};
-
-const addLabel = (label) => {
-  if (!selectedCard.labels.includes(label)) {
-    setSelectedCard({
-      ...selectedCard,
-      labels: [...selectedCard.labels, label]
-    });
-  }
-};
-
-const removeLabel = (labelToRemove) => {
-  setSelectedCard({
-    ...selectedCard,
-    labels: selectedCard.labels.filter(label => label !== labelToRemove)
-  });
-};
-  const handleCardClick = (listId, card) => {
-    setSelectedCard(card);
-    setSelectedListId(listId);
-    setIsCardModalOpen(true);
+      // Reset other modal-related state
+      setNewCardText('');
+      setNewChecklistItem('');
+      setRemovedAttachments([]);
+      setSelectedFiles([]);
+      
+      // setIsLoading(false);
+    } catch (error) {
+      console.error('Error loading card details:', error);
+      alert('Failed to load card details');
+      // setIsLoading(false);
+    }
   };
 
   const handleEditCard = async (cardId, updates) => {
     try {
-      await axios.put(`http://localhost:5000/api/card/${cardId}`, updates);
+      // Call the API to update the card
+      const response = await axios.put(`http://localhost:5000/api/card/${cardId}`, updates);
       
-      // Update local state
+      // Update the UI to reflect the changes
       setLists(lists.map(list => ({
         ...list,
         cards: list.cards.map(card => 
-          card.id === cardId ? { ...card, ...updates } : card
+          card.id === cardId 
+            ? { 
+                ...card, 
+                text: updates.title,
+                description: updates.description,
+                dueDate: updates.dueDate,
+                priority: updates.priority,
+                labels: updates.labels,
+                checklist: updates.checklist,
+                // Don't update attachments here - they'll be populated correctly when the card is viewed next time
+              } 
+            : card
         )
       })));
+      
+      return response.data;
     } catch (error) {
       console.error('Error updating card:', error);
-      alert('Failed to update card: ' + (error.response?.data?.message || error.message));
+      throw error;
     }
   };
-  
+
   const handleDeleteCard = async (listId, cardId) => {
     try {
       await axios.delete(`http://localhost:5000/api/card/${cardId}`);
@@ -632,13 +541,482 @@ const removeLabel = (labelToRemove) => {
     }
   };
 
+  const handleFileChange = (e) => {
+    const newFiles = Array.from(e.target.files).map(file => ({
+      name: file.name,
+      type: file.type,
+      size: file.size,
+      file: file, // Keep reference to the actual file object
+      isNew: true  // Flag to indicate this is a new file
+    }));
+    
+    setSelectedFiles(prev => [...prev, ...newFiles]);
+  };
+
+  const uploadFiles = async () => {
+    try {
+      // Filter out removed attachments from existing ones
+      const keptAttachments = selectedCard.attachments 
+        ? selectedCard.attachments.filter(att => 
+            !removedAttachments.includes(att._id)
+          )
+        : [];
+      
+      // Process new files
+      const newAttachments = await Promise.all(
+        selectedFiles
+          .filter(file => file.isNew) // Only process new files
+          .map(async file => {
+            if (file.size > 5 * 1024 * 1024) {
+              console.warn(`File ${file.name} is too large (max 5MB)`);
+              return null;
+            }
+            
+            try {
+              const reader = new FileReader();
+              return new Promise((resolve) => {
+                reader.onload = () => resolve({
+                  name: file.name,
+                  type: file.type,
+                  size: file.size,
+                  data: reader.result.split(',')[1] // Get base64 data without the prefix
+                });
+                reader.readAsDataURL(file.file);
+              });
+            } catch (error) {
+              console.error('Error converting file:', file.name, error);
+              return null;
+            }
+          })
+      );
+      
+      // Combine kept attachments with new ones
+      return [...keptAttachments, ...newAttachments.filter(Boolean)];
+    } catch (error) {
+      console.error("Error processing files:", error);
+      throw error;
+    }
+  };
+
+  const addChecklistItem = () => {
+    if (newChecklistItem.trim()) {
+      setSelectedCard({
+        ...selectedCard,
+        checklist: [...(selectedCard.checklist || []), { text: newChecklistItem, completed: false }]
+      });
+      setNewChecklistItem('');
+    }
+  };
+  const removeFile = (index) => {
+    setSelectedFiles(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const fetchCardDetails = async (cardId) => {
+    try {
+      const response = await axios.get(`http://localhost:5000/api/card/${cardId}`);
+      
+      // Process attachments to make them easier to handle in the UI
+      const processedCard = {
+        ...response.data,
+        id: response.data.mysqlId || response.data._id,
+        text: response.data.title,
+        labels: response.data.labels || [],
+        checklist: response.data.checklist || [],
+        attachments: response.data.attachments || []
+      };
+      
+      return processedCard;
+    } catch (error) {
+      console.error('Error fetching card details:', error);
+      throw error;
+    }
+  };
+
+  // const removeFile = (index) => {
+  //   const file = selectedFiles[index];
+    
+  //   if (file.isExisting && file._id) {
+  //     setRemovedAttachments(prev => [...prev, file._id]);
+  //   }
+    
+  //   setSelectedFiles(prev => prev.filter((_, i) => i !== index));
+    
+  //   if (selectedCard.attachments && selectedCard.attachments.length > 0) {
+  //     setSelectedCard(prev => ({
+  //       ...prev,
+  //       attachments: prev.attachments.filter(att => {
+  //         if (file._id && att._id) {
+  //           return att._id.toString() !== file._id.toString();
+  //         }
+  //         return att.name !== file.name;
+  //       })
+  //     }));
+  //   }
+  // };
+
+  const toggleChecklistItem = (index) => {
+    const updatedChecklist = [...selectedCard.checklist];
+    updatedChecklist[index].completed = !updatedChecklist[index].completed;
+    setSelectedCard({
+      ...selectedCard,
+      checklist: updatedChecklist
+    });
+  };
+
+  const removeChecklistItem = (index) => {
+    setSelectedCard({
+      ...selectedCard,
+      checklist: selectedCard.checklist.filter((_, i) => i !== index)
+    });
+  };
+
+  const addLabel = (label) => {
+    if (!selectedCard.labels.includes(label)) {
+      setSelectedCard({
+        ...selectedCard,
+        labels: [...selectedCard.labels, label]
+      });
+    }
+  };
+
+  const removeLabel = (labelToRemove) => {
+    setSelectedCard({
+      ...selectedCard,
+      labels: selectedCard.labels.filter(label => label !== labelToRemove)
+    });
+  };
+
   if (loading) return <div className="text-center p-8">Loading program details...</div>;
   if (error) return <div className="text-center p-8 text-red-500">Error: {error}</div>;
   if (!isMember) return <div className="text-center p-8 text-red-500">Access Denied</div>;
-return(
-<div className="container mx-auto p-6">
+
+  return (
+    <div className="container mx-auto p-6">
+
+
+{/* Add this modal component right before the closing tag of your component return statement */}
+{isCardModalOpen && selectedCard && (
+  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+      <div className="flex justify-between items-center mb-4">
+        <h2 className="text-2xl font-bold">Card Details</h2>
+        <button
+          onClick={() => setIsCardModalOpen(false)}
+          className="text-gray-600 hover:text-gray-800"
+        >
+          <span className="text-2xl">×</span>
+        </button>
+      </div>
+
+      {/* Card Title */}
+      <div className="mb-4">
+        <label className="block text-gray-700 font-medium mb-2">Title</label>
+        <input
+          type="text"
+          value={selectedCard.text}
+          onChange={(e) => setSelectedCard({...selectedCard, text: e.target.value})}
+          className="w-full border rounded-md p-2"
+        />
+      </div>
+
+      {/* Card Description */}
+      <div className="mb-4">
+        <label className="block text-gray-700 font-medium mb-2">Description</label>
+        <textarea
+          value={selectedCard.description || ''}
+          onChange={(e) => setSelectedCard({...selectedCard, description: e.target.value})}
+          className="w-full border rounded-md p-2 min-h-[100px]"
+          placeholder="Add a description..."
+        />
+      </div>
+
+      {/* Due Date */}
+      <div className="mb-4">
+        <label className="block text-gray-700 font-medium mb-2">Due Date</label>
+        <input
+          type="date"
+          value={selectedCard.dueDate ? new Date(selectedCard.dueDate).toISOString().split('T')[0] : ''}
+          onChange={(e) => setSelectedCard({...selectedCard, dueDate: e.target.value})}
+          className="w-full border rounded-md p-2"
+        />
+      </div>
+
+      {/* Priority */}
+      <div className="mb-4">
+        <label className="block text-gray-700 font-medium mb-2">Priority</label>
+        <select
+          value={selectedCard.priority || 'medium'}
+          onChange={(e) => setSelectedCard({...selectedCard, priority: e.target.value})}
+          className="w-full border rounded-md p-2"
+        >
+          <option value="low">Low</option>
+          <option value="medium">Medium</option>
+          <option value="high">High</option>
+        </select>
+      </div>
+
+      {/* Labels */}
+      <div className="mb-4">
+        <label className="block text-gray-700 font-medium mb-2">Labels</label>
+        <div className="flex flex-wrap gap-2 mb-2">
+          {selectedCard.labels && selectedCard.labels.map((label, index) => (
+            <div key={index} className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full flex items-center">
+              <span>{label}</span>
+              <button 
+                onClick={() => removeLabel(label)}
+                className="ml-1 text-blue-800 hover:text-blue-600"
+              >
+                ×
+              </button>
+            </div>
+          ))}
+        </div>
+        <div className="flex gap-2">
+          <input
+            type="text"
+            placeholder="Add new label"
+            value={newCardText}
+            onChange={(e) => setNewCardText(e.target.value)}
+            className="flex-grow border rounded-md p-2"
+          />
+          <button
+            onClick={() => {
+              if (newCardText.trim()) {
+                addLabel(newCardText);
+                setNewCardText('');
+              }
+            }}
+            className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-2 rounded-md"
+          >
+            Add
+          </button>
+        </div>
+      </div>
+
+      {/* Checklist */}
+      <div className="mb-4">
+        <label className="block text-gray-700 font-medium mb-2">Checklist</label>
+        {selectedCard.checklist && selectedCard.checklist.length > 0 ? (
+          <div className="mb-3">
+            {selectedCard.checklist.map((item, index) => (
+              <div key={index} className="flex items-center mb-1">
+                <input
+                  type="checkbox"
+                  checked={item.completed}
+                  onChange={() => toggleChecklistItem(index)}
+                  className="mr-2"
+                />
+                <span className={item.completed ? 'line-through text-gray-500' : ''}>
+                  {item.text}
+                </span>
+                <button
+                  onClick={() => removeChecklistItem(index)}
+                  className="ml-auto text-red-500 hover:text-red-700"
+                >
+                  ×
+                </button>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p className="text-gray-500 mb-2">No checklist items yet</p>
+        )}
+        <div className="flex gap-2">
+          <input
+            type="text"
+            placeholder="Add checklist item"
+            value={newChecklistItem}
+            onChange={(e) => setNewChecklistItem(e.target.value)}
+            className="flex-grow border rounded-md p-2"
+          />
+          <button
+            onClick={addChecklistItem}
+            className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-2 rounded-md"
+          >
+            Add
+          </button>
+        </div>
+      </div>
+
+      {/* Attachments */}
+    {/* Attachments */}
+<div className="mb-6">
+  <label className="block text-gray-700 font-medium mb-2">Attachments</label>
+  
+  {/* Display existing attachments from the card */}
+  {selectedCard.attachments && selectedCard.attachments.length > 0 && (
+    <div className="space-y-2 mb-3">
+      <h4 className="font-medium text-sm text-gray-600">Current Files:</h4>
+      {selectedCard.attachments.map((attachment, index) => (
+        <div key={index} className="p-2 border rounded-md">
+          <div className="flex items-center">
+            <span className="flex-grow truncate">{attachment.name}</span>
+            <button
+              onClick={() => {
+                setRemovedAttachments(prev => [...prev, attachment._id]);
+                setSelectedCard({
+                  ...selectedCard,
+                  attachments: selectedCard.attachments.filter((_, i) => i !== index)
+                });
+              }}
+              className="ml-2 text-red-500 hover:text-red-700"
+            >
+              Remove
+            </button>
+          </div>
+          
+          {/* Display image if attachment is an image */}
+          {attachment.type.startsWith('image/') && (
+            <div className="mt-2">
+              <img 
+                src={`data:${attachment.type};base64,${attachment.data}`} 
+                alt={attachment.name}
+                className="max-w-full h-auto max-h-40 rounded-md"
+              />
+            </div>
+          )}
+        </div>
+      ))}
+    </div>
+  )}
+  
+  {/* Display new files selected for upload */}
+  {selectedFiles.length > 0 && (
+    <div className="space-y-2 mb-3">
+      <h4 className="font-medium text-sm text-gray-600">New Files:</h4>
+      {selectedFiles.map((file, index) => (
+        <div key={index} className="flex items-center p-2 border rounded-md">
+          <span className="flex-grow truncate">{file.name}</span>
+          <button
+            onClick={() => removeFile(index)}
+            className="ml-2 text-red-500 hover:text-red-700"
+          >
+            Remove
+          </button>
+        </div>
+      ))}
+    </div>
+  )}
+  
+  {/* File upload input */}
+  <div className="mt-2">
+    <input
+      type="file"
+      onChange={handleFileChange}
+      className="block w-full text-sm text-gray-500
+        file:mr-4 file:py-2 file:px-4
+        file:rounded-md file:border-0
+        file:text-sm file:font-semibold
+        file:bg-blue-50 file:text-blue-700
+        hover:file:bg-blue-100"
+      multiple
+    />
+  </div>
+</div>
+
+
+
+
+
+      {/* Action Buttons */}
+      <div className="flex justify-between">
+        <button
+          onClick={() => {
+            handleDeleteCard(selectedListId, selectedCard.id);
+            setIsCardModalOpen(false);
+          }}
+          className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-md"
+        >
+          Delete Card
+        </button>
+
+        <div className="flex gap-2">
+          <button
+            onClick={() => setIsCardModalOpen(false)}
+            className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-md"
+          >
+            Cancel
+          </button>
+          <button
+  onClick={async () => {
+    try {
+      // Process attachments
+      const processedAttachments = await uploadFiles();
+      
+      // Prepare update data
+      const updates = {
+        title: selectedCard.text,
+        description: selectedCard.description,
+        dueDate: selectedCard.dueDate,
+        priority: selectedCard.priority,
+        labels: selectedCard.labels || [],
+        checklist: selectedCard.checklist || [],
+        attachments: processedAttachments.map(att => ({
+          // Only include _id for existing attachments
+          ...(att._id ? { _id: att._id } : {}),
+          name: att.name,
+          type: att.type,
+          size: att.size,
+          data: att.data
+        })),
+        removedAttachments: removedAttachments
+      };
+      
+      // Call API to update card
+      await handleEditCard(selectedCard.id, updates);
+      
+      // Close modal and reset state
+      setIsCardModalOpen(false);
+      setSelectedFiles([]);
+      setRemovedAttachments([]);
+      
+      // Refresh the card data to get updated attachments
+      const refreshedCard = await fetchCardDetails(selectedCard.id);
+      setSelectedCard(refreshedCard);
+      
+      // Update lists state
+      setLists(prevLists => 
+        prevLists.map(list => {
+          if (list.id === selectedListId) {
+            return {
+              ...list,
+              cards: list.cards.map(card => 
+                card.id === selectedCard.id 
+                  ? { 
+                      ...card, 
+                      text: selectedCard.text,
+                      description: selectedCard.description,
+                      dueDate: selectedCard.dueDate,
+                      priority: selectedCard.priority,
+                      labels: selectedCard.labels || [],
+                      checklist: selectedCard.checklist || [],
+                      attachments: refreshedCard.attachments || []
+                    } 
+                  : card
+              )
+            };
+          }
+          return list;
+        })
+      );
+    } catch (error) {
+      console.error('Error saving card:', error);
+      alert('Failed to save card: ' + error.message);
+    }
+  }}
+  className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-md"
+>
+  Save
+</button>
+        </div>
+      </div>
+    </div>
+  </div>
+)}
+
+      
       <div className="bg-white rounded-lg shadow-md p-6">
-          <div className="flex justify-between items-start mb-6">
+        <div className="flex justify-between items-start mb-6">
           <div>
             <h1 className="text-3xl font-bold">{program.title}</h1>
             <p className="text-gray-600 mt-2">
@@ -652,9 +1030,9 @@ return(
           >
             Back to Programs
           </button>
-          </div>
+        </div>
         
-         <div className="mb-8">
+        <div className="mb-8">
           <h2 className="text-xl font-semibold mb-2">Description</h2>
           <p className="text-gray-700 mb-6 p-4 bg-gray-50 rounded">{program.description}</p>
           
@@ -695,12 +1073,12 @@ return(
                       <td className="px-6 py-4 whitespace-nowrap">{member.email}</td>
                       <td className="px-6 py-4 whitespace-nowrap">{member.role || 'Member'}</td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                      <button 
-          onClick={() => handleRemoveClick(member._id || member.mysqlId, member.name)}
-          className="text-red-500 hover:text-red-700"
-          >
-            Remove
-           </button>
+                        <button 
+                          onClick={() => handleRemoveClick(member._id || member.mysqlId, member.name)}
+                          className="text-red-500 hover:text-red-700"
+                        >
+                          Remove
+                        </button>
                       </td>
                     </tr>
                   ))}
@@ -710,16 +1088,16 @@ return(
           ) : (
             <p className="text-gray-500 text-center py-4">No members yet</p>
           )}
-         </div>
-         </div>
-         <DeleteConfirmation
-  isOpen={deleteModal.isOpen}
-  onClose={handleDeleteCancel}
-  onConfirm={handleDeleteConfirm}
-  itemName={deleteModal.memberName}
-/>
+        </div>
+      </div>
+      
+      <DeleteConfirmation
+        isOpen={deleteModal.isOpen}
+        onClose={handleDeleteCancel}
+        onConfirm={handleDeleteConfirm}
+        itemName={deleteModal.memberName}
+      />
           
-         {/* Trello-style Board */}
       <div className="mt-8">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-2xl font-bold">Board</h2>
@@ -768,352 +1146,77 @@ return(
                     className="bg-gray-100 rounded-lg shadow-md p-4 w-72 min-w-[18rem] flex-shrink-0 relative"
                   >
                     <div className="flex justify-between items-center mb-4">
-  {editingListId === list.id ? (
-    <div className="flex items-center flex-grow mr-2">
-      <input
-        type="text"
-        value={editedListName}
-        onChange={(e) => setEditedListName(e.target.value)}
-        className="border p-1 rounded-md w-full"
-      />
-      <button 
-        onClick={() => saveListEdit(list.id)}
-        className="ml-2 bg-green-500 hover:bg-green-600 text-white px-2 py-1 rounded-md text-sm"
-      >
-        Save
-      </button>
-      <button 
-        onClick={cancelListEdit}
-        className="ml-1 bg-gray-500 hover:bg-gray-600 text-white px-2 py-1 rounded-md text-sm"
-      >
-        Cancel
-      </button>
-    </div>
-  ) : (
-    <h2 
-      className="text-lg font-semibold cursor-pointer hover:underline flex-grow"
-      onClick={() => startListEdit(list)}
-    >
-      {list.title}
-    </h2>
-  )}
-  <button 
-    onClick={() => handleDeleteList(list.id)}
-    className="text-red-500 hover:text-red-700 text-sm"
-  >
-    Delete
-  </button>
-</div>
+                      {editingListId === list.id ? (
+                        <div className="flex items-center flex-grow mr-2">
+                          <input
+                            type="text"
+                            value={editedListName}
+                            onChange={(e) => setEditedListName(e.target.value)}
+                            className="border p-1 rounded-md w-full"
+                          />
+                          <button 
+                            onClick={() => saveListEdit(list.id)}
+                            className="ml-2 bg-green-500 hover:bg-green-600 text-white px-2 py-1 rounded-md text-sm"
+                          >
+                            Save
+                          </button>
+                          <button 
+                            onClick={cancelListEdit}
+                            className="ml-1 bg-gray-500 hover:bg-gray-600 text-white px-2 py-1 rounded-md text-sm"
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      ) : (
+                        <h2 
+                          className="text-lg font-semibold cursor-pointer hover:underline flex-grow"
+                          onClick={() => startListEdit(list)}
+                        >
+                          {list.title}
+                        </h2>
+                      )}
+                      <button 
+                        onClick={() => handleDeleteList(list.id)}
+                        className="text-red-500 hover:text-red-700 text-sm"
+                      >
+                        Delete
+                      </button>
+                    </div>
                     
                     {list.cards.map((card, index) => (
-                  <Draggable key={card.id} draggableId={card.id} index={index}>
-                  {(provided) => (
-                    <div
-                      ref={provided.innerRef}
-                      {...provided.draggableProps}
-                      {...provided.dragHandleProps}
-                      className="bg-white p-3 rounded-md shadow-md mb-2 cursor-pointer"
-                          onClick={() => handleCardClick(list.id, card)}
-                    >
-                      <div className="font-medium">{card.text}</div>
-                      {card.description && (
-                        <div className="text-sm text-gray-600 mt-1">{card.description}</div>
-                      )}
-                      {card.dueDate && (
-                        <div className="text-xs text-gray-500 mt-1">
-                          Due: {new Date(card.dueDate).toLocaleDateString()}
-                        </div>
-                      )}
-                      {card.labels && card.labels.length > 0 && (
-                        <div className="flex flex-wrap gap-1 mt-2">
-                          {card.labels.map((label, i) => (
-                            <span 
-                              key={i} 
-                              className="px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-800"
-                            >
-                              {label}
-                            </span>
-                          ))}
-                        </div>
-                      )} {isCardModalOpen && selectedCard && (
-                        <div 
-                          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
-                          onClick={() => setIsCardModalOpen(false)}
-                        >
-                          <div 
-                            className="bg-white rounded-lg shadow-xl w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto"
-                            onClick={(e) => e.stopPropagation()}
-                          >
-                            <div className="p-6">
-                              <div className="flex justify-between items-start mb-4">
-                                <h2 className="text-2xl font-bold">Card Details</h2>
-                                <button 
-                                  onClick={() => setIsCardModalOpen(false)}
-                                  className="text-gray-500 hover:text-gray-700 text-2xl"
-                                >
-                                  &times;
-                                </button>
-                              </div>
-                              
-                              <div className="space-y-4">
-                                <div>
-                                  <label className="block text-sm font-medium text-gray-700 mb-1">Title</label>
-                                  <input 
-                                    type="text"
-                                    value={selectedCard.text}
-                                    onChange={(e) => setSelectedCard({...selectedCard, text: e.target.value})}
-                                    className="w-full border p-2 rounded-md"
-                                  />
-                                </div>
-                                
-                                <div>
-                                  <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
-                                  <textarea
-                                    value={selectedCard.description || ''}
-                                    onChange={(e) => setSelectedCard({...selectedCard, description: e.target.value})}
-                                    className="w-full border p-2 rounded-md"
-                                    rows="3"
-                                  />
-                                </div>
-                                
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                  <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Due Date</label>
-                                    <input 
-                                      type="datetime-local"
-                                      value={selectedCard.dueDate || ''}
-                                      onChange={(e) => setSelectedCard({...selectedCard, dueDate: e.target.value})}
-                                      className="w-full border p-2 rounded-md"
-                                    />
-                                  </div>
-                                  
-                                  <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Priority</label>
-                                    <select
-                                      value={selectedCard.priority || 'medium'}
-                                      onChange={(e) => setSelectedCard({...selectedCard, priority: e.target.value})}
-                                      className="w-full border p-2 rounded-md"
-                                    >
-                                      <option value="low">Low</option>
-                                      <option value="medium">Medium</option>
-                                      <option value="high">High</option>
-                                    </select>
-                                  </div>
-                                </div>
-                                
-                                <div>
-                                  <label className="block text-sm font-medium text-gray-700 mb-1">Labels</label>
-                                  <div className="flex space-x-2 mb-2">
-                                    {['Frontend', 'Backend', 'Bug', 'Feature', 'Urgent'].map(label => (
-                                      <button
-                                        key={label}
-                                        type="button"
-                                        onClick={() => addLabel(label)}
-                                        className="px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded-md hover:bg-blue-200"
-                                      >
-                                        + {label}
-                                      </button>
-                                    ))}
-                                  </div>
-                                  <div className="flex flex-wrap gap-2">
-                                    {selectedCard.labels?.map(label => (
-                                      <span key={label} className="flex items-center bg-gray-200 px-2 py-1 rounded-md text-sm">
-                                        {label}
-                                        <button 
-                                          type="button"
-                                          onClick={() => removeLabel(label)}
-                                          className="ml-1 text-gray-600 hover:text-red-500"
-                                        >
-                                          ×
-                                        </button>
-                                      </span>
-                                    ))}
-                                  </div>
-                                </div>
-                                
-                                <div>
-  <label className="block text-sm font-medium text-gray-700 mb-1">Attachments</label>
-  <input 
-    type="file"
-    multiple
-    onChange={handleFileChange}
-    className="border p-2 rounded-md w-full"
-    accept="image/*,.pdf,.doc,.docx"
-  />
-  
-  <div className="mt-2 space-y-2">
-    {/* Display existing attachments */}
-    {selectedCard.attachments?.map((file, index) => {
-      const fileKey = file._id || file.name || index;
-      const isImage = file.type?.startsWith('image/') || 
-                    (file.name && /\.(jpg|jpeg|png|gif)$/i.test(file.name));
-      
-      return (
-        <div key={fileKey} className="flex flex-col border rounded p-2">
-          <div className="flex items-center justify-between">
-            <span className="text-sm text-gray-600">{file.name}</span>
-            <button 
-              type="button"
-              onClick={() => removeFile(index)}
-              className="ml-2 text-red-500 hover:text-red-700 hover:bg-red-50 p-1 rounded"
-              title="Remove file"
-            >
-              ×
-            </button>
-          </div>
-          
-          {isImage && file.data && (
-            <div className="mt-2">
-              <img 
-                src={`data:${file.type || 'image/jpeg'};base64,${file.data}`}
-                alt={file.name}
-                className="max-h-40 max-w-full border rounded"
-                onError={(e) => {
-                  e.target.onerror = null;
-                  e.target.src = '/placeholder-image.png';
-                }}
-              />
-            </div>
-          )}
-          
-          {file.size && (
-            <div className="text-xs text-gray-400 mt-1">
-              {Math.round(file.size / 1024)} KB
-            </div>
-          )}
-        </div>
-      );
-    })}
-    
-    {/* Display newly selected files before upload */}
-    {selectedFiles.map((file, index) => {
-      if (file.isExisting) return null; // Skip existing files that are already displayed above
-      
-      const isImage = file.type?.startsWith('image/');
-      const previewUrl = isImage ? URL.createObjectURL(file) : null;
-      
-      return (
-        <div key={`new-${index}`} className="flex flex-col border rounded p-2">
-          <div className="flex items-center justify-between">
-            <span className="text-sm text-gray-600">{file.name}</span>
-            <button 
-              type="button"
-              onClick={() => removeFile(index)}
-              className="ml-2 text-red-500 hover:text-red-700 hover:bg-red-50 p-1 rounded"
-              title="Remove file"
-            >
-              ×
-            </button>
-          </div>
-          
-          {previewUrl && (
-            <div className="mt-2">
-              <img 
-                src={previewUrl}
-                alt={file.name}
-                className="max-h-40 max-w-full border rounded"
-              />
-            </div>
-          )}
-          
-          <div className="text-xs text-gray-400 mt-1">
-            {Math.round(file.size / 1024)} KB
-          </div>
-        </div>
-      );
-    })}
-  </div>
-</div>
-                                
-                                <div>
-                                  <label className="block text-sm font-medium text-gray-700 mb-1">Checklist</label>
-                                  <div className="flex space-x-2">
-                                    <input
-                                      type="text"
-                                      placeholder="Add checklist item"
-                                      value={newChecklistItem}
-                                      onChange={(e) => setNewChecklistItem(e.target.value)}
-                                      className="border p-2 rounded-md flex-grow"
-                                    />
-                                    <button
-                                      type="button"
-                                      onClick={addChecklistItem}
-                                      className="bg-blue-500 text-white px-3 py-2 rounded-md"
-                                    >
-                                      Add
-                                    </button>
-                                  </div>
-                                  <div className="mt-2 space-y-1">
-                                    {selectedCard.checklist?.map((item, index) => (
-                                      <div key={index} className="flex items-center">
-                                        <input
-                                          type="checkbox"
-                                          checked={item.completed || false}
-                                          onChange={() => toggleChecklistItem(index)}
-                                          className="mr-2"
-                                        />
-                                        <span className={item.completed ? 'line-through text-gray-500' : ''}>
-                                          {item.text}
-                                        </span>
-                                        <button
-                                          type="button"
-                                          onClick={() => removeChecklistItem(index)}
-                                          className="ml-auto text-red-500"
-                                        >
-                                          ×
-                                        </button>
-                                      </div>
-                                    ))}
-                                  </div>
-                                </div>
-                                
-                                <div className="flex justify-end space-x-3 mt-6">
-                                  <button
-                                    onClick={() => setIsCardModalOpen(false)}
-                                    className="px-4 py-2 border border-gray-300 rounded-md"
-                                  >
-                                    Cancel
-                                  </button>
-                                  <button
-                                    onClick={async () => {
-                                      try {
-                                        // Upload files first if there are any
-                                        const attachments = selectedFiles.length > 0 
-                                          ? await uploadFiles() 
-                                          : selectedCard.attachments || [];
-                                        
-                                        await handleEditCard(selectedCard.id, {
-                                          title: selectedCard.text,
-                                          description: selectedCard.description,
-                                          priority: selectedCard.priority,
-                                          dueDate: selectedCard.dueDate,
-                                          labels: selectedCard.labels || [],
-                                          checklist: selectedCard.checklist || [],
-                                          attachments: attachments,
-                                          removedAttachments: removedAttachments
-                                        });
-                                        
-                                        setIsCardModalOpen(false);
-                                        setSelectedFiles([]);
-                                        setRemovedAttachments([]);
-                                      } catch (error) {
-                                        console.error('Error updating card:', error);
-                                      }
-                                    }}
-                                    className="px-4 py-2 bg-blue-500 text-white rounded-md"
-                                  >
-                                    Save Changes
-                                  </button>
-                                </div>
-                              </div>
-                            </div>
+                    <Draggable key={card.id} draggableId={card.id} index={index}>
+                    {(provided) => (
+                      <div
+                        ref={provided.innerRef}
+                        {...provided.draggableProps}
+                        {...provided.dragHandleProps}
+                        className="bg-white p-3 rounded-md shadow-md mb-2 cursor-pointer"
+                        onClick={() => handleCardClick(list.id, card)}
+                      >
+                        <div className="font-medium">{card.text}</div>
+                        {card.description && (
+                          <div className="text-sm text-gray-600 mt-1">{card.description}</div>
+                        )}
+                        {card.dueDate && (
+                          <div className="text-xs text-gray-500 mt-1">
+                            Due: {new Date(card.dueDate).toLocaleDateString()}
                           </div>
-                        </div>
-                      )}
-          
-                    </div>
-                  )}
-                </Draggable>
+                        )}
+                        {card.labels && card.labels.length > 0 && (
+                          <div className="flex flex-wrap gap-1 mt-2">
+                            {card.labels.map((label, i) => (
+                              <span 
+                                key={i} 
+                                className="px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-800"
+                              >
+                                {label}
+                              </span>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </Draggable>
                     ))}
                     {provided.placeholder}
                     
@@ -1134,12 +1237,12 @@ return(
                         }}
                         onKeyPress={(e) => e.key === 'Enter' && addCard(list.id)}
                       />
-                     <button
-  onClick={() => addCard(list.id)}
-  className="w-full bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600"
->
-  Add Card
-</button>
+                      <button
+                        onClick={() => addCard(list.id)}
+                        className="w-full bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600"
+                      >
+                        Add Card
+                      </button>
                     </div>
                   </div>
                 )}
@@ -1147,7 +1250,6 @@ return(
             ))}
           </div>
         </DragDropContext>
-     
       </div>
     </div>
   );

@@ -44,10 +44,11 @@ class UserRepository {
             .populate('countryId')
             .populate('cityId')
             .populate('dashboardRoleId')
-            .populate({
-              path: 'profileImageId',
-              select: 'id name'  
-            })
+            .populate('profileImageId')
+            // .populate({
+            //   path: 'profileImageId',
+            //   select: 'id name'  
+            // })
             .lean();
     } catch (error) {
         console.error("MongoDB findAll failed:", error);
@@ -72,107 +73,109 @@ async findById(id) {
     throw error;
   }
 }
-  async create(data) {
-    try {
-        console.log("Creating User:", data);
-        
-        const userData = {
-            ...data,
-            roleId: data.roleId || 1
-        };
+async create(data) {
+  try {
+      console.log("Creating User:", data);
+      
+      const userData = {
+          ...data,
+          roleId: data.roleId || 1
+      };
 
-        let profileImageRecord;
+      let profileImageRecord;
 
-        if (userData.profileImageRecord) {
+      if (userData.profileImageRecord) {
           [profileImageRecord] = await ProfileImage.findOrCreate({
               where: { name: userData.profileImage }
           });
           userData.profileImageId = profileImageRecord.id;
       }
+
+      let countryRecord, cityRecord;
       
+      if (userData.country) {
+          [countryRecord] = await Country.findOrCreate({
+              where: { name: userData.country }
+          });
+          userData.countryId = countryRecord.id;
+      }
 
-        let countryRecord, cityRecord;
-        
-        if (userData.country) {
-            [countryRecord] = await Country.findOrCreate({
-                where: { name: userData.country }
-            });
-            userData.countryId = countryRecord.id;
-        }
+      if (userData.city && countryRecord) {
+          [cityRecord] = await City.findOrCreate({
+              where: { 
+                  name: userData.city,
+                  countryId: countryRecord.id
+              }
+          });
+          userData.cityId = cityRecord.id;
+      }
 
-        if (userData.city && countryRecord) {
-            [cityRecord] = await City.findOrCreate({
-                where: { 
-                    name: userData.city,
-                    countryId: countryRecord.id
-                }
-            });
-            userData.cityId = cityRecord.id;
-        }
+      // Create in MySQL
+      const mysqlResource = await User.create(userData);
+      
+      // Prepare data for MongoDB
+      const mongoData = {
+          mysqlId: mysqlResource.id.toString(),
+          ...userData
+      };
+      
+      // Handle role
+      const role = await RoleMongo.findOne({ mysqlId: userData.roleId.toString() });
+      if (!role) {
+          throw new Error(`Role with MySQL ID ${userData.roleId} not found in MongoDB`);
+      }
+      mongoData.roleId = new ObjectId(role._id.toString());
+      
+      // Handle country for MongoDB
+      if (countryRecord) {
+          let countryMongo = await CountryMongo.findOne({ mysqlId: countryRecord.id.toString() });
+          if (!countryMongo) {
+              countryMongo = await CountryMongo.create({
+                  mysqlId: countryRecord.id.toString(),
+                  name: countryRecord.name
+              });
+          }
+          mongoData.countryId = countryMongo._id;
+      }
 
-        // Create in MySQL
-        const mysqlResource = await User.create(userData);
-        
-        // Prepare data for MongoDB
-        const mongoData = {
-            mysqlId: mysqlResource.id.toString(),
-            ...userData
-        };
-        
-        // Handle role
-        const role = await RoleMongo.findOne({ mysqlId: userData.roleId.toString() });
-        if (!role) {
-            throw new Error(`Role with MySQL ID ${userData.roleId} not found in MongoDB`);
-        }
-        mongoData.roleId = new ObjectId(role._id.toString());
-        
-        // Handle country for MongoDB
-        if (countryRecord) {
-            let countryMongo = await CountryMongo.findOne({ mysqlId: countryRecord.id.toString() });
-            if (!countryMongo) {
-                countryMongo = await CountryMongo.create({
-                    mysqlId: countryRecord.id.toString(),
-                    name: countryRecord.name
-                });
-            }
-            mongoData.countryId = countryMongo._id;
-        }
+      // Handle city for MongoDB
+      if (cityRecord) {
+          let cityMongo = await CityMongo.findOne({ mysqlId: cityRecord.id.toString() });
+          if (!cityMongo) {
+              cityMongo = await CityMongo.create({
+                  mysqlId: cityRecord.id.toString(),
+                  name: cityRecord.name,
+                  countryId: mongoData.countryId
+              });
+          }
+          mongoData.cityId = cityMongo._id;
+      }
 
-        // Handle city for MongoDB
-        if (cityRecord) {
-            let cityMongo = await CityMongo.findOne({ mysqlId: cityRecord.id.toString() });
-            if (!cityMongo) {
-                cityMongo = await CityMongo.create({
-                    mysqlId: cityRecord.id.toString(),
-                    name: cityRecord.name,
-                    countryId: mongoData.countryId
-                });
-            }
-            mongoData.cityId = cityMongo._id;
-        }
-
-        // Handle profile image for MongoDB
-        if (profileImageRecord) {
-          let profileImageMongo = await ProfileImageMongo.findOne({ mysqlId: profileImageRecord.id.toString
-() });
+      // Handle profile image for MongoDB
+      if (profileImageRecord) {
+          let profileImageMongo = await ProfileImageMongo.findOne({ 
+              mysqlId: profileImageRecord.id.toString() 
+          });
+          
           if (!profileImageMongo) {
               profileImageMongo = await ProfileImageMongo.create({
                   mysqlId: profileImageRecord.id.toString(),
                   name: profileImageRecord.name
               });
           }
+          
           mongoData.profileImageId = profileImageMongo._id;
-        }
-        
-        // Create in MongoDB
-        const mongoResource = await UserMongo.create(mongoData);
-        console.log("User saved in MongoDB:", mongoResource);
-        
-        return mysqlResource;
-    } catch (error) {
-        console.error("Error creating User:", error);
-        throw new Error('Error creating User: ' + error.message);
-    }
+      }
+      
+      // Create in MongoDB
+      const mongoResource = await UserMongo.create(mongoData);
+      console.log("User saved in MongoDB:", mongoResource);
+      
+      return mysqlResource;
+  } catch (error) {
+      console.error("Error creating User:", error);
+      throw new Error('Error creating User: ' + error.message);
+  }
 }
 
   
