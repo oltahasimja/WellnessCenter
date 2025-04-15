@@ -26,6 +26,7 @@ const ProgramDetail = () => {
     memberName: ''
   });
 
+  const [newLabelText, setNewLabelText] = useState('');
 
   const [isCardModalOpen, setIsCardModalOpen] = useState(false);
   const [selectedCard, setSelectedCard] = useState(null);
@@ -492,27 +493,21 @@ const ProgramDetail = () => {
 
   const handleEditCard = async (cardId, updates) => {
     try {
-      // Call the API to update the card
-      const response = await axios.put(`http://localhost:5000/api/card/${cardId}`, updates);
-      
-      // Update the UI to reflect the changes
-      setLists(lists.map(list => ({
-        ...list,
-        cards: list.cards.map(card => 
-          card.id === cardId 
-            ? { 
-                ...card, 
-                text: updates.title,
-                description: updates.description,
-                dueDate: updates.dueDate,
-                priority: updates.priority,
-                labels: updates.labels,
-                checklist: updates.checklist,
-                // Don't update attachments here - they'll be populated correctly when the card is viewed next time
-              } 
-            : card
-        )
-      })));
+      // Prepare the complete update data
+      const updateData = {
+        title: updates.title,
+        description: updates.description,
+        dueDate: updates.dueDate,
+        priority: updates.priority,
+        labels: updates.labels || [],
+        checklist: updates.checklist || [],
+        // Include attachments data
+        attachments: updates.attachments || [],
+        removedAttachments: updates.removedAttachments || []
+      };
+  
+      // Make the API call
+      const response = await axios.put(`http://localhost:5000/api/card/${cardId}`, updateData);
       
       return response.data;
     } catch (error) {
@@ -520,7 +515,6 @@ const ProgramDetail = () => {
       throw error;
     }
   };
-
   const handleDeleteCard = async (listId, cardId) => {
     try {
       await axios.delete(`http://localhost:5000/api/card/${cardId}`);
@@ -557,36 +551,37 @@ const ProgramDetail = () => {
     try {
       // Filter out removed attachments from existing ones
       const keptAttachments = selectedCard.attachments 
-        ? selectedCard.attachments.filter(att => 
-            !removedAttachments.includes(att._id)
-          )
+        ? selectedCard.attachments
+            .filter(att => !removedAttachments.includes(att._id))
+            .map(att => ({
+              _id: att._id,
+              name: att.name,
+              type: att.type,
+              size: att.size,
+              data: att.data
+            }))
         : [];
       
       // Process new files
       const newAttachments = await Promise.all(
         selectedFiles
-          .filter(file => file.isNew) // Only process new files
+          .filter(file => file.isNew)
           .map(async file => {
             if (file.size > 5 * 1024 * 1024) {
-              console.warn(`File ${file.name} is too large (max 5MB)`);
-              return null;
+              throw new Error(`File ${file.name} is too large (max 5MB)`);
             }
             
-            try {
-              const reader = new FileReader();
-              return new Promise((resolve) => {
-                reader.onload = () => resolve({
-                  name: file.name,
-                  type: file.type,
-                  size: file.size,
-                  data: reader.result.split(',')[1] // Get base64 data without the prefix
-                });
-                reader.readAsDataURL(file.file);
+            const reader = new FileReader();
+            return new Promise((resolve, reject) => {
+              reader.onload = () => resolve({
+                name: file.name,
+                type: file.type,
+                size: file.size,
+                data: reader.result.split(',')[1] // Get base64 data without prefix
               });
-            } catch (error) {
-              console.error('Error converting file:', file.name, error);
-              return null;
-            }
+              reader.onerror = () => reject(new Error(`Failed to read file ${file.name}`));
+              reader.readAsDataURL(file.file);
+            });
           })
       );
       
@@ -723,11 +718,14 @@ const ProgramDetail = () => {
       <div className="mb-4">
         <label className="block text-gray-700 font-medium mb-2">Description</label>
         <textarea
-          value={selectedCard.description || ''}
-          onChange={(e) => setSelectedCard({...selectedCard, description: e.target.value})}
-          className="w-full border rounded-md p-2 min-h-[100px]"
-          placeholder="Add a description..."
-        />
+  value={selectedCard.description || ''}
+  onChange={(e) => setSelectedCard({
+    ...selectedCard, 
+    description: e.target.value
+  })}
+  className="w-full border rounded-md p-2 min-h-[100px]"
+  placeholder="Add a description..."
+/>
       </div>
 
       {/* Due Date */}
@@ -772,24 +770,26 @@ const ProgramDetail = () => {
           ))}
         </div>
         <div className="flex gap-2">
-          <input
-            type="text"
-            placeholder="Add new label"
-            value={newCardText}
-            onChange={(e) => setNewCardText(e.target.value)}
-            className="flex-grow border rounded-md p-2"
-          />
-          <button
-            onClick={() => {
-              if (newCardText.trim()) {
-                addLabel(newCardText);
-                setNewCardText('');
-              }
-            }}
-            className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-2 rounded-md"
-          >
-            Add
-          </button>
+
+<input
+  type="text"
+  placeholder="Add new label"
+  value={newLabelText}
+  onChange={(e) => setNewLabelText(e.target.value)}
+  className="flex-grow border rounded-md p-2"
+/>
+<button
+  onClick={() => {
+    if (newLabelText.trim()) {
+      addLabel(newLabelText);
+      setNewLabelText('');
+    }
+  }}
+  className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-2 rounded-md"
+>
+  Add
+</button>
+        
         </div>
       </div>
 
@@ -837,8 +837,6 @@ const ProgramDetail = () => {
           </button>
         </div>
       </div>
-
-      {/* Attachments */}
     {/* Attachments */}
 <div className="mb-6">
   <label className="block text-gray-700 font-medium mb-2">Attachments</label>
@@ -914,10 +912,6 @@ const ProgramDetail = () => {
   </div>
 </div>
 
-
-
-
-
       {/* Action Buttons */}
       <div className="flex justify-between">
         <button
@@ -943,7 +937,7 @@ const ProgramDetail = () => {
       // Process attachments
       const processedAttachments = await uploadFiles();
       
-      // Prepare update data
+      // Prepare complete update data
       const updates = {
         title: selectedCard.text,
         description: selectedCard.description,
@@ -951,14 +945,7 @@ const ProgramDetail = () => {
         priority: selectedCard.priority,
         labels: selectedCard.labels || [],
         checklist: selectedCard.checklist || [],
-        attachments: processedAttachments.map(att => ({
-          // Only include _id for existing attachments
-          ...(att._id ? { _id: att._id } : {}),
-          name: att.name,
-          type: att.type,
-          size: att.size,
-          data: att.data
-        })),
+        attachments: processedAttachments,
         removedAttachments: removedAttachments
       };
       
@@ -970,7 +957,7 @@ const ProgramDetail = () => {
       setSelectedFiles([]);
       setRemovedAttachments([]);
       
-      // Refresh the card data to get updated attachments
+      // Refresh the card data
       const refreshedCard = await fetchCardDetails(selectedCard.id);
       setSelectedCard(refreshedCard);
       

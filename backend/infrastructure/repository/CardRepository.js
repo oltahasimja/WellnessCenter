@@ -142,38 +142,44 @@ class CardRepository {
       if (!mysqlCard) {
         throw new Error("Card not found in MySQL");
       }
-
+  
       // Prepare the MySQL update data
       const mysqlUpdateData = {
         title: data.title || mysqlCard.title,
         description: data.description || mysqlCard.description || "",
+        dueDate: data.dueDate || mysqlCard.dueDate,
         priority: data.priority || mysqlCard.priority || "medium",
+        labels: JSON.stringify(data.labels || []),
+        checklist: JSON.stringify(data.checklist || []),
         updatedAt: new Date()
       };
-
+  
       // Handle listId if provided
       if (data.listId) {
         mysqlUpdateData.listId = data.listId;
       }
-
+  
       // Update in MySQL first
       await Card.update(mysqlUpdateData, { where: { id } });
-
+  
       // Now handle MongoDB update
       const existingMongoCard = await CardMongo.findOne({ mysqlId: id.toString() });
       if (!existingMongoCard) {
         console.warn(`Card with MySQL ID ${id} not found in MongoDB`);
         return mysqlCard;
       }
-
+  
       // Prepare MongoDB update data
       const mongoUpdateData = {
         title: mysqlUpdateData.title,
         description: mysqlUpdateData.description,
+        dueDate: mysqlUpdateData.dueDate,
         priority: mysqlUpdateData.priority,
+        labels: data.labels || [],
+        checklist: data.checklist || [],
         updatedAt: mysqlUpdateData.updatedAt
       };
-
+  
       // Handle listId for MongoDB
       if (data.listId) {
         const mongoList = await ListMongo.findOne({ mysqlId: data.listId.toString() });
@@ -181,42 +187,39 @@ class CardRepository {
           mongoUpdateData.listId = mongoList._id;
         }
       }
-
-      // Handle attachments - this is the critical part
+  
+      // Handle attachments
       if (data.attachments || data.removedAttachments) {
         // Get current attachments (as ObjectIds)
         const currentAttachments = existingMongoCard.attachments || [];
         
         // Filter out removed attachments
         const keptAttachments = currentAttachments.filter(attId => 
-          !(data.removedAttachments || []).includes(attId.toString())
+          !(data.removedAttachments || []).some(removedId => 
+            removedId.toString() === attId.toString()
+          )
         );
-
+  
         // Process new attachments
         const newAttachments = await Promise.all(
-          (data.attachments || []).map(async attachment => {
-            // If attachment already has _id, it's existing - just keep the reference
-            if (attachment._id) {
-              return attachment._id;
-            }
-            
-            // Create new attachment document
-            const newAttachment = await AttachmentMongo.create({
-              name: attachment.name,
-              type: attachment.type,
-              size: attachment.size,
-              data: attachment.data,
-              cardId: existingMongoCard._id
-            });
-            
-            return newAttachment._id;
-          })
+          (data.attachments || [])
+            .filter(att => !att._id) // Only process new attachments
+            .map(async attachment => {
+              const newAttachment = await AttachmentMongo.create({
+                name: attachment.name,
+                type: attachment.type,
+                size: attachment.size,
+                data: attachment.data,
+                cardId: existingMongoCard._id
+              });
+              return newAttachment._id;
+            })
         );
-
+  
         // Combine kept and new attachments
         mongoUpdateData.attachments = [...keptAttachments, ...newAttachments];
       }
-
+  
       // Update in MongoDB
       const updatedMongoCard = await CardMongo.findOneAndUpdate(
         { mysqlId: id.toString() },
@@ -227,7 +230,14 @@ class CardRepository {
         { path: 'listId', model: 'ListMongo' },
         { path: 'attachments', model: 'AttachmentMongo' }
       ]);
-
+  
+      // Clean up removed attachments
+      if (data.removedAttachments?.length) {
+        await AttachmentMongo.deleteMany({ 
+          _id: { $in: data.removedAttachments.map(id => new mongoose.Types.ObjectId(id)) }
+        });
+      }
+  
       return updatedMongoCard ? updatedMongoCard.toObject() : mysqlCard;
     } catch (error) {
       console.error("Error updating Card:", error);
