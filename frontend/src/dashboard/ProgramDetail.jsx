@@ -9,6 +9,9 @@ const ProgramDetail = () => {
   const navigate = useNavigate();
   const [program, setProgram] = useState(null);
   const [lists, setLists] = useState([]);
+  const [cardMembers, setCardMembers] = useState([]);
+const [availableMembers, setAvailableMembers] = useState([]);
+const [selectedMemberToAdd, setSelectedMemberToAdd] = useState('');
   const [newCardText, setNewCardText] = useState("");
   const [members, setMembers] = useState([]);
   const [newMemberEmail, setNewMemberEmail] = useState('');
@@ -90,44 +93,82 @@ const ProgramDetail = () => {
         }
         setProgram(programRes.data);
 
-        const membersList = userProgramsRes.data
-          .filter(userProgram => 
-            userProgram.programId && (
-              userProgram.programId._id === id || 
-              userProgram.programId.mysqlId === id
-            )
-          )
-          .map(userProgram => ({
-            _id: userProgram.userId._id,
-            mysqlId: userProgram.userId.mysqlId,
-            name: userProgram.userId.name,
-            email: userProgram.userId.email,
-            role: userProgram.userId.roleId
-          }));
-        
-        setMembers(membersList);
+   // Update the members list creation to include ALL members (including current user)
+const membersList = userProgramsRes.data
+  .filter(userProgram => 
+    userProgram.programId && (
+      userProgram.programId._id === id || 
+      userProgram.programId.mysqlId.toString() === id.toString()
+    )
+  )
+  .map(userProgram => ({
+    _id: userProgram.userId._id,
+    mysqlId: userProgram.userId.mysqlId,
+    name: userProgram.userId.name,
+    email: userProgram.userId.email,
+    role: userProgram.userId.roleId
+  }));
+
+// Include current user if they're a member
+const currentUserMember = membersList.find(m => 
+  m.mysqlId.toString() === currentUser.id.toString() || 
+  m._id === currentUser.id.toString()
+);
+
+if (!currentUserMember) {
+  membersList.push({
+    _id: currentUser.mongoId, // If available
+    mysqlId: currentUser.id,
+    name: currentUser.name,
+    email: currentUser.email,
+    role: currentUser.role
+  });
+}
+
+setMembers(membersList);
 
         const [listsRes, cardsRes] = await Promise.all([
           axios.get('http://localhost:5000/api/list'),
           axios.get('http://localhost:5000/api/card')
         ]);
+        const cardMembersRes = await axios.get('http://localhost:5000/api/cardmember');
 
         const boardLists = listsRes.data
-          .filter(list => 
-            list.programId && (
-              list.programId._id === id || 
-              list.programId.mysqlId === id
-            )
-          )
-          .map(list => {
-            const listCards = cardsRes.data
-              .filter(card => 
-                card.listId && (
-                  card.listId._id === list._id || 
-                  card.listId.mysqlId === list.mysqlId
-                )
-              )
-              .map(card => ({
+        .filter(list => list.programId && (
+          list.programId._id === id || 
+          list.programId.mysqlId == id // Use == for type coercion
+        ))
+        .map(list => {
+          const listCards = cardsRes.data
+            .filter(card => card.listId && (
+              card.listId._id === list._id || 
+              card.listId.mysqlId == list.mysqlId
+            ))
+            .map(card => {
+              // Get members for this card
+           // Update the card members mapping logic
+          // Update the card members mapping in your main useEffect
+const cardMembers = cardMembersRes.data
+.filter(cm => {
+  const cardIdFromCM = cm.cardId?.toString();
+  const cardIdentifier = (card.mysqlId || card._id)?.toString();
+  return cardIdFromCM === cardIdentifier;
+})
+.map(cm => {
+  // Find member with both ID types using loose comparison
+  const member = members.find(m => 
+    m.mysqlId?.toString() == cm.userId?.toString() || 
+    m._id?.toString() == cm.userId?.toString()
+  );
+  
+  return member ? {
+    id: member.mysqlId || member._id,
+    name: member.name,
+    email: member.email
+  } : null;
+})
+.filter(Boolean);
+              return {
                 id: card.mysqlId || card._id,
                 text: card.title,
                 description: card.description,
@@ -135,16 +176,18 @@ const ProgramDetail = () => {
                 dueDate: card.dueDate,
                 labels: card.labels || [],
                 checklist: card.checklist || [],
-                attachments: card.attachments || []
-              }));
-
-            return {
-              id: list.mysqlId || list._id,
-              title: list.name,
-              cards: listCards,
-              inputText: ''
-            };
-          });
+                attachments: card.attachments || [],
+                members: cardMembers
+              };
+            });
+      
+          return {
+            id: list.mysqlId || list._id,
+            title: list.name,
+            cards: listCards,
+            inputText: ''
+          };
+        });
 
         setLists(boardLists);
         
@@ -160,6 +203,17 @@ const ProgramDetail = () => {
       fetchProgramData();
     }
   }, [id, currentUser]);
+
+  useEffect(() => {
+    if (selectedCard) {
+      const currentCardMemberIds = cardMembers.map(m => m.userId.mysqlId);
+      const available = members.filter(m => 
+        !currentCardMemberIds.includes(m.mysqlId) && 
+        m.mysqlId !== currentUser.id
+      );
+      setAvailableMembers(available);
+    }
+  }, [cardMembers, members, selectedCard, currentUser]);
 
   const fetchLists = async () => {
     try {
@@ -264,7 +318,6 @@ const ProgramDetail = () => {
       alert('Failed to update list: ' + (error.response?.data?.message || error.message));
     }
   };
-
   const handleAddMember = async (e) => {
     e.preventDefault();
     
@@ -471,6 +524,15 @@ const ProgramDetail = () => {
       setSelectedCard(cardDetails);
       setIsCardModalOpen(true);
       
+      // Fetch card members and calculate available members
+      await fetchCardMembers(card.id);  // Add this line
+      const currentCardMemberIds = cardMembers.map(m => m.userId?.mysqlId);
+      const available = members.filter(m => 
+        !currentCardMemberIds.includes(m.mysqlId) && 
+        m.mysqlId !== currentUser.id
+      );
+      setAvailableMembers(available);  // Add this line
+      
       // Initialize state for existing attachments
       if (cardDetails.attachments && cardDetails.attachments.length > 0) {
         // No need to set selectedFiles for existing attachments
@@ -606,49 +668,144 @@ const ProgramDetail = () => {
     setSelectedFiles(prev => prev.filter((_, i) => i !== index));
   };
 
-  const fetchCardDetails = async (cardId) => {
-    try {
-      const response = await axios.get(`http://localhost:5000/api/card/${cardId}`);
+ const fetchCardDetails = async (cardId) => {
+  try {
+    const response = await axios.get(`http://localhost:5000/api/card/${cardId}`);
+    
+    // Process attachments to make them easier to handle in the UI
+    const processedCard = {
+      ...response.data,
+      id: response.data.mysqlId || response.data._id,
+      text: response.data.title,
+      labels: response.data.labels || [],
+      checklist: response.data.checklist || [],
+      attachments: response.data.attachments || [],
+      members: response.data.members || [] // Add this line
+    };
+    
+    return processedCard;
+  } catch (error) {
+    console.error('Error fetching card details:', error);
+    throw error;
+  }
+};
+const fetchCardMembers = async (cardId) => {
+  try {
+    const response = await axios.get(`http://localhost:5000/api/cardmember/card/${cardId}`);
+    const cardMembersData = response.data;
+
+    // Deep map members with proper user details
+    const membersWithDetails = cardMembersData.map(cm => {
+      const user = members.find(m => 
+        String(m.mysqlId) === String(cm.userId) || 
+        String(m._id) === String(cm.userId)
+      );
       
-      // Process attachments to make them easier to handle in the UI
-      const processedCard = {
-        ...response.data,
-        id: response.data.mysqlId || response.data._id,
-        text: response.data.title,
-        labels: response.data.labels || [],
-        checklist: response.data.checklist || [],
-        attachments: response.data.attachments || []
+      return {
+        ...cm,
+        userId: user || { 
+          mysqlId: cm.userId, 
+          name: 'Loading...', 
+          email: 'Unknown' 
+        }
       };
+    });
+
+    setCardMembers(membersWithDetails);
+  } catch (error) {
+    console.error('Error fetching card members:', error);
+  }
+};
+  const handleAddCardMember = async () => {
+    if (!selectedMemberToAdd) return;
+  
+    try {
+      // Optimistically update UI
+      const newMember = members.find(m => m.mysqlId === selectedMemberToAdd);
+      setSelectedCard(prev => ({
+        ...prev,
+        members: [...prev.members, newMember]
+      }));
+      setLists(prevLists => prevLists.map(list => {
+        if (list.id === selectedListId) {
+          return {
+            ...list,
+            cards: list.cards.map(card => 
+              card.id === selectedCard.id
+                ? { ...card, members: [...card.members, newMember] }
+                : card
+            )
+          };
+        }
+        return list;
+      }));
+      if (newMember) {
+        setCardMembers(prev => [...prev, {
+          mysqlId: Date.now(), // temporary ID
+          userId: newMember
+        }]);
+      }
+  
+      await axios.post('http://localhost:5000/api/cardmember', {
+        userId: selectedMemberToAdd,
+        cardId: selectedCard.id,
+        invitedById: currentUser.id
+      });
+  
+      // Refresh data
+      const refreshedCard = await fetchCardDetails(selectedCard.id);
+      setSelectedCard(refreshedCard);
+      await fetchCardMembers(selectedCard.id);
       
-      return processedCard;
+      setSelectedMemberToAdd('');
     } catch (error) {
-      console.error('Error fetching card details:', error);
-      throw error;
+    // Rollback on error
+    setSelectedCard(prev => ({
+      ...prev,
+      members: prev.members.filter(m => m.mysqlId !== selectedMemberToAdd)
+    }));
+    setLists(prevLists => prevLists.map(list => {
+      if (list.id === selectedListId) {
+        return {
+          ...list,
+          cards: list.cards.map(card => 
+            card.id === selectedCard.id
+              ? { ...card, members: card.members.filter(m => m.mysqlId !== selectedMemberToAdd) }
+              : card
+          )
+        };
+      }
+      return list;
+    }));
+  }
+};
+
+  
+  const handleRemoveCardMember = async (cardMemberId) => {
+    // Add confirmation dialog from the new version
+    if (!window.confirm('Are you sure you want to remove this member?')) return;
+  
+    try {
+      // Keep your existing delete API call
+      await axios.delete(`http://localhost:5000/api/cardmember/${cardMemberId}`);
+  
+      // Keep your existing state updates
+      const refreshedCard = await fetchCardDetails(selectedCard.id);
+      setSelectedCard(refreshedCard);
+      
+      // Add direct state filtering from the new version
+      setCardMembers(prev => prev.filter(m => m.mysqlId !== cardMemberId));
+      
+      // Keep your available members update
+      setAvailableMembers(members.filter(m => 
+        !refreshedCard.members?.includes(m.mysqlId) && 
+        m.mysqlId !== currentUser.id
+      ));
+    } catch (error) {
+      console.error('Error removing card member:', error);
+      alert(error.response?.data?.message || 'Failed to remove member');
     }
   };
-
-  // const removeFile = (index) => {
-  //   const file = selectedFiles[index];
-    
-  //   if (file.isExisting && file._id) {
-  //     setRemovedAttachments(prev => [...prev, file._id]);
-  //   }
-    
-  //   setSelectedFiles(prev => prev.filter((_, i) => i !== index));
-    
-  //   if (selectedCard.attachments && selectedCard.attachments.length > 0) {
-  //     setSelectedCard(prev => ({
-  //       ...prev,
-  //       attachments: prev.attachments.filter(att => {
-  //         if (file._id && att._id) {
-  //           return att._id.toString() !== file._id.toString();
-  //         }
-  //         return att.name !== file.name;
-  //       })
-  //     }));
-  //   }
-  // };
-
   const toggleChecklistItem = (index) => {
     const updatedChecklist = [...selectedCard.checklist];
     updatedChecklist[index].completed = !updatedChecklist[index].completed;
@@ -727,6 +884,69 @@ const ProgramDetail = () => {
   placeholder="Add a description..."
 />
       </div>
+      {/* ... existing modal content ... */}
+
+{/* Attachments Section (keep your existing attachments code here) */}
+
+{/* Add the Card Members Section here */}
+{/* Card Members Section */}
+<div className="mb-6">
+  <h3 className="text-lg font-semibold mb-3">Card Members</h3>
+  
+
+
+  
+ {/* Current Members */}
+<div className="mb-4">
+  {cardMembers.length > 0 ? (
+    cardMembers.map(member => (
+      <div key={member.mysqlId} className="flex items-center justify-between mb-2 p-2 bg-gray-100 rounded">
+        <div>
+          <span className="font-medium">{member.userId.name}</span>
+          <span className="text-sm text-gray-600 ml-2">({member.userId.email})</span>
+        </div>
+        <button
+          onClick={() => handleRemoveCardMember(member.mysqlId)}
+          className="text-red-500 hover:text-red-700 text-sm"
+        >
+          Remove
+        </button>
+      </div>
+    ))
+  ) : (
+    <p className="text-gray-500 text-sm">No members assigned to this card</p>
+  )}
+</div>
+
+
+  {/* Add Member Section */}
+  <div className="flex gap-2">
+    <select
+      value={selectedMemberToAdd}
+      onChange={(e) => setSelectedMemberToAdd(e.target.value)}
+      className="flex-grow border rounded-md p-2"
+    >
+      <option value="">Select member to add</option>
+      {availableMembers.map(member => (
+        <option key={member.mysqlId} value={member.mysqlId}>
+          {member.name} ({member.email})
+        </option>
+      ))}
+    </select>
+    <button
+      onClick={handleAddCardMember}
+      className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md"
+      disabled={!selectedMemberToAdd}
+    >
+      Add Member
+    </button>
+  </div>
+</div>
+
+{/* Action Buttons (keep your existing save/cancel buttons here) */}
+<div className="flex justify-between">
+  {/* ... existing action buttons ... */}
+</div>
 
       {/* Due Date */}
       <div className="mb-4">
@@ -977,7 +1197,8 @@ const ProgramDetail = () => {
                       priority: selectedCard.priority,
                       labels: selectedCard.labels || [],
                       checklist: selectedCard.checklist || [],
-                      attachments: refreshedCard.attachments || []
+                      attachments: refreshedCard.attachments || [],
+                      members: refreshedCard.members || [] 
                     } 
                   : card
               )
@@ -1181,6 +1402,22 @@ const ProgramDetail = () => {
                         onClick={() => handleCardClick(list.id, card)}
                       >
                         <div className="font-medium">{card.text}</div>
+                          {/* Add member display here */}
+        
+                          {card.members && card.members.length > 0 && (
+  <div className="flex flex-wrap gap-1 mt-2 items-center">
+    {card.members.map((member) => (
+      <div 
+        key={member.mysqlId}
+        className="flex items-center text-xs bg-blue-100 text-blue-800 rounded-full px-2 py-1"
+        title={member.name}
+      >
+        <span className="mr-1">👤</span>
+        {member.name.split(' ')[0]}
+      </div>
+    ))}
+  </div>
+)}
                         {card.description && (
                           <div className="text-sm text-gray-600 mt-1">{card.description}</div>
                         )}
