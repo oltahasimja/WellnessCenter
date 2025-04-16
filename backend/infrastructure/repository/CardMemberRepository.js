@@ -30,6 +30,81 @@ class CardMemberRepository {
     }
   }
 
+  async findByCardId(cardId) {
+    try {
+      // First try MongoDB
+      const cardMongo = await CardMongo.findOne({ 
+        $or: [
+          { mysqlId: cardId }, 
+          { _id: mongoose.isValidObjectId(cardId) ? new ObjectId(cardId) : null }
+        ] 
+      });
+      
+      if (!cardMongo) return [];
+      
+      const members = await CardMemberMongo.find({ cardId: cardMongo._id })
+        .populate({
+          path: 'userId',
+          model: 'UserMongo',
+          select: 'mysqlId _id name email'
+        })
+        .lean();
+  
+      return members.map(m => ({
+        mysqlId: m.mysqlId,
+        userId: {
+          mysqlId: m.userId.mysqlId,
+          _id: m.userId._id.toString(),
+          name: m.userId.name,
+          email: m.userId.email
+        },
+        cardId: m.cardId.toString()
+      }));
+    } catch (error) {
+      console.error("MongoDB findByCardId failed:", error);
+      // Fallback to MySQL
+      const cardMembers = await CardMember.findAll({
+        where: { cardId },
+        include: [{
+          model: User,
+          attributes: ['id', 'name', 'email']
+        }]
+      });
+      
+      return cardMembers.map(cm => ({
+        mysqlId: cm.id,
+        userId: {
+          mysqlId: cm.user.id,
+          name: cm.user.name,
+          email: cm.user.email
+        },
+        cardId: cm.cardId
+      }));
+    }
+  }
+
+  // async findById(cardId) {
+  //   try {
+  //     // First try MongoDB
+  //     const cardMongo = await CardMongo.findOne({ 
+  //       $or: [{ mysqlId: cardId }, { _id: new ObjectId(cardId) }] 
+  //     });
+      
+  //     if (!cardMongo) return [];
+      
+  //     return await CardMemberMongo.find({ cardId: cardMongo._id })
+  //       .populate('userId')
+  //       .lean();
+  //   } catch (error) {
+  //     console.error("MongoDB findByCardId failed:", error);
+  //     // Fallback to MySQL
+  //     const cardMembers = await CardMember.findAll({
+  //       where: { cardId }
+  //     });
+  //     return cardMembers.map(cm => cm.get({ plain: true }));
+  //   }
+  // }
+
   
   // Write operations - Write to both MongoDB and MySQL
   

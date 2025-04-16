@@ -58,16 +58,23 @@ class UserRepository {
   
 async findById(id) {
   try {
-    return await UserMongo.findOne({ mysqlId: id.toString() })
+    const user = await UserMongo.findOne({ mysqlId: id.toString() })
       .populate('roleId')
       .populate('countryId')
       .populate('cityId')
       .populate('dashboardRoleId')
       .populate({
         path: 'profileImageId',
-        select: 'id name'  
+        select: 'name'  // Sigurohu që po kthen vetëm fushën 'name'
       })
       .lean();
+
+    // Nëse profileImageId është objekt, kthe vetëm të dhënat e imazhit
+    if (user?.profileImageId) {
+      user.profileImageId = user.profileImageId.name;
+    }
+
+    return user;
   } catch (error) {
     console.error("MongoDB findById failed:", error);
     throw error;

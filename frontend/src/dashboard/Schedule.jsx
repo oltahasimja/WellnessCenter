@@ -235,27 +235,34 @@ const Schedule = () => {
         </div>
     
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-          {daysOfWeek.map(day => (
-            <div
-              key={day}
-              className={`flex items-center p-2 rounded-md border transition 
-                ${formData.workDays?.includes(day) ? 
-                  (theme === 'dark' ? 'bg-blue-800 border-blue-500' : 'bg-blue-100 border-blue-400') : 
-                  (theme === 'dark' ? 'bg-gray-800 border-gray-600' : 'bg-white border-gray-300')}`}
-            >
-              <input
-                type="checkbox"
-                id={day.toLowerCase()}
-                checked={formData.workDays?.includes(day) || false}
-                onChange={() => handleDayChange(day)}
-                className="mr-2 h-4 w-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"
-                disabled={isLoading}
-              />
-              <label htmlFor={day.toLowerCase()} className={theme === 'dark' ? 'text-gray-200' : 'text-gray-700'}>
-                {day}
-              </label>
-            </div>
-          ))}
+        {daysOfWeek.map(day => (
+    <div
+        key={day}
+        className={`flex items-center p-2 rounded-md border transition 
+            ${formData.workDays?.includes(day) ? 
+                (theme === 'dark' ? 'bg-blue-800 border-blue-500' : 'bg-blue-100 border-blue-400') : 
+                (theme === 'dark' ? 'bg-gray-800 border-gray-600' : 'bg-white border-gray-300')}`}
+        onClick={(e) => {
+            if (e.target.tagName !== 'INPUT') {
+                handleDayChange(day);
+            }
+        }}
+        style={{cursor: 'pointer'}} 
+    >
+        <input
+            type="checkbox"
+            id={day.toLowerCase()}
+            checked={formData.workDays?.includes(day) || false}
+            onChange={() => handleDayChange(day)}
+            className="mr-2 h-4 w-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"
+            disabled={isLoading}
+            onClick={(e) => e.stopPropagation()} 
+        />
+        <label htmlFor={day.toLowerCase()} className={theme === 'dark' ? 'text-gray-200' : 'text-gray-700'}>
+            {day}
+        </label>
+    </div>
+))}
         </div>
       </div>
     </>

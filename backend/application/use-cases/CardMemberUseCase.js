@@ -6,6 +6,9 @@ class CardMemberUseCase {
   async getAll() {
     return await this.port.getAll();
   }
+  async getByCardId(cardId) {
+    return await this.port.getByCardId(cardId);
+  }
   async getById(id) {
     return await this.port.getById(id);
   }

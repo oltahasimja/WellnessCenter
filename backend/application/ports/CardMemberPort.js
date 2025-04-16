@@ -6,6 +6,9 @@ class CardMemberPort {
   async getAll() {
     return await this.repository.findAll();
   }
+  async getByCardId(cardId) {
+    return await this.repository.findByCardId(cardId);
+  }
   async getById(id) {
     return await this.repository.findById(id);
   }
