@@ -798,652 +798,723 @@ const handleAddCardMember = async () => {
   if (!isMember) return <div className="text-center p-8 text-red-500">Access Denied</div>;
 
   return (
-    <div className="container mx-auto p-6">
-
-
-{/* Add this modal component right before the closing tag of your component return statement */}
-{isCardModalOpen && selectedCard && (
-  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-    <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-      <div className="flex justify-between items-center mb-4">
-        <h2 className="text-2xl font-bold">Card Details</h2>
-        <button
-          onClick={() => setIsCardModalOpen(false)}
-          className="text-gray-600 hover:text-gray-800"
-        >
-          <span className="text-2xl">×</span>
-        </button>
-      </div>
-
-      {/* Card Title */}
-      <div className="mb-4">
-        <label className="block text-gray-700 font-medium mb-2">Title</label>
-        <input
-          type="text"
-          value={selectedCard.text}
-          onChange={(e) => setSelectedCard({...selectedCard, text: e.target.value})}
-          className="w-full border rounded-md p-2"
-        />
-      </div>
-
-      {/* Card Description */}
-      <div className="mb-4">
-        <label className="block text-gray-700 font-medium mb-2">Description</label>
-        <textarea
-  value={selectedCard.description || ''}
-  onChange={(e) => setSelectedCard({
-    ...selectedCard, 
-    description: e.target.value
-  })}
-  className="w-full border rounded-md p-2 min-h-[100px]"
-  placeholder="Add a description..."
-/>
-      </div>
-      {/* ... existing modal content ... */}
-
-{/* Attachments Section (keep your existing attachments code here) */}
-
-{/* Add the Card Members Section here */}
-{/* Card Members Section */}
-<div className="mb-6">
-  
-
-
-  
- {/* Current Members */}
- <div className="mb-4">
-  <h3 className="text-lg font-semibold mb-3">Card Members</h3>
-  
-  {cardMembers.length > 0 ? (
-    <div className="space-y-2">
-      {cardMembers.map((member, index) => (
-        <div key={index} className="flex items-center justify-between p-2 bg-gray-100 rounded">
-          <div>
-            <span className="font-medium">
-              {member.userId?.name || 'Unknown Member'}
-            </span>
-            <span className="text-sm text-gray-600 ml-2">
-              ({member.userId?.email || 'No email'})
-            </span>
-          </div>
-          <button
-            onClick={() => handleRemoveCardMember(member.mysqlId)}
-            className="text-red-500 hover:text-red-700 text-sm"
-          >
-            Remove
-          </button>
-        </div>
-      ))}
-    </div>
-  ) : (
-    <p className="text-gray-500 text-sm">No members assigned to this card</p>
-  )}
-</div>
-
-
-  {/* Add Member Section */}
-  <div className="flex gap-2">
-  <select
-  value={selectedMemberToAdd}
-  onChange={(e) => setSelectedMemberToAdd(e.target.value)}
-  className="flex-grow border rounded-md p-2"
->
-  <option value="">Select member to add</option>
-  {availableMembers.map(member => (
-    <option 
-      key={member.mysqlId || member._id} 
-      value={member.mysqlId || member._id}
-    >
-      {member.name} ({member.email})
-    </option>
-  ))}
-</select>
-    <button
-      onClick={handleAddCardMember}
-      className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md"
-      disabled={!selectedMemberToAdd}
-    >
-      Add Member
-    </button>
-  </div>
-</div>
-
-{/* Action Buttons (keep your existing save/cancel buttons here) */}
-<div className="flex justify-between">
-  {/* ... existing action buttons ... */}
-</div>
-
-      {/* Due Date */}
-      <div className="mb-4">
-        <label className="block text-gray-700 font-medium mb-2">Due Date</label>
-        <input
-          type="date"
-          value={selectedCard.dueDate ? new Date(selectedCard.dueDate).toISOString().split('T')[0] : ''}
-          onChange={(e) => setSelectedCard({...selectedCard, dueDate: e.target.value})}
-          className="w-full border rounded-md p-2"
-        />
-      </div>
-
-      {/* Priority */}
-      <div className="mb-4">
-        <label className="block text-gray-700 font-medium mb-2">Priority</label>
-        <select
-          value={selectedCard.priority || 'medium'}
-          onChange={(e) => setSelectedCard({...selectedCard, priority: e.target.value})}
-          className="w-full border rounded-md p-2"
-        >
-          <option value="low">Low</option>
-          <option value="medium">Medium</option>
-          <option value="high">High</option>
-        </select>
-      </div>
-
-      {/* Labels */}
-      <div className="mb-4">
-        <label className="block text-gray-700 font-medium mb-2">Labels</label>
-        <div className="flex flex-wrap gap-2 mb-2">
-          {selectedCard.labels && selectedCard.labels.map((label, index) => (
-            <div key={index} className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full flex items-center">
-              <span>{label}</span>
-              <button 
-                onClick={() => removeLabel(label)}
-                className="ml-1 text-blue-800 hover:text-blue-600"
-              >
-                ×
-              </button>
-            </div>
-          ))}
-        </div>
-        <div className="flex gap-2">
-
-<input
-  type="text"
-  placeholder="Add new label"
-  value={newLabelText}
-  onChange={(e) => setNewLabelText(e.target.value)}
-  className="flex-grow border rounded-md p-2"
-/>
-<button
-  onClick={() => {
-    if (newLabelText.trim()) {
-      addLabel(newLabelText);
-      setNewLabelText('');
-    }
-  }}
-  className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-2 rounded-md"
->
-  Add
-</button>
-        
-        </div>
-      </div>
-
-      {/* Checklist */}
-      <div className="mb-4">
-        <label className="block text-gray-700 font-medium mb-2">Checklist</label>
-        {selectedCard.checklist && selectedCard.checklist.length > 0 ? (
-          <div className="mb-3">
-            {selectedCard.checklist.map((item, index) => (
-              <div key={index} className="flex items-center mb-1">
-                <input
-                  type="checkbox"
-                  checked={item.completed}
-                  onChange={() => toggleChecklistItem(index)}
-                  className="mr-2"
-                />
-                <span className={item.completed ? 'line-through text-gray-500' : ''}>
-                  {item.text}
+    <div className="min-h-screen bg-teal-50">
+      {/* Banner Section */}
+      <div className="bg-teal-600 text-white py-8 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center">
+            <div className="mb-6 md:mb-0">
+              <h1 className="text-3xl md:text-4xl font-bold mb-2">{program.title}</h1>
+              <div className="flex flex-wrap items-center text-teal-100">
+                <span className="flex items-center mr-4">
+                  <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
+                  </svg>
+                  Created by: {program.createdById?.name || 'Unknown'}
                 </span>
-                <button
-                  onClick={() => removeChecklistItem(index)}
-                  className="ml-auto text-red-500 hover:text-red-700"
-                >
-                  ×
-                </button>
+                <span className="flex items-center">
+                  <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd" />
+                  </svg>
+                  Created on: {new Date(program.createdAt).toLocaleDateString()}
+                </span>
               </div>
-            ))}
-          </div>
-        ) : (
-          <p className="text-gray-500 mb-2">No checklist items yet</p>
-        )}
-        <div className="flex gap-2">
-          <input
-            type="text"
-            placeholder="Add checklist item"
-            value={newChecklistItem}
-            onChange={(e) => setNewChecklistItem(e.target.value)}
-            className="flex-grow border rounded-md p-2"
-          />
-          <button
-            onClick={addChecklistItem}
-            className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-2 rounded-md"
-          >
-            Add
-          </button>
-        </div>
-      </div>
-    {/* Attachments */}
-<div className="mb-6">
-  <label className="block text-gray-700 font-medium mb-2">Attachments</label>
-  
-  {/* Display existing attachments from the card */}
-  {selectedCard.attachments && selectedCard.attachments.length > 0 && (
-    <div className="space-y-2 mb-3">
-      <h4 className="font-medium text-sm text-gray-600">Current Files:</h4>
-      {selectedCard.attachments.map((attachment, index) => (
-        <div key={index} className="p-2 border rounded-md">
-          <div className="flex items-center">
-            <span className="flex-grow truncate">{attachment.name}</span>
-            <button
-              onClick={() => {
-                setRemovedAttachments(prev => [...prev, attachment._id]);
-                setSelectedCard({
-                  ...selectedCard,
-                  attachments: selectedCard.attachments.filter((_, i) => i !== index)
-                });
-              }}
-              className="ml-2 text-red-500 hover:text-red-700"
+            </div>
+            <button 
+              onClick={() => navigate('/programs')}
+              className="bg-white text-teal-600 hover:bg-teal-50 px-4 py-2 rounded-md font-medium flex items-center"
             >
-              Remove
+              <svg className="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clipRule="evenodd" />
+              </svg>
+              Back to Programs
             </button>
           </div>
-          
-          {/* Display image if attachment is an image */}
-          {attachment.type.startsWith('image/') && (
-            <div className="mt-2">
-              <img 
-                src={`data:${attachment.type};base64,${attachment.data}`} 
-                alt={attachment.name}
-                className="max-w-full h-auto max-h-40 rounded-md"
-              />
-            </div>
-          )}
-        </div>
-      ))}
-    </div>
-  )}
-  
-  {/* Display new files selected for upload */}
-  {selectedFiles.length > 0 && (
-    <div className="space-y-2 mb-3">
-      <h4 className="font-medium text-sm text-gray-600">New Files:</h4>
-      {selectedFiles.map((file, index) => (
-        <div key={index} className="flex items-center p-2 border rounded-md">
-          <span className="flex-grow truncate">{file.name}</span>
-          <button
-            onClick={() => removeFile(index)}
-            className="ml-2 text-red-500 hover:text-red-700"
-          >
-            Remove
-          </button>
-        </div>
-      ))}
-    </div>
-  )}
-  
-  {/* File upload input */}
-  <div className="mt-2">
-    <input
-      type="file"
-      onChange={handleFileChange}
-      className="block w-full text-sm text-gray-500
-        file:mr-4 file:py-2 file:px-4
-        file:rounded-md file:border-0
-        file:text-sm file:font-semibold
-        file:bg-blue-50 file:text-blue-700
-        hover:file:bg-blue-100"
-      multiple
-    />
-  </div>
-</div>
-
-      {/* Action Buttons */}
-      <div className="flex justify-between">
-        <button
-          onClick={() => {
-            handleDeleteCard(selectedListId, selectedCard.id);
-            setIsCardModalOpen(false);
-          }}
-          className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-md"
-        >
-          Delete Card
-        </button>
-
-        <div className="flex gap-2">
-          <button
-            onClick={() => setIsCardModalOpen(false)}
-            className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-md"
-          >
-            Cancel
-          </button>
-          <button
-  onClick={async () => {
-    try {
-      // Process attachments
-      const processedAttachments = await uploadFiles();
-      
-      // Prepare complete update data
-      const updates = {
-        title: selectedCard.text,
-        description: selectedCard.description,
-        dueDate: selectedCard.dueDate,
-        priority: selectedCard.priority,
-        labels: selectedCard.labels || [],
-        checklist: selectedCard.checklist || [],
-        attachments: processedAttachments,
-        removedAttachments: removedAttachments
-      };
-      
-      // Call API to update card
-      await handleEditCard(selectedCard.id, updates);
-      
-      // Close modal and reset state
-      setIsCardModalOpen(false);
-      setSelectedFiles([]);
-      setRemovedAttachments([]);
-      
-      // Refresh the card data
-      const refreshedCard = await fetchCardDetails(selectedCard.id);
-      setSelectedCard(refreshedCard);
-      
-      // Update lists state
-      setLists(prevLists => 
-        prevLists.map(list => {
-          if (list.id === selectedListId) {
-            return {
-              ...list,
-              cards: list.cards.map(card => 
-                card.id === selectedCard.id 
-                  ? { 
-                      ...card, 
-                      text: selectedCard.text,
-                      description: selectedCard.description,
-                      dueDate: selectedCard.dueDate,
-                      priority: selectedCard.priority,
-                      labels: selectedCard.labels || [],
-                      checklist: selectedCard.checklist || [],
-                      attachments: refreshedCard.attachments || [],
-                      members: refreshedCard.members || [] 
-                    } 
-                  : card
-              )
-            };
-          }
-          return list;
-        })
-      );
-    } catch (error) {
-      console.error('Error saving card:', error);
-      alert('Failed to save card: ' + error.message);
-    }
-  }}
-  className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-md"
->
-  Save
-</button>
         </div>
       </div>
-    </div>
-  </div>
-)}
-
-      
-      <div className="bg-white rounded-lg shadow-md p-6">
-        <div className="flex justify-between items-start mb-6">
-          <div>
-            <h1 className="text-3xl font-bold">{program.title}</h1>
-            <p className="text-gray-600 mt-2">
-              Created by: {program.createdById?.name || 'Unknown'} | 
-              Created on: {new Date(program.createdAt).toLocaleDateString()}
+  
+      {/* Program Description */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="bg-white rounded-xl shadow-md overflow-hidden mb-8">
+          <div className="p-6">
+            <h2 className="text-xl font-semibold text-teal-800 mb-4 flex items-center">
+              <svg className="w-5 h-5 mr-2 text-teal-600" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M9 4.804A7.968 7.968 0 005.5 4c-1.255 0-2.443.29-3.5.804v10A7.969 7.969 0 015.5 14c1.669 0 3.218.51 4.5 1.385A7.962 7.962 0 0114.5 14c1.255 0 2.443.29 3.5.804v-10A7.968 7.968 0 0014.5 4c-1.255 0-2.443.29-3.5.804V12a1 1 0 11-2 0V4.804z" />
+              </svg>
+              Program Description
+            </h2>
+            <p className="text-gray-700 whitespace-pre-line bg-teal-50 p-4 rounded-lg">
+              {program.description || 'No description provided'}
             </p>
           </div>
-          <button 
-            onClick={() => navigate('/programs')}
-            className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-md"
-          >
-            Back to Programs
-          </button>
         </div>
-        
+  
+        {/* Members Section */}
+        <div className="bg-white rounded-xl shadow-md overflow-hidden mb-8">
+          <div className="p-6">
+            <h2 className="text-xl font-semibold text-teal-800 mb-4 flex items-center">
+              <svg className="w-5 h-5 mr-2 text-teal-600" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v1h8v-1zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-1a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v1h-3zM4.75 12.094A5.973 5.973 0 004 15v1H1v-1a3 3 0 013.75-2.906z" />
+              </svg>
+              Program Members
+            </h2>
+            
+            <form onSubmit={handleAddMember} className="mb-6 flex flex-col sm:flex-row gap-4">
+              <div className="flex-grow relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <svg className="h-5 w-5 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
+                    <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
+                  </svg>
+                </div>
+                <input
+                  type="email"
+                  placeholder="Enter user email to invite"
+                  value={newMemberEmail}
+                  onChange={(e) => setNewMemberEmail(e.target.value)}
+                  className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:ring-teal-500 focus:border-teal-500 sm:text-sm"
+                  required
+                />
+              </div>
+              <button 
+                type="submit" 
+                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-teal-600 hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500"
+              >
+                <svg className="-ml-1 mr-2 h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" />
+                </svg>
+                Add Member
+              </button>
+            </form>
+            
+            {members.length > 0 ? (
+              <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead className="bg-teal-50">
+                    <tr>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-teal-800 uppercase tracking-wider">Name</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-teal-800 uppercase tracking-wider">Email</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-teal-800 uppercase tracking-wider">Role</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-teal-800 uppercase tracking-wider">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {members.map(member => (
+                      <tr key={member._id || member.mysqlId} className="hover:bg-teal-50">
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="flex items-center">
+                            <div className="flex-shrink-0 h-10 w-10 rounded-full bg-teal-100 flex items-center justify-center text-teal-800 font-medium">
+                              {member.name.charAt(0).toUpperCase()}
+                            </div>
+                            <div className="ml-4">
+                              <div className="text-sm font-medium text-gray-900">{member.name}</div>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{member.email}</td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                            ${member.role === 'admin' ? 'bg-purple-100 text-purple-800' : 
+                              member.role === 'editor' ? 'bg-blue-100 text-blue-800' : 
+                              'bg-green-100 text-green-800'}`}>
+                            {member.role || 'Member'}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                          <button 
+                            onClick={() => handleRemoveClick(member._id || member.mysqlId, member.name)}
+                            className="text-red-600 hover:text-red-900"
+                          >
+                            Remove
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <div className="text-center py-8 bg-teal-50 rounded-lg">
+                <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                </svg>
+                <h3 className="mt-2 text-sm font-medium text-gray-900">No members yet</h3>
+                <p className="mt-1 text-sm text-gray-500">Get started by adding members to this program.</p>
+              </div>
+            )}
+          </div>
+        </div>
+  
+        {/* Board Section */}
         <div className="mb-8">
-          <h2 className="text-xl font-semibold mb-2">Description</h2>
-          <p className="text-gray-700 mb-6 p-4 bg-gray-50 rounded">{program.description}</p>
-          
-          <h2 className="text-xl font-semibold mb-4">Program Members</h2>
-          
-          <form onSubmit={handleAddMember} className="mb-6 flex gap-2">
-            <input
-              type="email"
-              placeholder="Enter user email to invite"
-              value={newMemberEmail}
-              onChange={(e) => setNewMemberEmail(e.target.value)}
-              className="flex-grow border p-2 rounded-md"
-              required
-            />
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6">
+            <h2 className="text-2xl font-bold text-teal-800 mb-4 sm:mb-0 flex items-center">
+              <svg className="w-6 h-6 mr-2 text-teal-600" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M2 10a8 8 0 018-8v8h8a8 8 0 11-16 0z" />
+                <path d="M12 2.252A8.014 8.014 0 0117.748 8H12V2.252z" />
+              </svg>
+              Program Board
+            </h2>
             <button 
-              type="submit" 
-              className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md"
+              onClick={() => setShowListForm(!showListForm)}
+              className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-teal-600 hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500"
             >
-              Add Member
+              <svg className="-ml-1 mr-2 h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" />
+              </svg>
+              {showListForm ? 'Cancel' : 'Add List'}
             </button>
-          </form>
-          
-          {members.length > 0 ? (
-            <div className="border rounded-md overflow-hidden">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Name</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Email</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Role</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {members.map(member => (
-                    <tr key={member._id || member.mysqlId}>
-                      <td className="px-6 py-4 whitespace-nowrap">{member.name}</td>
-                      <td className="px-6 py-4 whitespace-nowrap">{member.email}</td>
-                      <td className="px-6 py-4 whitespace-nowrap">{member.role || 'Member'}</td>
-                      <td className="px-6 py-4 whitespace-nowrap">
+          </div>
+  
+          {showListForm && (
+            <div className="mb-6 p-4 bg-white rounded-lg shadow-md">
+              <input
+                type="text"
+                placeholder="Enter list name"
+                value={newListName}
+                onChange={(e) => setNewListName(e.target.value)}
+                className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-teal-500 focus:border-teal-500"
+              />
+              <div className="flex gap-2 mt-3">
+                <button
+                  onClick={handleAddList}
+                  className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md shadow-sm text-white bg-teal-600 hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500"
+                >
+                  Add List
+                </button>
+                <button
+                  onClick={() => setShowListForm(false)}
+                  className="inline-flex items-center px-3 py-2 border border-gray-300 text-sm leading-4 font-medium rounded-md shadow-sm text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          )}
+  
+          <DragDropContext onDragEnd={handleDragEnd}>
+            <div className="flex space-x-4 overflow-x-auto pb-4">
+              {lists.map((list) => (
+                <Droppable key={list.id} droppableId={list.id}>
+                  {(provided) => (
+                    <div
+                      ref={provided.innerRef}
+                      {...provided.droppableProps}
+                      className="bg-white rounded-lg shadow-md p-4 w-72 min-w-[18rem] flex-shrink-0 relative"
+                    >
+                      <div className="flex justify-between items-center mb-4">
+                        {editingListId === list.id ? (
+                          <div className="flex items-center flex-grow mr-2">
+                            <input
+                              type="text"
+                              value={editedListName}
+                              onChange={(e) => setEditedListName(e.target.value)}
+                              className="border border-gray-300 rounded-md px-2 py-1 w-full focus:outline-none focus:ring-teal-500 focus:border-teal-500"
+                            />
+                            <button 
+                              onClick={() => saveListEdit(list.id)}
+                              className="ml-2 bg-teal-600 hover:bg-teal-700 text-white px-2 py-1 rounded-md text-sm"
+                            >
+                              Save
+                            </button>
+                            <button 
+                              onClick={cancelListEdit}
+                              className="ml-1 bg-gray-200 hover:bg-gray-300 text-gray-800 px-2 py-1 rounded-md text-sm"
+                            >
+                              Cancel
+                            </button>
+                          </div>
+                        ) : (
+                          <h2 
+                            className="text-lg font-semibold text-teal-800 cursor-pointer hover:underline flex-grow"
+                            onClick={() => startListEdit(list)}
+                          >
+                            {list.title}
+                          </h2>
+                        )}
                         <button 
-                          onClick={() => handleRemoveClick(member._id || member.mysqlId, member.name)}
-                          className="text-red-500 hover:text-red-700"
+                          onClick={() => handleDeleteList(list.id)}
+                          className="text-red-500 hover:text-red-700 text-sm"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                          </svg>
+                        </button>
+                      </div>
+                      
+                      {list.cards.map((card, index) => (
+                        <Draggable key={card.id} draggableId={card.id} index={index}>
+                          {(provided) => (
+                            <div
+                              ref={provided.innerRef}
+                              {...provided.draggableProps}
+                              {...provided.dragHandleProps}
+                              className="bg-white p-3 rounded-md shadow-sm border border-gray-200 mb-2 cursor-pointer hover:border-teal-300 hover:shadow-md transition-all duration-150"
+                              onClick={() => handleCardClick(list.id, card)}
+                            >
+                              <div className="font-medium text-gray-800">{card.text}</div>
+                              
+                              {card.members && card.members.length > 0 && (
+                                <div className="flex flex-wrap gap-1 mt-2 items-center">
+                                  {card.members.map((member, index) => (
+                                    <div 
+                                      key={index}
+                                      className="flex items-center text-xs bg-teal-100 text-teal-800 rounded-full px-2 py-1"
+                                      title={member.name || "Unknown"}
+                                    >
+                                      <span className="mr-1">👤</span>
+                                      {member.name?.split(' ')[0]}
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
+                              
+                              {card.description && (
+                                <div className="text-sm text-gray-600 mt-1 line-clamp-2">{card.description}</div>
+                              )}
+                              
+                              <div className="flex justify-between items-center mt-2">
+                                {card.dueDate && (
+                                  <div className="text-xs text-gray-500 flex items-center">
+                                    <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                    </svg>
+                                    {new Date(card.dueDate).toLocaleDateString()}
+                                  </div>
+                                )}
+                                
+                                {card.priority && (
+                                  <span className={`text-xs px-2 py-1 rounded-full ${
+                                    card.priority === 'high' ? 'bg-red-100 text-red-800' :
+                                    card.priority === 'medium' ? 'bg-yellow-100 text-yellow-800' :
+                                    'bg-green-100 text-green-800'
+                                  }`}>
+                                    {card.priority}
+                                  </span>
+                                )}
+                              </div>
+                              
+                              {card.labels && card.labels.length > 0 && (
+                                <div className="flex flex-wrap gap-1 mt-2">
+                                  {card.labels.map((label, i) => (
+                                    <span 
+                                      key={i} 
+                                      className="px-2 py-1 text-xs rounded-full bg-teal-100 text-teal-800"
+                                    >
+                                      {label}
+                                    </span>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                          )}
+                        </Draggable>
+                      ))}
+                      {provided.placeholder}
+                      
+                      <div className="mt-4">
+                        <input
+                          type="text"
+                          className="w-full border border-gray-300 rounded-md px-3 py-2 mb-2 focus:outline-none focus:ring-teal-500 focus:border-teal-500"
+                          placeholder="Add a new task..."
+                          value={list.inputText || ''}
+                          onChange={(e) => {
+                            const updatedLists = lists.map(l => {
+                              if (l.id === list.id) {
+                                return { ...l, inputText: e.target.value };
+                              }
+                              return l;
+                            });
+                            setLists(updatedLists);
+                          }}
+                          onKeyPress={(e) => e.key === 'Enter' && addCard(list.id)}
+                        />
+                        <button
+                          onClick={() => addCard(list.id)}
+                          className="w-full inline-flex justify-center items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-teal-600 hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500"
+                        >
+                          <svg className="-ml-1 mr-2 h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" />
+                          </svg>
+                          Add Card
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </Droppable>
+              ))}
+            </div>
+          </DragDropContext>
+        </div>
+      </div>
+  
+      {/* Card Modal */}
+      {isCardModalOpen && selectedCard && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-2xl font-bold">Card Details</h2>
+              <button
+                onClick={() => setIsCardModalOpen(false)}
+                className="text-gray-600 hover:text-gray-800"
+              >
+                <span className="text-2xl">×</span>
+              </button>
+            </div>
+  
+            {/* Card Title */}
+            <div className="mb-4">
+              <label className="block text-gray-700 font-medium mb-2">Title</label>
+              <input
+                type="text"
+                value={selectedCard.text}
+                onChange={(e) => setSelectedCard({...selectedCard, text: e.target.value})}
+                className="w-full border border-gray-300 rounded-md p-2 focus:ring-teal-500 focus:border-teal-500"
+              />
+            </div>
+  
+            {/* Card Description */}
+            <div className="mb-4">
+              <label className="block text-gray-700 font-medium mb-2">Description</label>
+              <textarea
+                value={selectedCard.description || ''}
+                onChange={(e) => setSelectedCard({
+                  ...selectedCard, 
+                  description: e.target.value
+                })}
+                className="w-full border border-gray-300 rounded-md p-2 min-h-[100px] focus:ring-teal-500 focus:border-teal-500"
+                placeholder="Add a description..."
+              />
+            </div>
+  
+            {/* Card Members Section */}
+            <div className="mb-6">
+              <div className="mb-4">
+                <h3 className="text-lg font-semibold mb-3">Card Members</h3>
+                
+                {cardMembers.length > 0 ? (
+                  <div className="space-y-2">
+                    {cardMembers.map((member, index) => (
+                      <div key={index} className="flex items-center justify-between p-2 bg-gray-100 rounded">
+                        <div>
+                          <span className="font-medium">
+                            {member.userId?.name || 'Unknown Member'}
+                          </span>
+                          <span className="text-sm text-gray-600 ml-2">
+                            ({member.userId?.email || 'No email'})
+                          </span>
+                        </div>
+                        <button
+                          onClick={() => handleRemoveCardMember(member.mysqlId)}
+                          className="text-red-500 hover:text-red-700 text-sm"
                         >
                           Remove
                         </button>
-                      </td>
-                    </tr>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-gray-500 text-sm">No members assigned to this card</p>
+                )}
+              </div>
+  
+              {/* Add Member Section */}
+              <div className="flex gap-2">
+                <select
+                  value={selectedMemberToAdd}
+                  onChange={(e) => setSelectedMemberToAdd(e.target.value)}
+                  className="flex-grow border border-gray-300 rounded-md p-2 focus:ring-teal-500 focus:border-teal-500"
+                >
+                  <option value="">Select member to add</option>
+                  {availableMembers.map(member => (
+                    <option 
+                      key={member.mysqlId || member._id} 
+                      value={member.mysqlId || member._id}
+                    >
+                      {member.name} ({member.email})
+                    </option>
                   ))}
-                </tbody>
-              </table>
+                </select>
+                <button
+                  onClick={handleAddCardMember}
+                  className="bg-teal-600 hover:bg-teal-700 text-white px-4 py-2 rounded-md"
+                  disabled={!selectedMemberToAdd}
+                >
+                  Add Member
+                </button>
+              </div>
             </div>
-          ) : (
-            <p className="text-gray-500 text-center py-4">No members yet</p>
-          )}
+  
+            {/* Due Date */}
+            <div className="mb-4">
+              <label className="block text-gray-700 font-medium mb-2">Due Date</label>
+              <input
+                type="date"
+                value={selectedCard.dueDate ? new Date(selectedCard.dueDate).toISOString().split('T')[0] : ''}
+                onChange={(e) => setSelectedCard({...selectedCard, dueDate: e.target.value})}
+                className="w-full border border-gray-300 rounded-md p-2 focus:ring-teal-500 focus:border-teal-500"
+              />
+            </div>
+  
+            {/* Priority */}
+            <div className="mb-4">
+              <label className="block text-gray-700 font-medium mb-2">Priority</label>
+              <select
+                value={selectedCard.priority || 'medium'}
+                onChange={(e) => setSelectedCard({...selectedCard, priority: e.target.value})}
+                className="w-full border border-gray-300 rounded-md p-2 focus:ring-teal-500 focus:border-teal-500"
+              >
+                <option value="low">Low</option>
+                <option value="medium">Medium</option>
+                <option value="high">High</option>
+              </select>
+            </div>
+  
+            {/* Labels */}
+            <div className="mb-4">
+              <label className="block text-gray-700 font-medium mb-2">Labels</label>
+              <div className="flex flex-wrap gap-2 mb-2">
+                {selectedCard.labels && selectedCard.labels.map((label, index) => (
+                  <div key={index} className="bg-teal-100 text-teal-800 px-2 py-1 rounded-full flex items-center">
+                    <span>{label}</span>
+                    <button 
+                      onClick={() => removeLabel(label)}
+                      className="ml-1 text-teal-800 hover:text-teal-600"
+                    >
+                      ×
+                    </button>
+                  </div>
+                ))}
+              </div>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  placeholder="Add new label"
+                  value={newLabelText}
+                  onChange={(e) => setNewLabelText(e.target.value)}
+                  className="flex-grow border border-gray-300 rounded-md p-2 focus:ring-teal-500 focus:border-teal-500"
+                />
+                <button
+                  onClick={() => {
+                    if (newLabelText.trim()) {
+                      addLabel(newLabelText);
+                      setNewLabelText('');
+                    }
+                  }}
+                  className="bg-teal-600 hover:bg-teal-700 text-white px-3 py-2 rounded-md"
+                >
+                  Add
+                </button>
+              </div>
+            </div>
+  
+            {/* Checklist */}
+            <div className="mb-4">
+              <label className="block text-gray-700 font-medium mb-2">Checklist</label>
+              {selectedCard.checklist && selectedCard.checklist.length > 0 ? (
+                <div className="mb-3">
+                  {selectedCard.checklist.map((item, index) => (
+                    <div key={index} className="flex items-center mb-1">
+                      <input
+                        type="checkbox"
+                        checked={item.completed}
+                        onChange={() => toggleChecklistItem(index)}
+                        className="mr-2 h-4 w-4 text-teal-600 focus:ring-teal-500 border-gray-300 rounded"
+                      />
+                      <span className={item.completed ? 'line-through text-gray-500' : ''}>
+                        {item.text}
+                      </span>
+                      <button
+                        onClick={() => removeChecklistItem(index)}
+                        className="ml-auto text-red-500 hover:text-red-700"
+                      >
+                        ×
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-gray-500 mb-2">No checklist items yet</p>
+              )}
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  placeholder="Add checklist item"
+                  value={newChecklistItem}
+                  onChange={(e) => setNewChecklistItem(e.target.value)}
+                  className="flex-grow border border-gray-300 rounded-md p-2 focus:ring-teal-500 focus:border-teal-500"
+                />
+                <button
+                  onClick={addChecklistItem}
+                  className="bg-teal-600 hover:bg-teal-700 text-white px-3 py-2 rounded-md"
+                >
+                  Add
+                </button>
+              </div>
+            </div>
+  
+            {/* Attachments */}
+            <div className="mb-6">
+              <label className="block text-gray-700 font-medium mb-2">Attachments</label>
+              
+              {selectedCard.attachments && selectedCard.attachments.length > 0 && (
+                <div className="space-y-2 mb-3">
+                  <h4 className="font-medium text-sm text-gray-600">Current Files:</h4>
+                  {selectedCard.attachments.map((attachment, index) => (
+                    <div key={index} className="p-2 border rounded-md">
+                      <div className="flex items-center">
+                        <span className="flex-grow truncate">{attachment.name}</span>
+                        <button
+                          onClick={() => {
+                            setRemovedAttachments(prev => [...prev, attachment._id]);
+                            setSelectedCard({
+                              ...selectedCard,
+                              attachments: selectedCard.attachments.filter((_, i) => i !== index)
+                            });
+                          }}
+                          className="ml-2 text-red-500 hover:text-red-700"
+                        >
+                          Remove
+                        </button>
+                      </div>
+                      
+                      {attachment.type.startsWith('image/') && (
+                        <div className="mt-2">
+                          <img 
+                            src={`data:${attachment.type};base64,${attachment.data}`} 
+                            alt={attachment.name}
+                            className="max-w-full h-auto max-h-40 rounded-md"
+                          />
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+              
+              {selectedFiles.length > 0 && (
+                <div className="space-y-2 mb-3">
+                  <h4 className="font-medium text-sm text-gray-600">New Files:</h4>
+                  {selectedFiles.map((file, index) => (
+                    <div key={index} className="flex items-center p-2 border rounded-md">
+                      <span className="flex-grow truncate">{file.name}</span>
+                      <button
+                        onClick={() => removeFile(index)}
+                        className="ml-2 text-red-500 hover:text-red-700"
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+              
+              <div className="mt-2">
+                <input
+                  type="file"
+                  onChange={handleFileChange}
+                  className="block w-full text-sm text-gray-500
+                    file:mr-4 file:py-2 file:px-4
+                    file:rounded-md file:border-0
+                    file:text-sm file:font-semibold
+                    file:bg-teal-50 file:text-teal-700
+                    hover:file:bg-teal-100"
+                  multiple
+                />
+              </div>
+            </div>
+  
+            {/* Action Buttons */}
+            <div className="flex justify-between">
+              <button
+                onClick={() => {
+                  handleDeleteCard(selectedListId, selectedCard.id);
+                  setIsCardModalOpen(false);
+                }}
+                className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md"
+              >
+                Delete Card
+              </button>
+  
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setIsCardModalOpen(false)}
+                  className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-md"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={async () => {
+                    try {
+                      const processedAttachments = await uploadFiles();
+                      
+                      const updates = {
+                        title: selectedCard.text,
+                        description: selectedCard.description,
+                        dueDate: selectedCard.dueDate,
+                        priority: selectedCard.priority,
+                        labels: selectedCard.labels || [],
+                        checklist: selectedCard.checklist || [],
+                        attachments: processedAttachments,
+                        removedAttachments: removedAttachments
+                      };
+                      
+                      await handleEditCard(selectedCard.id, updates);
+                      
+                      setIsCardModalOpen(false);
+                      setSelectedFiles([]);
+                      setRemovedAttachments([]);
+                      
+                      const refreshedCard = await fetchCardDetails(selectedCard.id);
+                      setSelectedCard(refreshedCard);
+                      
+                      setLists(prevLists => 
+                        prevLists.map(list => {
+                          if (list.id === selectedListId) {
+                            return {
+                              ...list,
+                              cards: list.cards.map(card => 
+                                card.id === selectedCard.id 
+                                  ? { 
+                                      ...card, 
+                                      text: selectedCard.text,
+                                      description: selectedCard.description,
+                                      dueDate: selectedCard.dueDate,
+                                      priority: selectedCard.priority,
+                                      labels: selectedCard.labels || [],
+                                      checklist: selectedCard.checklist || [],
+                                      attachments: refreshedCard.attachments || [],
+                                      members: refreshedCard.members || [] 
+                                    } 
+                                  : card
+                              )
+                            };
+                          }
+                          return list;
+                        })
+                      );
+                    } catch (error) {
+                      console.error('Error saving card:', error);
+                      alert('Failed to save card: ' + error.message);
+                    }
+                  }}
+                  className="bg-teal-600 hover:bg-teal-700 text-white px-4 py-2 rounded-md"
+                >
+                  Save
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
-      </div>
-      
+      )}
+  
+      {/* Delete Confirmation Modal */}
       <DeleteConfirmation
         isOpen={deleteModal.isOpen}
         onClose={handleDeleteCancel}
         onConfirm={handleDeleteConfirm}
         itemName={deleteModal.memberName}
       />
-          
-      <div className="mt-8">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-2xl font-bold">Board</h2>
-          <button 
-            onClick={() => setShowListForm(!showListForm)}
-            className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-md"
-          >
-            {showListForm ? 'Cancel' : 'Add List'}
-          </button>
-        </div>
-
-        {showListForm && (
-          <div className="mb-6 p-4 bg-white rounded-lg shadow-md">
-            <input
-              type="text"
-              placeholder="Enter list name"
-              value={newListName}
-              onChange={(e) => setNewListName(e.target.value)}
-              className="w-full border p-2 rounded-md mb-2"
-            />
-            <div className="flex gap-2">
-              <button
-                onClick={handleAddList}
-                className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md"
-              >
-                Add List
-              </button>
-              <button
-                onClick={() => setShowListForm(false)}
-                className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-md"
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
-        )}
-
-        <DragDropContext onDragEnd={handleDragEnd}>
-          <div className="flex space-x-4 overflow-x-auto pb-4">
-            {lists.map((list) => (
-              <Droppable key={list.id} droppableId={list.id}>
-                {(provided) => (
-                  <div
-                    ref={provided.innerRef}
-                    {...provided.droppableProps}
-                    className="bg-gray-100 rounded-lg shadow-md p-4 w-72 min-w-[18rem] flex-shrink-0 relative"
-                  >
-                    <div className="flex justify-between items-center mb-4">
-                      {editingListId === list.id ? (
-                        <div className="flex items-center flex-grow mr-2">
-                          <input
-                            type="text"
-                            value={editedListName}
-                            onChange={(e) => setEditedListName(e.target.value)}
-                            className="border p-1 rounded-md w-full"
-                          />
-                          <button 
-                            onClick={() => saveListEdit(list.id)}
-                            className="ml-2 bg-green-500 hover:bg-green-600 text-white px-2 py-1 rounded-md text-sm"
-                          >
-                            Save
-                          </button>
-                          <button 
-                            onClick={cancelListEdit}
-                            className="ml-1 bg-gray-500 hover:bg-gray-600 text-white px-2 py-1 rounded-md text-sm"
-                          >
-                            Cancel
-                          </button>
-                        </div>
-                      ) : (
-                        <h2 
-                          className="text-lg font-semibold cursor-pointer hover:underline flex-grow"
-                          onClick={() => startListEdit(list)}
-                        >
-                          {list.title}
-                        </h2>
-                      )}
-                      <button 
-                        onClick={() => handleDeleteList(list.id)}
-                        className="text-red-500 hover:text-red-700 text-sm"
-                      >
-                        Delete
-                      </button>
-                    </div>
-                    
-                    {list.cards.map((card, index) => (
-  <Draggable key={card.id} draggableId={card.id} index={index}>
-    {(provided) => (
-      <div
-        ref={provided.innerRef}
-        {...provided.draggableProps}
-        {...provided.dragHandleProps}
-        className="bg-white p-3 rounded-md shadow-md mb-2 cursor-pointer"
-        onClick={() => handleCardClick(list.id, card)}
-      >
-        <div className="font-medium">{card.text}</div>
-
-
-
-
-        
-        {/* Updated member display - only show if card has members */}
-        {cardMembers.length > 0 && (
-          <div className="flex flex-wrap gap-1 mt-2 items-center">
-            {cardMembers.map((member, index) => (
-              <div 
-                key={index}
-                className="flex items-center text-xs bg-blue-100 text-blue-800 rounded-full px-2 py-1"
-                title={member.userId?.name || "unknow"}
-              >
-                <span className="mr-1">👤</span>
-                {member.userId?.name?.split(' ')[0]}
-              </div>
-            ))}
-          </div>
-        )}
-                        {card.description && (
-                          <div className="text-sm text-gray-600 mt-1">{card.description}</div>
-                        )}
-                        {card.dueDate && (
-                          <div className="text-xs text-gray-500 mt-1">
-                            Due: {new Date(card.dueDate).toLocaleDateString()}
-                          </div>
-                        )}
-                        {card.labels && card.labels.length > 0 && (
-                          <div className="flex flex-wrap gap-1 mt-2">
-                            {card.labels.map((label, i) => (
-                              <span 
-                                key={i} 
-                                className="px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-800"
-                              >
-                                {label}
-                              </span>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                    )}
-                  </Draggable>
-                    ))}
-                    {provided.placeholder}
-                    
-                    <div className="mt-4">
-                      <input
-                        type="text"
-                        className="w-full border rounded-md p-2 mb-2"
-                        placeholder="Add a new task..."
-                        value={list.inputText || ''}
-                        onChange={(e) => {
-                          const updatedLists = lists.map(l => {
-                            if (l.id === list.id) {
-                              return { ...l, inputText: e.target.value };
-                            }
-                            return l;
-                          });
-                          setLists(updatedLists);
-                        }}
-                        onKeyPress={(e) => e.key === 'Enter' && addCard(list.id)}
-                      />
-                      <button
-                        onClick={() => addCard(list.id)}
-                        className="w-full bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600"
-                      >
-                        Add Card
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </Droppable>
-            ))}
-          </div>
-        </DragDropContext>
-      </div>
     </div>
   );
 };
