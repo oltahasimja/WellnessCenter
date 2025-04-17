@@ -13,6 +13,7 @@ const ProgramDetail = () => {
 const [availableMembers, setAvailableMembers] = useState([]);
 const [selectedMemberToAdd, setSelectedMemberToAdd] = useState('');
   const [newCardText, setNewCardText] = useState("");
+  const [isMembersExpanded, setIsMembersExpanded] = useState(false); // or false if you want it collapsed by default
   const [members, setMembers] = useState([]);
   const [newMemberEmail, setNewMemberEmail] = useState('');
   const [loading, setLoading] = useState(true);
@@ -848,102 +849,127 @@ const handleAddCardMember = async () => {
             </p>
           </div>
         </div>
-  
-        {/* Members Section */}
-        <div className="bg-white rounded-xl shadow-md overflow-hidden mb-8">
-          <div className="p-6">
-            <h2 className="text-xl font-semibold text-teal-800 mb-4 flex items-center">
-              <svg className="w-5 h-5 mr-2 text-teal-600" fill="currentColor" viewBox="0 0 20 20">
-                <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v1h8v-1zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-1a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v1h-3zM4.75 12.094A5.973 5.973 0 004 15v1H1v-1a3 3 0 013.75-2.906z" />
-              </svg>
-              Program Members
-            </h2>
-            
-            <form onSubmit={handleAddMember} className="mb-6 flex flex-col sm:flex-row gap-4">
-              <div className="flex-grow relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <svg className="h-5 w-5 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
-                    <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
-                    <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
-                  </svg>
-                </div>
-                <input
-                  type="email"
-                  placeholder="Enter user email to invite"
-                  value={newMemberEmail}
-                  onChange={(e) => setNewMemberEmail(e.target.value)}
-                  className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:ring-teal-500 focus:border-teal-500 sm:text-sm"
-                  required
-                />
-              </div>
-              <button 
-                type="submit" 
-                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-teal-600 hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500"
-              >
-                <svg className="-ml-1 mr-2 h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" />
-                </svg>
-                Add Member
-              </button>
-            </form>
-            
-            {members.length > 0 ? (
-              <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-teal-50">
-                    <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-teal-800 uppercase tracking-wider">Name</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-teal-800 uppercase tracking-wider">Email</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-teal-800 uppercase tracking-wider">Role</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-teal-800 uppercase tracking-wider">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
-                    {members.map(member => (
-                      <tr key={member._id || member.mysqlId} className="hover:bg-teal-50">
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="flex items-center">
-                            <div className="flex-shrink-0 h-10 w-10 rounded-full bg-teal-100 flex items-center justify-center text-teal-800 font-medium">
-                              {member.name.charAt(0).toUpperCase()}
-                            </div>
-                            <div className="ml-4">
-                              <div className="text-sm font-medium text-gray-900">{member.name}</div>
-                            </div>
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{member.email}</td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
-                            ${member.role === 'admin' ? 'bg-purple-100 text-purple-800' : 
-                              member.role === 'editor' ? 'bg-blue-100 text-blue-800' : 
-                              'bg-green-100 text-green-800'}`}>
-                            {member.role || 'Member'}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                          <button 
-                            onClick={() => handleRemoveClick(member._id || member.mysqlId, member.name)}
-                            className="text-red-600 hover:text-red-900"
-                          >
-                            Remove
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            ) : (
-              <div className="text-center py-8 bg-teal-50 rounded-lg">
-                <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
-                </svg>
-                <h3 className="mt-2 text-sm font-medium text-gray-900">No members yet</h3>
-                <p className="mt-1 text-sm text-gray-500">Get started by adding members to this program.</p>
-              </div>
-            )}
+ 
+      {/* Members Section */}
+{/* Members Section - Right Side Panel */}
+<div className="fixed right-0 top-0 h-full w-96 bg-white shadow-lg transform transition-transform duration-300 ease-in-out z-40"
+     style={{ transform: isMembersExpanded ? 'translateX(0)' : 'translateX(100%)' }}>
+  <div className="h-full flex flex-col">
+    {/* Header */}
+    <div className="p-4 border-b border-gray-200 flex justify-between items-center">
+      <h2 className="text-xl font-semibold text-teal-800 flex items-center">
+        <svg className="w-5 h-5 mr-2 text-teal-600" fill="currentColor" viewBox="0 0 20 20">
+          <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v1h8v-1zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-1a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v1h-3zM4.75 12.094A5.973 5.973 0 004 15v1H1v-1a3 3 0 013.75-2.906z" />
+        </svg>
+        Program Members
+      </h2>
+      <button 
+        onClick={() => setIsMembersExpanded(false)}
+        className="text-gray-500 hover:text-gray-700"
+      >
+        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </button>
+    </div>
+
+    {/* Content */}
+    <div className="flex-grow overflow-y-auto p-4">
+      <form onSubmit={handleAddMember} className="mb-6 flex flex-col sm:flex-row gap-4">
+        <div className="flex-grow relative">
+          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <svg className="h-5 w-5 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+              <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
+              <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
+            </svg>
           </div>
+          <input
+            type="email"
+            placeholder="Enter user email to invite"
+            value={newMemberEmail}
+            onChange={(e) => setNewMemberEmail(e.target.value)}
+            className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:ring-teal-500 focus:border-teal-500 sm:text-sm"
+            required
+          />
         </div>
+        <button 
+          type="submit" 
+          className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-teal-600 hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500"
+        >
+          <svg className="-ml-1 mr-2 h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+            <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" />
+          </svg>
+          Add
+        </button>
+      </form>
+      
+      {members.length > 0 ? (
+        <div className="overflow-y-auto">
+          <table className="min-w-full divide-y divide-gray-200">
+            <thead className="bg-teal-50">
+              <tr>
+                <th className="px-6 py-3 text-left text-xs font-medium text-teal-800 uppercase tracking-wider">Name</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-teal-800 uppercase tracking-wider">Role</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-teal-800 uppercase tracking-wider">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+              {members.map(member => (
+                <tr key={member._id || member.mysqlId} className="hover:bg-teal-50 transition-colors duration-150">
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="flex items-center">
+                      <div className="flex-shrink-0 h-10 w-10 rounded-full bg-teal-100 flex items-center justify-center text-teal-800 font-medium">
+                        {member.name.charAt(0).toUpperCase()}
+                      </div>
+                      <div className="ml-4">
+                        <div className="text-sm font-medium text-gray-900">{member.name}</div>
+                        <div className="text-sm text-gray-500">{member.email}</div>
+                      </div>
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                      ${member.role === 'admin' ? 'bg-purple-100 text-purple-800' : 
+                        member.role === 'editor' ? 'bg-blue-100 text-blue-800' : 
+                        'bg-green-100 text-green-800'}`}>
+                      {member.role || 'Member'}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                    <button 
+                      onClick={() => handleRemoveClick(member._id || member.mysqlId, member.name)}
+                      className="text-red-600 hover:text-red-900 transition-colors duration-150"
+                    >
+                      Remove
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      ) : (
+        <div className="text-center py-8 bg-teal-50 rounded-lg">
+          <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+          </svg>
+          <h3 className="mt-2 text-sm font-medium text-gray-900">No members yet</h3>
+          <p className="mt-1 text-sm text-gray-500">Get started by adding members to this program.</p>
+        </div>
+      )}
+    </div>
+  </div>
+</div>
+
+{/* Members Toggle Button - Fixed position */}
+<button 
+  onClick={() => setIsMembersExpanded(!isMembersExpanded)}
+  className="fixed right-4 top-24 bg-teal-600 text-white p-3 rounded-full shadow-lg hover:bg-teal-700 transition-colors duration-200 z-30"
+>
+  <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+    <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v1h8v-1zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-1a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v1h-3zM4.75 12.094A5.973 5.973 0 004 15v1H1v-1a3 3 0 013.75-2.906z" />
+  </svg>
+</button>
   
         {/* Board Section */}
         <div className="mb-8">
