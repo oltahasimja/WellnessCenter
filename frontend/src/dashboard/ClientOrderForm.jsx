@@ -1,7 +1,8 @@
-import { useState } from "react";
+import React, { useState, useEffect, useCallback } from 'react';
 import axios from "axios";
 import { useLocation } from 'react-router-dom';
 import { useNavigate } from "react-router-dom";
+
 
 
 const ClientOrderForm = () => {
@@ -15,11 +16,13 @@ const ClientOrderForm = () => {
     phone: '',
   });
   const [loading, setLoading] = useState(false); 
-
   const { state } = useLocation();
   const { cart } = state || {};
   const navigate = useNavigate();
-
+  const [countryList, setCountryList] = useState([]);
+  const [cityList, setCityList] = useState([]);
+  const [selectedCountry, setSelectedCountry] = useState("");
+  const [selectedCity, setSelectedCity] = useState("");
 
   if (!cart || cart.length === 0) {
     alert("No items in the cart. Please add items first.");
@@ -32,6 +35,48 @@ const ClientOrderForm = () => {
     }
     return cartItems.reduce((total, item) => total + item.price * item.quantity, 0);
   };
+
+  //handling city and country 
+    const fetchCountries = async () => {
+        try {
+            const response = await axios.get("https://countriesnow.space/api/v0.1/countries", {
+                withCredentials: false 
+            });
+            if (response.data?.data) {
+                setCountryList(response.data.data);
+            }
+        } catch (error) {
+            console.error("Error fetching countries:", error);
+        }
+    };
+    fetchCountries();
+
+
+const handleCountryChange = (e) => {
+  const country = e.target.value;
+  setSelectedCountry(country);
+  setClientData(prev => ({ ...prev, country })); 
+
+  if (country === "Kosovo") {
+      setCityList([
+          "Prishtina", "Prizreni", "Peja", "Gjakova", "Ferizaj", "Gjilani", "Mitrovica",
+          "Podujeva", "Vushtrria", "Suhareka", "Rahoveci", "Malisheva", "Drenasi", "Skenderaj",
+          "Kamenica", "Istogu", "Deçani", "Dragashi", "Klinë", "Leposaviq", "Zubin Potok", "Zveçan",
+          "Shtime", "Fushë Kosova", "Lipjan", "Obiliq", "Novobërda", "Junik", "Hani i Elezit",
+          "Kaçaniku", "Mamushë", "Graçanica", "Ranillug", "Partesh", "Kllokot"
+      ]);
+  } else {
+      const countryData = countryList.find(c => c.country === country);
+      setCityList(countryData ? countryData.cities : []);
+  }
+
+  setSelectedCity(""); 
+  setClientData(prev => ({ ...prev, city: "" }));
+};
+
+const handleCityChange = (e) => {
+  setClientData({ ...clientData, city: e.target.value });
+};
 
   // handling the order
   const handleSubmit = async (e) => {
@@ -117,33 +162,7 @@ const ClientOrderForm = () => {
             className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>
-        <div className="mb-4">
-          <input
-            type="text"
-            placeholder="Street"
-            value={clientData.street}
-            onChange={(e) => setClientData({ ...clientData, street: e.target.value })}
-            className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-        </div>
-        <div className="mb-4">
-          <input
-            type="text"
-            placeholder="City"
-            value={clientData.city}
-            onChange={(e) => setClientData({ ...clientData, city: e.target.value })}
-            className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-        </div>
-        <div className="mb-4">
-          <input
-            type="text"
-            placeholder="Country"
-            value={clientData.country}
-            onChange={(e) => setClientData({ ...clientData, country: e.target.value })}
-            className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-        </div>
+        {/*email */}
         <div className="mb-4">
           <input
             type="email"
@@ -153,12 +172,54 @@ const ClientOrderForm = () => {
             className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>
+         {/*phone */}
         <div className="mb-6">
           <input
             type="tel"
             placeholder="Phone Number"
             value={clientData.phone}
             onChange={(e) => setClientData({ ...clientData, phone: e.target.value })}
+            className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+        </div>
+        {/*country */}
+        <div className="mb-4">
+        <select
+        name="country"
+        value={clientData.country}
+        onChange={handleCountryChange}
+       className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+        required
+        >
+        <option value="">Select a country</option>
+        {countryList.map((country, index) => (
+        <option key={index} value={country.country}>{country.country}</option>
+        ))}
+        </select>
+        </div>
+        {/*city */}
+        <div className="mb-4">
+        <select
+        name="city"
+        value={clientData.city}
+        onChange={handleCityChange}
+        className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+        required
+        disabled={!clientData.country}
+        >
+        <option value="">City</option>
+        {cityList.map((city, index) => (
+        <option key={index} value={city}>{city}</option>
+        ))}
+        </select>
+        </div>
+        {/*street */}
+        <div className="mb-4">
+          <input
+            type="text"
+            placeholder="Street"
+            value={clientData.street}
+            onChange={(e) => setClientData({ ...clientData, street: e.target.value })}
             className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>

@@ -72,6 +72,7 @@ const Order = () => {
                     <td className="py-3 px-6">
                       <p>Email: {order.clientData.email || 'N/A'}</p>
                       <p>Phone: {order.clientData.phone || 'N/A'}</p>
+                      <p>Address: {order.clientData.country && order.clientData.city && order.clientData.street ? `${order.clientData.country}, ${order.clientData.city}, ${order.clientData.street}` : 'N/A'}</p>
                     </td>
                     <td className="py-3 px-6 text-center flex justify-center space-x-2">
                      
