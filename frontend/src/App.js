@@ -17,6 +17,7 @@ import TrainingApplication from './dashboard/TrainingApplication';
 import ScheduleTraining from './dashboard/ScheduleTraining';
 import TrainingDetail from './dashboard/TrainingDetail';
 import Order from './dashboard/Order';
+import Delivery from './dashboard/Delivery';
 import Review from './dashboard/Review';
 import ForgotPassword from './components/ForgotPassword';
 import ResetPassword from './components/ResetPassword';
@@ -63,6 +64,7 @@ const AppRoutes = () => {
         <Route path="/card" element={<Card />} />
         <Route path="/training/:id" element={<TrainingDetail />} />
         <Route path="/order" element={<Order />} />
+        <Route path="/delivery" element={<Delivery/>}/>
         <Route path="/review" element={<Review/>}/>
         <Route path="/product" element={<Product/>}/>
         <Route path="/category" element={<Category/>}/>
