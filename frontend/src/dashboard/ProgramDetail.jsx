@@ -839,12 +839,8 @@ const ProgramDetail = () => {
   return (
     <ThemeBackground theme={programTheme}>
       {/* Banner Section   */}
-      {/* <ThemeImage 
-    theme={programTheme} 
-    className="absolute inset-0 w-full h-full object-cover"
-  /> */}
+      
       <div className={`${programTheme?.bannerClass || 'bg-teal-600'} text-white py-8 px-4 sm:px-6 lg:px-8`}>
-     
   <div className="max-w-7xl mx-auto">
 
     <div className="flex flex-col md:flex-row justify-between items-start md:items-center">
@@ -880,21 +876,35 @@ const ProgramDetail = () => {
 
       {/* Program Description */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <div className={`max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 ${programTheme?.backgroundPattern ? 'bg-white bg-opacity-90' : ''}`}>
-  <div className={`rounded-xl shadow-md overflow-hidden mb-8 border ${programTheme?.lightColor ? `border-${programTheme.primaryColor.split('-')[1]}-200` : 'border-gray-200'}`}>
-    <div className="p-6">
+  <div className={`relative rounded-xl shadow-md overflow-hidden mb-8 ${programTheme?.lightColor ? `border-${programTheme.primaryColor.split('-')[1]}-200` : 'border-gray-200'}`}>
+    
+    {/* Background Image - More Visible */}
+    <div className="absolute inset-0">
+      <ThemeImage 
+        theme={programTheme} 
+        className="w-full h-full object-cover"
+      />
+      {/* Reduced overlay opacity */}
+      <div className="absolute inset-10 bg-white bg-opacity-0"></div>
+    </div>
+    
+    {/* Content with Less Transparency */}
+    <div className="relative z-10 p-6 bg-white bg-opacity-65 rounded-xl">
       <h2 className={`text-xl font-semibold ${programTheme?.textClass || 'text-teal-800'} mb-4 flex items-center`}>
         <svg className={`w-5 h-5 mr-2 ${programTheme?.textClass || 'text-teal-600'}`} fill="currentColor" viewBox="0 0 20 20">
           <path d="M9 4.804A7.968 7.968 0 005.5 4c-1.255 0-2.443.29-3.5.804v10A7.969 7.969 0 015.5 14c1.669 0 3.218.51 4.5 1.385A7.962 7.962 0 0114.5 14c1.255 0 2.443.29 3.5.804v-10A7.968 7.968 0 0014.5 4c-1.255 0-2.443.29-3.5.804V12a1 1 0 11-2 0V4.804z" />
         </svg>
         Program Description
       </h2>
-      <p className={`text-gray-700 whitespace-pre-line ${programTheme?.lightColor ? `bg-${programTheme.primaryColor.split('-')[1]}-50` : 'bg-teal-50'} p-4 rounded-lg`}>
-        {program.description || 'No description provided'}
-      </p>
+      <div className={`p-4 rounded-lg ${programTheme?.lightColor ? `bg-${programTheme.primaryColor.split('-')[1]}-50` : 'bg-teal-50'} bg-opacity-70`}>
+        <p className="text-gray-700 whitespace-pre-line">
+          {program.description || 'No description provided'}
+        </p>
+      </div>
     </div>
   </div>
-</div>
+
+
 
         {/* Members Section */}
         {/* Members Section - Right Side Panel */}

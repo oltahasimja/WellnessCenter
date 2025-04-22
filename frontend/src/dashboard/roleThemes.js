@@ -1,4 +1,7 @@
-import psikolog from './images/psikolog.jpg'
+import psikolog from './images/psikolog.jpg';
+import nutricionist from './images/nutricionist.jpg';
+import trajner from './images/trajner.jpg';
+import fizioterapeut from './images/fizioterapeut.jpg';
 const roleThemes = {
     // Psychologist Theme - Muted Teal/Beige
     psikolog: {
@@ -33,7 +36,7 @@ const roleThemes = {
       backgroundImage: 'linear-gradient(rgba(47, 79, 79, 0.1), rgba(47, 79, 79, 0.1))',
       icon: '💪',
       images: [
-          './images/trajner.jpg',
+         trajner
        
       ],
       bannerClass: 'bg-gradient-to-r from-gray-800 to-teal-800',
@@ -52,7 +55,7 @@ const roleThemes = {
       backgroundImage: 'linear-gradient(rgba(95, 154, 139, 0.1), rgba(95, 154, 139, 0.1))',
       icon: '🥗',
       images: [
-        './images/nutricionist.jpg',
+        nutricionist
      
       ],
       bannerClass: 'bg-gradient-to-r from-teal-600 to-green-600',
@@ -71,8 +74,7 @@ const roleThemes = {
       backgroundImage: 'linear-gradient(rgba(75, 158, 170, 0.1), rgba(75, 158, 170, 0.1))',
       icon: '🩹',
       images: [
-        './images/fizioterapeut.jpg',
-   
+        fizioterapeut
       ],
       bannerClass: 'bg-gradient-to-r from-cyan-600 to-teal-600',
       buttonClass: 'bg-cyan-600 hover:bg-cyan-700',
