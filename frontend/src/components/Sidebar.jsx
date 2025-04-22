@@ -5,35 +5,11 @@ import useAuthCheck from '../hook/useAuthCheck';
 import axios from 'axios';
 import { 
   LayoutDashboard, 
-  Calendar,  
-  UserCircle2,  
-  CheckSquare,  
-  FileText,   
-  Table,  
-  FileInput,  
-  MessageCircle,
-  Mail, 
-  Menu,  
-  ChevronDown,  
-  Github, 
-  Trello,
-  LogOut, 
-  ListCheck,
-  Clipboard,
-  Antenna,
-  Users, 
-  Layers, 
-  Shield, 
-  CalendarClock, 
-  GraduationCap, 
-  ListOrdered, 
-  Package, 
-  Tags,
-  ClipboardList, 
-  UserPlus, 
-  ShoppingCart,
-  Star,
-  Truck,
+  Calendar,  UserCircle2,  CheckSquare,  FileText,   Table,  FileInput,  MessageCircle,
+    Mail, Menu,  ChevronDown,  Github, Trello,LogOut, ListCheck,Clipboard, Antenna,
+  Users, Layers, Shield, CalendarClock, GraduationCap, ListOrdered, Package, Tags,
+  ClipboardList, UserPlus, ShoppingCart,Star
+
 } from 'lucide-react';
 
 const Sidebar = () => {
@@ -51,9 +27,15 @@ const Sidebar = () => {
       </div>
     );
   }
-
-  const isOwner = user?.dashboardRole === 'Owner';
+   const isOwner = user?.dashboardRole === 'Owner';
+  // const isAdmin = user?.dashboardRole === 'Admin';
   const isSpecialist = ['Nutricionist', 'Fizioterapeut', 'Trajner', 'Psikolog'].includes(user?.role);
+  // const isClient = user?.role === 'Client' && user?.dashboardRole === 'User';
+
+  
+  //  const AdminSpecialist = isAdmin || (isAdmin && isSpecialist);
+
+
 
   const toggleSidebar = () => setIsOpen(!isOpen);
   const toggleDropdown = (label) => {
@@ -119,118 +101,293 @@ const Sidebar = () => {
             label="Dashboard" 
             componentName=""
           />
-
-          {(isSpecialist || isOwner) && (
-            <>
-              {/* Manage Order Dropdown */}
-              <div className="mb-1">
-                <MenuItem 
-                  icon={Package} 
-                  label="Manage Order" 
-                  hasDropdown={true}
-                />
-                {openDropdown === 'Manage Order' && isOpen && (
-                  <div className={`ml-12 mt-1 space-y-1 ${theme === 'dark' ? 'bg-gray-800' : 'bg-gray-50'} rounded-md p-1`}>
-                    <div 
-                      className="flex items-center px-3 py-2 hover:bg-blue-100 dark:hover:bg-gray-700 rounded cursor-pointer"
-                      onClick={() => handleMenuItemClick('orders')}
-                    >
-                      <Table className="w-5 h-5 mr-2" />
-                      <span>Orders</span>
-                    </div>
-                    <div 
-                      className="flex items-center px-3 py-2 hover:bg-blue-100 dark:hover:bg-gray-700 rounded cursor-pointer"
-                      onClick={() => handleMenuItemClick('createorder')}
-                    >
-                      <UserPlus className="w-5 h-5 mr-2" />
-                      <span>Create Order</span>
-                    </div>
-                  </div>
-                )}
+        
+{(isSpecialist || isOwner) && (
+        
+    <div className="mb-1">
+            <MenuItem 
+              icon={Package} 
+              label="Manage Product" 
+              hasDropdown={true}
+            />
+            {openDropdown === 'Manage Product' && isOpen && (
+              <div className={`ml-12 mt-1 space-y-1 ${theme === 'dark' ? 'bg-gray-800' : 'bg-gray-50'} rounded-md p-1`}>
+                <div 
+                  className="flex items-center px-3 py-2 hover:bg-blue-100 dark:hover:bg-gray-700 rounded cursor-pointer"
+                  onClick={() => handleMenuItemClick('product')}
+                >
+                  <Table className="w-5 h-5 mr-2" />
+                  <span>Product</span>
+                </div>
+                <div 
+                  className="flex items-center px-3 py-2 hover:bg-blue-100 dark:hover:bg-gray-700 rounded cursor-pointer"
+                  onClick={() => handleMenuItemClick('category')}
+                >
+                  <Tags className="w-5 h-5 mr-2" />
+                  <span>Category</span>
+                </div>
               </div>
+            )}
+        
 
-              {/* Manage Review Dropdown */}
-              <div className="mb-1">
-                <MenuItem 
-                  icon={Star} 
-                  label="Manage Review" 
-                  hasDropdown={true}
-                />
-                {openDropdown === 'Manage Review' && isOpen && (
-                  <div className={`ml-12 mt-1 space-y-1 ${theme === 'dark' ? 'bg-gray-800' : 'bg-gray-50'} rounded-md p-1`}>
-                    <div 
-                      className="flex items-center px-3 py-2 hover:bg-blue-100 dark:hover:bg-gray-700 rounded cursor-pointer"
-                      onClick={() => handleMenuItemClick('reviews')}
-                    >
-                      <Star className="w-5 h-5 mr-2" />
-                      <span>Reviews</span>
-                    </div>
-                  </div>
-                )}
+          <div className="mb-1">
+            <MenuItem 
+              icon={Layers} 
+              label="Manage Programs" 
+              hasDropdown={true}
+            />
+            {openDropdown === 'Manage Programs' && isOpen && (
+              <div className={`ml-12 mt-1 space-y-1 ${theme === 'dark' ? 'bg-gray-800' : 'bg-gray-50'} rounded-md p-1`}>
+                <div 
+                  className="flex items-center px-3 py-2 hover:bg-blue-100 dark:hover:bg-gray-700 rounded cursor-pointer"
+                  onClick={() => handleMenuItemClick('program')}
+                >
+                  <Table className="w-5 h-5 mr-2" />
+                  <span>Program</span>  
+                </div>
+                <div 
+                  className="flex items-center px-3 py-2 hover:bg-blue-100 dark:hover:bg-gray-700 rounded cursor-pointer"
+                  onClick={() => handleMenuItemClick('userprograms')}
+                >
+                  <UserPlus className="w-5 h-5 mr-2" />
+                  <span>UserPrograms</span>
+                </div>
+                <div 
+                  className="flex items-center px-3 py-2 hover:bg-blue-100 dark:hover:bg-gray-700 rounded cursor-pointer"
+                  onClick={() => handleMenuItemClick('cardmember')}
+                >
+                  <UserPlus className="w-5 h-5 mr-2" />
+                  <span>CardMember</span>
+                </div>
+                <div 
+                  className="flex items-center px-3 py-2 hover:bg-blue-100 dark:hover:bg-gray-700 rounded cursor-pointer"
+                  onClick={() => handleMenuItemClick('list')}
+                >
+                  <ListOrdered  className="w-5 h-5 mr-2" />
+                  <span>List</span>
+                </div>
+
+
               </div>
+            )}
+          </div>
 
-              {/* Manage Delivery Dropdown */}
-              <div className="mb-1">
-                <MenuItem 
-                  icon={Truck} 
-                  label="Manage Delivery" 
-                  hasDropdown={true}
-                />
-                {openDropdown === 'Manage Delivery' && isOpen && (
-                  <div className={`ml-12 mt-1 space-y-1 ${theme === 'dark' ? 'bg-gray-800' : 'bg-gray-50'} rounded-md p-1`}>
-                    <div 
-                      className="flex items-center px-3 py-2 hover:bg-blue-100 dark:hover:bg-gray-700 rounded cursor-pointer"
-                      onClick={() => handleMenuItemClick('delivery')}
-                    >
-                      <Truck className="w-5 h-5 mr-2" />
-                      <span>Delivery</span>
-                    </div>
-                  </div>
-                )}
+
+          {/* Manage Users Dropdown */}
+          {(isOwner || isSpecialist) && (
+
+          <div className="mb-1">
+            <MenuItem 
+              icon={Users} 
+              label="Manage Users" 
+              hasDropdown={true}
+            />
+            {openDropdown === 'Manage Users' && isOpen && (
+              <div className={`ml-12 mt-1 space-y-1 ${theme === 'dark' ? 'bg-gray-800' : 'bg-gray-50'} rounded-md p-1`}>
+                <div 
+                  className="flex items-center px-3 py-2 hover:bg-blue-100 dark:hover:bg-gray-700 rounded cursor-pointer"
+                  onClick={() => handleMenuItemClick('users')}
+                >
+                  <Table className="w-5 h-5 mr-2" />
+                  <span>Users</span>
+                </div>
+                <div 
+                  className="flex items-center px-3 py-2 hover:bg-blue-100 dark:hover:bg-gray-700 rounded cursor-pointer"
+                  onClick={() => handleMenuItemClick('createuser')}
+                >
+                  <UserPlus className="w-5 h-5 mr-2" />
+                  <span>Create User</span>
+                </div>
               </div>
-            </>
-          )}
+            )}
+         
+         
 
-          {/* Other Menu Items */}
+
+
+
+          <div className="mb-1">
+            <MenuItem 
+              icon={Shield} 
+              label="Manage Roles" 
+              hasDropdown={true}
+            />
+            {openDropdown === 'Manage Roles' && isOpen && (
+              <div className={`ml-12 mt-1 space-y-1 ${theme === 'dark' ? 'bg-gray-800' : 'bg-gray-50'} rounded-md p-1`}>
+                <div 
+                  className="flex items-center px-3 py-2 hover:bg-blue-100 dark:hover:bg-gray-700 rounded cursor-pointer"
+                  onClick={() => handleMenuItemClick('roles')}
+                >
+                  <Shield className="w-5 h-5 mr-2" />
+                  <span>Role</span>
+                </div>
+                <div 
+                  className="flex items-center px-3 py-2 hover:bg-blue-100 dark:hover:bg-gray-700 rounded cursor-pointer"
+                  onClick={() => handleMenuItemClick('dashboardrole')}
+                >
+                  <Shield className="w-5 h-5 mr-2" />
+                  <span>DashboardRole</span>
+                </div>
+              </div>
+            )}
+          </div>
+ </div>
+)}
+          <div className="mb-1">
+            <MenuItem 
+              icon={GraduationCap} 
+              label="Manage Training" 
+              hasDropdown={true}
+            />
+            {openDropdown === 'Manage Training' && isOpen && (
+              <div className={`ml-12 mt-1 space-y-1 ${theme === 'dark' ? 'bg-gray-800' : 'bg-gray-50'} rounded-md p-1`}>
+                <div 
+                  className="flex items-center px-3 py-2 hover:bg-blue-100 dark:hover:bg-gray-700 rounded cursor-pointer"
+                  onClick={() => handleMenuItemClick('training')}
+                >
+                  <Table className="w-5 h-5 mr-2" />
+                  <span>Training</span>
+                </div>
+                <div 
+                  className="flex items-center px-3 py-2 hover:bg-blue-100 dark:hover:bg-gray-700 rounded cursor-pointer"
+                  onClick={() => handleMenuItemClick('trainingapplication')}
+                >
+                  <UserPlus className="w-5 h-5 mr-2" />
+                  <span>TrainingApplication</span>
+                </div>
+              </div>
+            )}
+          </div>
+
+
+          {/* Manage Orders Dropdown */}
+
+         <div className="mb-1">
+       <MenuItem 
+       icon={ClipboardList} 
+       label="Manage Order" 
+       hasDropdown={true}
+      />
+      {openDropdown === 'Manage Order' && isOpen && (
+      <div className={`ml-12 mt-1 space-y-1 ${theme === 'dark' ? 'bg-gray-800' : 'bg-gray-50'} rounded-md p-1`}>
+      <div 
+        className="flex items-center px-3 py-2 hover:bg-blue-100 dark:hover:bg-gray-700 rounded cursor-pointer"
+        onClick={() => handleMenuItemClick('order')}
+      >
+        <ClipboardList className="w-5 h-5 mr-2" />
+        <span>Orders</span>
+         </div>
+          <div 
+            className="flex items-center px-3 py-2 hover:bg-blue-100 dark:hover:bg-gray-700 rounded cursor-pointer"
+            onClick={() => handleMenuItemClick('review')}
+           >
+            <Star className="w-5 h-5 mr-2" />
+            <span>Reviews</span>
+           </div>
+             </div>
+           )}
+         </div>
+
+
+         {/* <MenuItem 
+            icon={ClipboardList} 
+            label="Order" 
+            componentName="order"
+          /> */}
           <MenuItem 
             icon={Antenna} 
             label="Board" 
             componentName="board"
           />
+
           <MenuItem 
             icon={CalendarClock} 
             label="Schedule" 
             componentName="schedule"
           />
 
-          {/* Logout Button */}
-          <div className="py-2 border-t bg-white dark:bg-gray-900 dark:text-white">
-            {isOpen && <div className="text-sm text-gray-400 px-4 py-2">SUPPORT</div>}
+</div> )} 
+
+
+      <div className="mb-1">
             <MenuItem 
-              icon={Github} 
-              label="Repository" 
-              externalLink={true}
-              onClick={() => window.open("https://github.com/oltahasimja/WellnessCenter", "_blank", "noopener,noreferrer")}
+              icon={Calendar} 
+              label="Manage Appointment" 
+              hasDropdown={true}
             />
-            <MenuItem 
-              icon={Trello} 
-              label="Trello" 
-              externalLink={true}
-              onClick={() => window.open("https://trello.com/b/EmwZHmbt/wellness-center", "_blank", "noopener,noreferrer")}
-            />
+            {openDropdown === 'Manage Appointment' && isOpen && (
+              <div className={`ml-12 mt-1 space-y-1 ${theme === 'dark' ? 'bg-gray-800' : 'bg-gray-50'} rounded-md p-1`}>
+                <div 
+                  className="flex items-center px-3 py-2 hover:bg-blue-100 dark:hover:bg-gray-700 rounded cursor-pointer"
+                  onClick={() => handleMenuItemClick('appointment')}
+                >
+                  <Table className="w-5 h-5 mr-2" />
+                  <span>Appointments</span>
+                </div>
+                <div 
+                  className="flex items-center px-3 py-2 hover:bg-blue-100 dark:hover:bg-gray-700 rounded cursor-pointer"
+                  onClick={() => handleMenuItemClick('createappointment')}
+                >
+                  <UserPlus className="w-5 h-5 mr-2" />
+                  <span>Create Appointment</span>
+                </div>
+              </div>
+            )}
           </div>
+
+
+           
+          <MenuItem 
+            icon={UserCircle2} 
+            label="Profile" 
+            componentName="profile"
+          />
+
+          
+
+        
+
+           <MenuItem 
+            icon={MessageCircle} 
+            label="Chat" 
+            componentName="chat"
+          />
+          {/* shopping cart*/}
+          <MenuItem 
+            icon={ShoppingCart} 
+            label="Shopping Cart" 
+            componentName="cart" 
+            hasDropdown={false} 
+          />
+          
         </div>
 
-        {/* Logout Button */}
-        <div className="p-4 border-t bg-white dark:bg-gray-900 dark:text-white">
-          <button 
-            onClick={handleLogout} 
-            className="flex items-center w-full bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600"
-          >
-            <LogOut className="w-5 h-5 mr-2" />
-            {isOpen && <span>Logout</span>}
-          </button>
+
+        <div className="py-2 border-t bg-white dark:bg-gray-900 dark:text-white">
+          {isOpen && <div className="text-sm text-gray-400 px-4 py-2">SUPPORT</div>}
+          <MenuItem 
+            icon={Github} 
+            label="Repository" 
+            externalLink={true}
+            onClick={() => window.open("https://github.com/oltahasimja/WellnessCenter", "_blank", "noopener,noreferrer")}
+          />
+          <MenuItem 
+            icon={Trello} 
+            label="Trello" 
+            externalLink={true}
+            onClick={() => window.open("https://trello.com/b/EmwZHmbt/wellness-center", "_blank", "noopener,noreferrer")}
+          />
         </div>
+      </div>
+
+      <div className="p-4 border-t bg-white dark:bg-gray-900 dark:text-white">
+        <button 
+          onClick={handleLogout} 
+          className="flex items-center w-full bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600"
+        >
+          <LogOut className="w-6 h-6" />
+          {isOpen && <span className="ml-2">Logout</span>}
+        </button>
       </div>
     </div>
   );

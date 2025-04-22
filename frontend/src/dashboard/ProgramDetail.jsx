@@ -33,6 +33,11 @@ const ProgramDetail = () => {
     memberId: null,
     memberName: ''
   });
+  const [deleteListModal, setDeleteListModal] = useState({
+    isOpen: false,
+    listId: null,
+    listName: ''
+  });
 
   const [newLabelText, setNewLabelText] = useState('');
 
@@ -313,15 +318,29 @@ const ProgramDetail = () => {
     }
   };
 
-  const handleDeleteList = async (listId) => {
-    try {
-      await axios.delete(`http://localhost:5000/api/list/${listId}`);
-      setLists(lists.filter(list => list.id !== listId));
-    } catch (error) {
-      console.error('Error deleting list:', error);
-      alert('Failed to delete list: ' + (error.response?.data?.message || error.message));
-    }
-  };
+ const handleDeleteList = async (listId) => {
+  try {
+    await axios.delete(`http://localhost:5000/api/list/${listId}`);
+    setLists(lists.filter(list => list.id !== listId));
+  } catch (error) {
+    console.error('Error deleting list:', error);
+    alert('Failed to delete list: ' + (error.response?.data?.message || error.message));
+  } finally {
+    setDeleteListModal({
+      isOpen: false,
+      listId: null,
+      listName: ''
+    });
+  }
+};
+
+const handleDeleteListClick = (listId, listName) => {
+  setDeleteListModal({
+    isOpen: true,
+    listId,
+    listName
+  });
+};
 
   const startListEdit = (list) => {
     setEditingListId(list.id);
@@ -1079,7 +1098,6 @@ const ProgramDetail = () => {
       </div>
     </div>
   )}
-
 <DragDropContext onDragEnd={handleDragEnd}>
   <div className="flex space-x-4 overflow-x-auto pb-4">
     {lists.map((list) => (
@@ -1088,93 +1106,107 @@ const ProgramDetail = () => {
           <div
             ref={provided.innerRef}
             {...provided.droppableProps}
-            className={`rounded-lg shadow-md p-4 w-72 min-w-[18rem] flex-shrink-0 relative ${programTheme?.lightColor ? `bg-${programTheme.primaryColor.split('-')[1]}-50` : 'bg-white'}`}
+            className={`relative rounded-xl shadow-md overflow-hidden w-72 min-w-[18rem] flex-shrink-0`}
           >
-            <div className="flex justify-between items-center mb-4">
-              {editingListId === list.id ? (
-                <div className="flex items-center flex-grow mr-2">
-                  <input
-                    type="text"
-                    value={editedListName}
-                    onChange={(e) => setEditedListName(e.target.value)}
-                    className="border border-gray-300 rounded-md px-2 py-1 w-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500"
-                  />
-                  <button
-                    onClick={() => saveListEdit(list.id)}
-                    className={`ml-2 ${programTheme?.buttonClass || 'bg-teal-600 hover:bg-teal-700'} text-white px-2 py-1 rounded-md text-sm`}
-                  >
-                    Save
-                  </button>
-                  <button
-                    onClick={cancelListEdit}
-                    className="ml-1 bg-gray-200 hover:bg-gray-300 text-gray-800 px-2 py-1 rounded-md text-sm"
-                  >
-                    Cancel
-                  </button>
-                </div>
-              ) : (
-                <h2
-                  className={`text-lg font-semibold ${programTheme?.textClass || 'text-teal-800'} cursor-pointer hover:underline flex-grow`}
-                  onClick={() => startListEdit(list)}
-                >
-                  {list.title}
-                </h2>
-              )}
-              <button
-                onClick={() => handleDeleteList(list.id)}
-                className="text-red-500 hover:text-red-700 text-sm"
-              >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                </svg>
-              </button>
-            </div>
-
-            {list.cards.map((card, index) => (
-              <Draggable key={card.id} draggableId={card.id} index={index}>
-                {(provided) => (
-                  <div
-                    ref={provided.innerRef}
-                    {...provided.draggableProps}
-                    {...provided.dragHandleProps}
-                    className={`p-3 rounded-md shadow-sm border border-gray-200 mb-2 cursor-pointer hover:shadow-md transition-all duration-150 ${programTheme?.lightColor ? `hover:border-${programTheme.primaryColor.split('-')[1]}-300` : 'hover:border-teal-300'}`}
-                    onClick={() => handleCardClick(list.id, card)}
-                  >
-                    <div className="font-medium text-gray-800">{card.text}</div>
-
-                    {/* ... rest of the card content ... */}
-                  </div>
-                )}
-              </Draggable>
-            ))}
-            {provided.placeholder}
-
-            <div className="mt-4">
-              <input
-                type="text"
-                className="w-full border border-gray-300 rounded-md px-3 py-2 mb-2 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500"
-                placeholder="Add a new task..."
-                value={list.inputText || ''}
-                onChange={(e) => {
-                  const updatedLists = lists.map(l => {
-                    if (l.id === list.id) {
-                      return { ...l, inputText: e.target.value };
-                    }
-                    return l;
-                  });
-                  setLists(updatedLists);
-                }}
-                onKeyPress={(e) => e.key === 'Enter' && addCard(list.id)}
+            {/* Background Image - Same as program description */}
+            <div className="absolute inset-0">
+              <ThemeImage 
+                theme={programTheme} 
+                className="w-full h-full object-cover"
               />
-              <button
-                onClick={() => addCard(list.id)}
-                className={`w-full inline-flex justify-center items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white ${programTheme?.buttonClass || 'bg-teal-600 hover:bg-teal-700'} focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500`}
-              >
-                <svg className="-ml-1 mr-2 h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" />
-                </svg>
-                Add Card
-              </button>
+              <div className="absolute inset-0 bg-white bg-opacity-20"></div>
+            </div>
+            
+            {/* List Content */}
+            <div className="relative z-10 h-full flex flex-col bg-white bg-opacity-70 p-4 rounded-xl">
+              <div className="flex justify-between items-center mb-4">
+                {editingListId === list.id ? (
+                  <div className="flex items-center flex-grow mr-2">
+                    <input
+                      type="text"
+                      value={editedListName}
+                      onChange={(e) => setEditedListName(e.target.value)}
+                      className="border border-gray-300 rounded-md px-2 py-1 w-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500 bg-white bg-opacity-90"
+                    />
+                    <button
+                      onClick={() => saveListEdit(list.id)}
+                      className={`ml-2 ${programTheme?.buttonClass || 'bg-teal-600 hover:bg-teal-700'} text-white px-2 py-1 rounded-md text-sm`}
+                    >
+                      Save
+                    </button>
+                    <button
+                      onClick={cancelListEdit}
+                      className="ml-1 bg-gray-200 hover:bg-gray-300 text-gray-800 px-2 py-1 rounded-md text-sm"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                ) : (
+                  <h2
+                    className={`text-lg font-semibold ${programTheme?.textClass || 'text-teal-800'} cursor-pointer hover:underline flex-grow`}
+                    onClick={() => startListEdit(list)}
+                  >
+                    {list.title}
+                  </h2>
+                )}
+                 <button
+    onClick={() => handleDeleteListClick(list.id, list.title)}
+    className="text-red-500 hover:text-red-700 text-sm"
+  >
+    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+    </svg>
+  </button>
+</div>
+
+              {/* Cards */}
+              <div className="flex-grow overflow-y-auto">
+                {list.cards.map((card, index) => (
+                  <Draggable key={card.id} draggableId={card.id} index={index}>
+                    {(provided) => (
+                      <div
+                        ref={provided.innerRef}
+                        {...provided.draggableProps}
+                        {...provided.dragHandleProps}
+                        className={`p-3 rounded-md shadow-sm border border-gray-200 mb-2 cursor-pointer hover:shadow-md transition-all duration-150 bg-white bg-opacity-90 ${programTheme?.lightColor ? `hover:border-${programTheme.primaryColor.split('-')[1]}-300` : 'hover:border-teal-300'}`}
+                        onClick={() => handleCardClick(list.id, card)}
+                      >
+                        <div className="font-medium text-gray-800">{card.text}</div>
+                      </div>
+                    )}
+                  </Draggable>
+                ))}
+                {provided.placeholder}
+              </div>
+
+              {/* Add Card Section */}
+              <div className="mt-4">
+                <input
+                  type="text"
+                  className="w-full border border-gray-300 rounded-md px-3 py-2 mb-2 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500 bg-white bg-opacity-90"
+                  placeholder="Add a new task..."
+                  value={list.inputText || ''}
+                  onChange={(e) => {
+                    const updatedLists = lists.map(l => {
+                      if (l.id === list.id) {
+                        return { ...l, inputText: e.target.value };
+                      }
+                      return l;
+                    });
+                    setLists(updatedLists);
+                  }}
+                  onKeyPress={(e) => e.key === 'Enter' && addCard(list.id)}
+                />
+                <button
+                  onClick={() => addCard(list.id)}
+                  className={`w-full inline-flex justify-center items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white ${programTheme?.buttonClass || 'bg-teal-600 hover:bg-teal-700'} focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500`}
+                >
+                  <svg className="-ml-1 mr-2 h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" />
+                  </svg>
+                  Add Card
+                </button>
+              </div>
             </div>
           </div>
         )}
@@ -1544,6 +1576,16 @@ const ProgramDetail = () => {
           </div>
         </div>
       )}
+      <DeleteConfirmation
+  isOpen={deleteListModal.isOpen}
+  onClose={() => setDeleteListModal({
+    isOpen: false,
+    listId: null,
+    listName: ''
+  })}
+  onConfirm={() => handleDeleteList(deleteListModal.listId)}
+  itemName={deleteListModal.listName}
+/>
 
       {/* Delete Confirmation Modal */}
       <DeleteConfirmation
