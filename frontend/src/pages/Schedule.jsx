@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom';
+import { FaArrowLeft, FaHome } from 'react-icons/fa';
 
 function Schedule() {
   const [schedules, setSchedules] = useState([]);
@@ -76,6 +77,15 @@ function Schedule() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-teal-50 to-cyan-100 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
+          <div className="absolute top-5 left-5 z-10">
+                  <Link 
+                    to="/" 
+                    className="flex items-center space-x-2 text-teal-600 hover:text-teal-800 dark:text-teal-400 dark:hover:text-blue-300 transition-colors duration-300"
+                  >
+                    <FaArrowLeft className="text-lg" />
+                    <span className="font-medium">Back to Home</span>
+                  </Link>
+                </div>
         <div className="text-center mb-12">
           <h1 className="text-4xl font-extrabold text-gray-800 sm:text-5xl sm:tracking-tight lg:text-6xl">
             Specialist Schedules

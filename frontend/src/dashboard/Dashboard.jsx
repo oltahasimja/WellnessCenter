@@ -4,7 +4,8 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import Sidebar from "../components/Sidebar";
 import Navbar from '../components/Navbar';
 import useAuthCheck from '../hook/useAuthCheck';
-import AccessDenied from './AccessDenied'; // Import the new component
+import AccessDenied from './AccessDenied'; 
+import NotFound from '../components/NotFound';
 
 // Import all components
 import List from './List';
@@ -28,7 +29,6 @@ import Category from './Category';
 import Cart from './Cart';
 import Review from './Review';
 import CardMember from './CardMember';
-import Delivery from './Delivery';
 function Dashboard() {
   axios.defaults.withCredentials = true;
   const { isChecking, isAuthenticated, user } = useAuthCheck();
@@ -54,6 +54,8 @@ function Dashboard() {
     cart: { component: <Cart />, access: true },
     appointment: { component: <Appointments />, access: true },
     createappointment: { component: <CreateAppointment />, access: true },
+    notfound: { component: <NotFound />, access: true },
+
     
     // Owner only components
     users: { component: <User navigate={navigate} />, access: isSpecialist || isOwner },
@@ -70,7 +72,6 @@ function Dashboard() {
     training: { component: <Training />, access: isSpecialist || isOwner },
     trainingapplication: { component: <TrainingApplication />, access: isSpecialist || isOwner },
     order: { component: <Order />, access: isSpecialist || isOwner },
-    delivery: { component: <Delivery/>, access: isSpecialist || isOwner},
     product: { component: <Product />, access: isSpecialist || isOwner },
     category: { component: <Category />, access: isSpecialist || isOwner },
     review: { component: <Review />, access: isSpecialist || isOwner },
@@ -111,14 +112,16 @@ function Dashboard() {
 
   useEffect(() => {
     let isMounted = true;
-
+  
     if (isMounted) {
       const config = componentConfig[activeComponent];
-      if (config && !config.access) {
+      if (!config) {
+        setActiveComponent('notfound');
+      } else if (config && !config.access) {
         navigate('/dashboard');
       }
     }
-
+  
     return () => {
       isMounted = false;
     };

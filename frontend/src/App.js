@@ -45,12 +45,13 @@ const AppRoutes = () => {
   return (
     <Router>
       <Routes>
-        <Route path="/" element={<Login />} />
+        <Route path="/" element={<Appointment />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/Appointment" element={<Appointment />} />
         <Route path="/Schedule" element={<Schedule />} />
         <Route path="/cardmember" element={<CardMember/>}/>
+        
 
         <Route path="/dashboard/*" element={<Dashboard />} />
         <Route path="/list" element={<List />} />

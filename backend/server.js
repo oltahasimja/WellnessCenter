@@ -35,10 +35,10 @@ app.use('/api/trainings', trainingRoutes);
 // Middleware setup
 app.use(cookieParser());
 app.use(cors({
-  origin: ["http://localhost:3000", "http://192.168.0.109:3000"],
-  credentials: true, 
-    methods: ['GET', 'POST', 'PUT', 'DELETE'], 
-    allowedHeaders: ['Content-Type', 'Authorization'] 
+  origin: ["http://localhost:3000", " http://192.168.0.114:3000"],
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
 app.options('*', cors());
@@ -54,10 +54,10 @@ app.use(session({
   resave: false,
   saveUninitialized: false,
   cookie: {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict', // Parandalon sulmet CSRF
-      maxAge: 24 * 60 * 60 * 1000, // 24 orë
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'strict', // Parandalon sulmet CSRF
+    maxAge: 24 * 60 * 60 * 1000, // 24 orë
   },
 }));
 
@@ -76,34 +76,34 @@ fs.readdirSync(routesPath).forEach((file) => {
 app.use(flash());
 
 passport.use(new LocalStrategy(async (username, password, done) => {
-    try {
-      const user = await User.findOne({ where: { username } });
-      if (!user) {
-        return done(null, false, { message: 'Përdoruesi nuk u gjet.' });
-      }
-      const isMatch = await bcrypt.compare(password, user.password);
-      if (!isMatch) {
-        return done(null, false, { message: 'Fjalëkalimi është i gabuar.' });
-      }
-      return done(null, user);
-    } catch (err) {
-      return done(err);
+  try {
+    const user = await User.findOne({ where: { username } });
+    if (!user) {
+      return done(null, false, { message: 'Përdoruesi nuk u gjet.' });
     }
-  }));
-  
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      return done(null, false, { message: 'Fjalëkalimi është i gabuar.' });
+    }
+    return done(null, user);
+  } catch (err) {
+    return done(err);
+  }
+}));
+
 passport.serializeUser((user, done) => {
-    done(null, user.id);
+  done(null, user.id);
 });
 
 passport.deserializeUser(async (id, done) => {
-    try {
-      const user = await User.findByPk(id);
-      done(null, user);
-    } catch (err) {
-      done(err);
-    }
+  try {
+    const user = await User.findByPk(id);
+    done(null, user);
+  } catch (err) {
+    done(err);
+  }
 });
-  
+
 app.use(passport.initialize());
 app.use(passport.session());
 
@@ -119,15 +119,15 @@ app.get('/user', isAuthenticated, async (req, res) => {
     const user = await User.findByPk(req.user.id, {
       include: [
         { model: Role },
-        { 
+        {
           model: DashboardRole,
-          attributes: ['id', 'name'] 
+          attributes: ['id', 'name']
         },
-        { 
+        {
           model: Country,
           attributes: ['id', 'name']
         },
-        { 
+        {
           model: City,
           attributes: ['id', 'name'],
           include: [{
@@ -141,12 +141,12 @@ app.get('/user', isAuthenticated, async (req, res) => {
         }
       ]
     });
-    
+
     if (!user) {
       return res.status(404).json({ error: 'User not found' });
     }
-    
-    res.json({ 
+
+    res.json({
       user: {
         id: user.id,
         name: user.name,
@@ -204,9 +204,9 @@ const createDefaultRolesAndOwner = async () => {
     }
 
     const existingOwner = await User.findOne({ where: { email: 'owner@gmail.com' } });
-    
+
     if (!existingOwner) {
-      const randomPassword = 'owner'; 
+      const randomPassword = 'owner';
       const hashedPassword = await bcrypt.hash(randomPassword, 10);
 
 
@@ -217,7 +217,7 @@ const createDefaultRolesAndOwner = async () => {
         dashboardRoleId: ownerDashboardRole.id,
         name: 'owner',
         lastName: 'Account',
-        roleId: 1, 
+        roleId: 1,
         number: '123456789'
         // countryId: 1,
         // cityId: 1,
@@ -241,7 +241,7 @@ const createDefaultRolesAndOwner = async () => {
       // console.log('Owner user u krijua me sukses në të dyja databazat!');
     } else {
       // console.log('Owner user ekziston tashmë në MySQL.');
-      
+
       // Kontrollo nëse ekziston në MongoDB (nëse jo, krijoje)
       const existingOwnerMongo = await UserMongo.findOne({ mysqlId: existingOwner.id.toString() });
       if (!existingOwnerMongo) {
@@ -312,9 +312,9 @@ const ProfileImageMongo = require('./infrastructure/database/models/ProfileImage
 
 
 app.get('/', (req, res) => {
-    res.json('user');
+  res.json('user');
 });
-  
+
 
 app.post('/refresh', (req, res) => {
   const refreshToken = req.cookies['refreshToken'];
@@ -377,6 +377,6 @@ app.use(passport.session());
 const PORT = 5000;
 
 sequelize.sync().then(() => {
-//    console.log('Database synced successfully');
-    app.listen(PORT, () => console.log(`Server: ${PORT} OK`))
+  //    console.log('Database synced successfully');
+  app.listen(PORT, () => console.log(`Server: ${PORT} OK`))
 }).catch((err) => console.log(err));

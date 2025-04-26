@@ -1,6 +1,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import ThemeSwitcher from "../components/ThemeSwitcher";
+import { FaArrowLeft, FaHome } from 'react-icons/fa';
+import { Link } from 'react-router-dom';
+
 
 const Register = () => {
     const [formData, setFormData] = useState({
@@ -171,12 +174,22 @@ const Register = () => {
     return (
         <div className="flex font-poppins items-center justify-center dark:bg-gray-900 min-w-screen min-h-screen">
             <div className="grid gap-8 w-full max-w-2xl">
+        {/* Back to Home button */}
+                    <div className="absolute top-5 left-5 z-10">
+                    <Link 
+                        to="/" 
+                        className="flex items-center space-x-2 text-teal-600 hover:text-teal-800 dark:text-teal-400 dark:hover:text-blue-300 transition-colors duration-300"
+                    >
+                        <FaArrowLeft className="text-lg" />
+                        <span className="font-medium">Back to Home</span>
+                    </Link>
+                    </div>
                 <div className="absolute top-5 right-5 z-10">
                     <ThemeSwitcher />
                 </div>
-                <div id="back-div" className="bg-gradient-to-r from-blue-500 to-purple-500 rounded-[26px] m-4">
+                <div id="back-div" className="bg-gradient-to-r from-teal-400 to-teal-700  rounded-[26px] m-4">
                     <div className="border-[20px] border-transparent rounded-[20px] dark:bg-gray-900 bg-white shadow-lg xl:p-12 lg:p-12 md:p-10 sm:p-6 p-4 m-2">
-                        <h1 className="font-bold text-5xl dark:text-gray-400 text-center">Register</h1>
+                        <h1 className="font-bold text-5xl text-teal-500 mb-2 dark:text-teal-400 text-center">Register</h1>
                         <form onSubmit={handleSubmit} className="space-y-6">
                             {/* Name and Last Name */}
                             <div className="flex gap-4">
@@ -191,7 +204,7 @@ const Register = () => {
                                             name={field}
                                             value={formData[field]}
                                             onChange={handleChange}
-                                            className="border dark:bg-indigo-700 dark:text-gray-300 dark:border-gray-700 p-4 shadow-md placeholder:text-base border-gray-300 rounded-lg w-full"
+                                            className="border dark:bg-teal-700 dark:text-gray-300 dark:border-gray-700 p-4 shadow-md placeholder:text-base border-gray-300 rounded-lg w-full"
                                             required
                                         />
                                     </div>
@@ -210,7 +223,7 @@ const Register = () => {
                                         name="number"
                                         value={formData.number}
                                         onChange={handleChange}
-                                        className="border dark:bg-indigo-700 dark:text-gray-300 dark:border-gray-700 p-4 shadow-md placeholder:text-base border-gray-300 rounded-lg w-full"
+                                        className="border dark:bg-teal-700 dark:text-gray-300 dark:border-gray-700 p-4 shadow-md placeholder:text-base border-gray-300 rounded-lg w-full"
                                         required
                                     />
                                 </div>
@@ -224,7 +237,7 @@ const Register = () => {
                                         name="username"
                                         value={formData.username}
                                         onChange={handleChange}
-                                        className="border dark:bg-indigo-700 dark:text-gray-300 dark:border-gray-700 p-4 shadow-md placeholder:text-base border-gray-300 rounded-lg w-full"
+                                        className="border dark:bg-teal-700 dark:text-gray-300 dark:border-gray-700 p-4 shadow-md placeholder:text-base border-gray-300 rounded-lg w-full"
                                         required
                                         minLength="3"
                                     />
@@ -243,7 +256,7 @@ const Register = () => {
                                     name="email"
                                     value={formData.email}
                                     onChange={handleChange}
-                                    className="border dark:bg-indigo-700 dark:text-gray-300 dark:border-gray-700 p-4 shadow-md placeholder:text-base border-gray-300 rounded-lg w-full"
+                                    className="border dark:bg-teal-700 dark:text-gray-300 dark:border-gray-700 p-4 shadow-md placeholder:text-base border-gray-300 rounded-lg w-full"
                                     required
                                     pattern="[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
                                     title="Please enter a valid email (e.g. example@gmail.com)"
@@ -260,7 +273,7 @@ const Register = () => {
                                         name="gender"
                                         value={formData.gender}
                                         onChange={handleChange}
-                                        className="border dark:bg-indigo-700 dark:text-gray-300 dark:border-gray-700 p-4 shadow-md placeholder:text-base border-gray-300 rounded-lg w-full"
+                                        className="border dark:bg-teal-700 dark:text-gray-300 dark:border-gray-700 p-4 shadow-md placeholder:text-base border-gray-300 rounded-lg w-full"
                                         required
                                     >
                                         <option value="">Select Gender</option>
@@ -277,7 +290,7 @@ const Register = () => {
                                         name="birthday"
                                         value={formData.birthday}
                                         onChange={handleChange}
-                                        className="border dark:bg-indigo-700 dark:text-gray-300 dark:border-gray-700 p-4 shadow-md placeholder:text-base border-gray-300 rounded-lg w-full"
+                                        className="border dark:bg-teal-700 dark:text-gray-300 dark:border-gray-700 p-4 shadow-md placeholder:text-base border-gray-300 rounded-lg w-full"
                                         required
                                     />
                                 </div>
@@ -291,7 +304,7 @@ const Register = () => {
                                         name="country"
                                         value={formData.country}
                                         onChange={handleCountryChange}
-                                        className="border dark:bg-indigo-700 dark:text-gray-300 dark:border-gray-700 p-4 shadow-md border-gray-300 rounded-lg w-full"
+                                        className="border dark:bg-teal-700 dark:text-gray-300 dark:border-gray-700 p-4 shadow-md border-gray-300 rounded-lg w-full"
                                         required
                                     >
                                         <option value="">Select a country</option>
@@ -306,7 +319,7 @@ const Register = () => {
                                         name="city"
                                         value={formData.city}
                                         onChange={handleCityChange}
-                                        className="border dark:bg-indigo-700 dark:text-gray-300 dark:border-gray-700 p-4 shadow-md border-gray-300 rounded-lg w-full"
+                                        className="border dark:bg-teal-700 dark:text-gray-300 dark:border-gray-700 p-4 shadow-md border-gray-300 rounded-lg w-full"
                                         required
                                         disabled={!formData.country}
                                     >
@@ -319,7 +332,7 @@ const Register = () => {
                             </div>
 
                             <button 
-                                className="bg-gradient-to-r from-blue-500 to-purple-500 shadow-lg mt-2 p-3 text-white text-lg rounded-lg w-full hover:scale-105 transition" 
+                                className="bg-gradient-to-r from-teal-400 to-teal-700 shadow-lg mt-2 p-3 text-white text-lg rounded-lg w-full hover:scale-105 transition" 
                                 type="submit"
                                 disabled={
                                     validation.username.available === false || 

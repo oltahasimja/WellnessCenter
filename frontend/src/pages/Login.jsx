@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { useNavigate, Navigate } from 'react-router-dom';
+import { useNavigate, Navigate, Link } from 'react-router-dom';
 import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google';
 import ThemeSwitcher from "../components/ThemeSwitcher"; 
 import useAuthCheck from '../hook/useAuthCheck'; 
+import { FaArrowLeft, FaHome } from 'react-icons/fa';
 
 const Login = () => {
   const { isChecking, isAuthenticated } = useAuthCheck();
@@ -81,13 +82,24 @@ const Login = () => {
   return (
     <div className="flex font-poppins items-center justify-center dark:bg-gray-900 min-w-screen min-h-screen">
       <div className="grid gap-8 w-full max-w-2xl">
+        {/* Back to Home button */}
+        <div className="absolute top-5 left-5 z-10">
+          <Link 
+            to="/" 
+            className="flex items-center space-x-2 text-teal-600 hover:text-teal-800 dark:text-teal-400 dark:hover:text-blue-300 transition-colors duration-300"
+          >
+            <FaArrowLeft className="text-lg" />
+            <span className="font-medium">Back to Home</span>
+          </Link>
+        </div>
+
         <div className="absolute top-5 right-5 z-10">
           <ThemeSwitcher />
         </div>
 
-        <div id="back-div" className="bg-gradient-to-r from-blue-500 to-purple-500 rounded-[26px] m-4">
+        <div id="back-div" className="bg-gradient-to-r from-teal-400 to-teal-700 rounded-[26px] m-4">
           <div className="border-[20px] border-transparent rounded-[20px] dark:bg-gray-900 bg-white shadow-lg xl:p-10 2xl:p-10 lg:p-10 md:p-10 sm:p-2 m-2">
-            <h1 className="pt-8 pb-6 font-bold text-5xl dark:text-gray-400 text-center cursor-default">
+            <h1 className="pt-8 pb-6 font-bold text-5xl text-teal-500 dark:text-teal-400 text-center cursor-default">
               Login
             </h1>
             
@@ -113,19 +125,18 @@ const Login = () => {
                   id="username"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
-                  className="border dark:bg-indigo-700 dark:text-gray-300 dark:border-gray-700 p-3 shadow-md placeholder:text-base border-gray-300 rounded-lg w-full focus:scale-105 ease-in-out duration-300"
+                  className="border dark:bg-teal-700 dark:text-gray-300 dark:border-gray-700 p-3 shadow-md placeholder:text-base border-gray-300 rounded-lg w-full focus:scale-105 ease-in-out duration-300"
                   type="username"
                   placeholder="username"
                   required
                 />
               </div>
               <div className="relative">
-              {/* <label htmlFor="password" className=" dark:text-gray-400 text-lg">password</label> */}
                 <input
                   id="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="border dark:bg-indigo-700 dark:text-gray-300 dark:border-gray-700 p-3 pr-10 mb-2 shadow-md placeholder:text-base border-gray-300 rounded-lg w-full focus:scale-105 ease-in-out duration-300"
+                  className="border dark:bg-teal-700 dark:text-gray-300 dark:border-gray-700 p-3 pr-10 mb-2 shadow-md placeholder:text-base border-gray-300 rounded-lg w-full focus:scale-105 ease-in-out duration-300"
                   type={showPassword ? 'text' : 'password'}
                   placeholder="Password"
                   required
@@ -150,7 +161,7 @@ const Login = () => {
               </div>
 
               <button
-                className="bg-gradient-to-r from-blue-500 to-purple-500 shadow-lg mt-6 p-2 text-white rounded-lg w-full hover:scale-105 hover:from-purple-500 hover:to-blue-500 transition duration-300 ease-in-out"
+                className="bg-gradient-to-r from-teal-500 to-teal-700 shadow-lg mt-6 p-2 text-white rounded-lg w-full hover:scale-105 hover:from-teal-500 hover:to-teal-500 transition duration-300 ease-in-out"
                 type="submit"
               >
                 Login

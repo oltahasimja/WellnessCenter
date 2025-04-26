@@ -1,12 +1,16 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FaDumbbell, FaAppleAlt, FaBrain, FaRunning, FaQuoteLeft, FaArrowRight, FaArrowLeft, FaMapMarkerAlt, FaPhone, FaEnvelope, FaStar } from 'react-icons/fa';
 import { GiMuscleUp } from 'react-icons/gi';
 import { MdPsychology } from 'react-icons/md';
 import { RiMentalHealthLine } from 'react-icons/ri';
 import Slider from 'react-slick';
+import Header from './Header';
 import "slick-carousel/slick/slick.css"; 
 import "slick-carousel/slick/slick-theme.css";
+import axios from 'axios';
+
+axios.defaults.withCredentials = true;
 
 // Enhanced animations with smoother transitions
 const fadeInUp = {
@@ -71,7 +75,54 @@ const pulseAnimation = {
 const WellnessCenter = () => {
   const [hoveredService, setHoveredService] = useState(null);
   const [hoveredTeam, setHoveredTeam] = useState(null);
+  const [teamMembers, setTeamMembers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const fetchTeamMembers = async () => {
+      try {
+        const response = await axios.get('http://localhost:5000/api/user/');
+        // Filter users who have a role AND are not Clients
+        const experts = response.data.filter(user => 
+          user.roleId && user.roleId.name !== 'Client'
+        );
+        
+        const formattedExperts = experts.map(user => ({
+          id: user._id || user.mysqlId,
+          name: `${user.name} ${user.lastName}`,
+          role: user.roleId?.name || 'Specialist',
+          specialty: user.roleId?.name || 'Wellness Expert', 
+          image: user.profileImageId 
+            ? `data:image/jpeg;base64,${user.profileImageId.name}` 
+            : `https://ui-avatars.com/api/?name=${user.name}+${user.lastName}&background=random`,
+          bgColor: getRandomBgColor() 
+        }));
+        
+        setTeamMembers(formattedExperts);
+        setLoading(false);
+      } catch (err) {
+        console.error('Error fetching team members:', err);
+        setError('Failed to load team members');
+        setLoading(false);
+      }
+    };
   
+    fetchTeamMembers();
+  }, []);
+    const getRandomBgColor = () => {
+      const colors = [
+        'bg-blue-100',
+        'bg-emerald-100',
+        'bg-amber-100',
+        'bg-purple-100',
+        'bg-pink-100',
+        'bg-indigo-100'
+      ];
+      return colors[Math.floor(Math.random() * colors.length)];
+    };
+    
+
   // Slider settings with enhanced effects
   const settings = {
     dots: true,
@@ -201,43 +252,13 @@ const WellnessCenter = () => {
     }
   ];
 
-  const teamMembers = [
-    {
-      id: 1,
-      name: "Dr. James Wilson",
-      role: "Head Physiotherapist",
-      specialty: "Sports Rehabilitation",
-      image: "https://randomuser.me/api/portraits/men/75.jpg",
-      bgColor: "bg-blue-100"
-    },
-    {
-      id: 2,
-      name: "Lisa Thompson",
-      role: "Nutrition Specialist",
-      specialty: "Holistic Nutrition",
-      image: "https://randomuser.me/api/portraits/women/65.jpg",
-      bgColor: "bg-emerald-100"
-    },
-    {
-      id: 3,
-      name: "Robert Garcia",
-      role: "Fitness Director",
-      specialty: "Strength & Conditioning",
-      image: "https://randomuser.me/api/portraits/men/22.jpg",
-      bgColor: "bg-amber-100"
-    },
-    {
-      id: 4,
-      name: "Dr. Sophia Kim",
-      role: "Clinical Psychologist",
-      specialty: "Cognitive Behavioral Therapy",
-      image: "https://randomuser.me/api/portraits/women/33.jpg",
-      bgColor: "bg-purple-100"
-    }
-  ];
+ 
 
   return (
     <div className="bg-gradient-to-b from-gray-50 to-white overflow-hidden">
+
+<Header />
+
       {/* Hero Section with enhanced animations */}
       <motion.div 
         initial={{ opacity: 0 }}
@@ -750,7 +771,7 @@ const WellnessCenter = () => {
         transition={{ duration: 0.8 }}
         className="py-16 sm:py-24 px-6 sm:px-8 bg-gray-50"
       >
-        <div className="max-w-7xl mx-auto">
+         <div className="max-w-7xl mx-auto">
           <motion.div
             variants={fadeInUp}
             initial="hidden"
@@ -766,58 +787,68 @@ const WellnessCenter = () => {
             </p>
           </motion.div>
 
-          <Slider {...settings} className="px-4">
-            {teamMembers.map((member) => (
-              <div key={member.id} className="px-2">
-                <motion.div
-                  onHoverStart={() => setHoveredTeam(member.id)}
-                  onHoverEnd={() => setHoveredTeam(null)}
-                  whileHover={{ 
-                    y: -10,
-                    boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.15)"
-                  }}
-                  className="bg-white p-6 rounded-2xl shadow-lg text-center h-full transition-all duration-300"
-                >
+          {loading ? (
+            <div className="flex justify-center">
+              <div className="w-16 h-16 border-4 border-teal-500 border-dashed rounded-full animate-spin"></div>
+            </div>
+          ) : error ? (
+            <div className="text-center text-red-500 p-4 bg-red-50 rounded-lg">
+              {error}
+            </div>
+          ) : (
+            <Slider {...settings} className="px-4">
+              {teamMembers.map((member) => (
+                <div key={member.id} className="px-2">
                   <motion.div
-                    whileHover={{ scale: 1.05 }}
-                    className="mx-auto h-40 w-40 rounded-full overflow-hidden mb-6 relative"
+                    onHoverStart={() => setHoveredTeam(member.id)}
+                    onHoverEnd={() => setHoveredTeam(null)}
+                    whileHover={{ 
+                      y: -10,
+                      boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.15)"
+                    }}
+                    className="bg-white p-6 rounded-2xl shadow-lg text-center h-full transition-all duration-300"
                   >
-                    <motion.img
-                      whileHover={{ scale: 1.1 }}
-                      className="h-full w-full object-cover"
-                      src={member.image}
-                      alt={member.name}
-                    />
-                    <motion.div 
-                      initial={{ opacity: 0 }}
-                      whileHover={{ opacity: 1 }}
-                      className="absolute inset-0 bg-black bg-opacity-30 flex items-center justify-center"
+                    <motion.div
+                      whileHover={{ scale: 1.05 }}
+                      className="mx-auto h-40 w-40 rounded-full overflow-hidden mb-6 relative"
                     >
-                      <motion.span 
-                        initial={{ y: 20 }}
-                        whileHover={{ y: 0 }}
-                        className="text-white font-medium"
+                      <motion.img
+                        whileHover={{ scale: 1.1 }}
+                        className="h-full w-full object-cover"
+                        src={member.image}
+                        alt={member.name}
+                      />
+                      <motion.div 
+                        initial={{ opacity: 0 }}
+                        whileHover={{ opacity: 1 }}
+                        className="absolute inset-0 bg-black bg-opacity-30 flex items-center justify-center"
                       >
-                        View Profile
-                      </motion.span>
+                        <motion.span 
+                          initial={{ y: 20 }}
+                          whileHover={{ y: 0 }}
+                          className="text-white font-medium"
+                        >
+                          View Profile
+                        </motion.span>
+                      </motion.div>
                     </motion.div>
+                    <h3 className="text-xl font-bold text-gray-900">{member.name}</h3>
+                    {/* <p className="text-blue-600 font-medium mt-2">{member.role}</p> */}
+                    <p className="text-gray-500 mt-2">{member.specialty}</p>
+                    <div className="mt-6">
+                      <motion.a
+                        whileHover={{ x: 5 }}
+                        href="#contact"
+                        className="inline-flex items-center text-sm font-medium text-blue-600 hover:text-blue-800 transition-colors duration-300"
+                      >
+                        View profile <FaArrowRight className="ml-2" />
+                      </motion.a>
+                    </div>
                   </motion.div>
-                  <h3 className="text-xl font-bold text-gray-900">{member.name}</h3>
-                  <p className="text-blue-600 font-medium mt-2">{member.role}</p>
-                  <p className="text-gray-500 mt-2">{member.specialty}</p>
-                  <div className="mt-6">
-                    <motion.a
-                      whileHover={{ x: 5 }}
-                      href="#contact"
-                      className="inline-flex items-center text-sm font-medium text-blue-600 hover:text-blue-800 transition-colors duration-300"
-                    >
-                      View profile <FaArrowRight className="ml-2" />
-                    </motion.a>
-                  </div>
-                </motion.div>
-              </div>
-            ))}
-          </Slider>
+                </div>
+              ))}
+            </Slider>
+          )}
         </div>
       </motion.div>
 

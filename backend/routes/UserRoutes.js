@@ -18,10 +18,10 @@ const {
 
 
 router.get('/specialists', getSpecialists);
-router.get('/', isAuthenticated, getAllUsers);
+router.get('/', getAllUsers);
 router.get('/:id', isAuthenticated, getUserById);
 router.get('/role/:roleId', isAuthenticated, getUsersByRole);  
-router.post('/', createUser);
+router.post('/',  createUser);
 router.put('/:id', isAuthenticated, updateUser);
 router.put('/:id/password', updatePassword);
 router.delete('/:id', isAuthenticated, deleteUser);

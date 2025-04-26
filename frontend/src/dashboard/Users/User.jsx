@@ -37,7 +37,15 @@ const User = ({ setActiveComponent }) => {
   const fetchUsers = async (roleId = "all", search = "") => {
     let url = "http://localhost:5000/api/user";
     
-    if (roleId !== "all") {
+    if (roleId === "specialists") {
+      const response = await axios.get(url);
+      const filteredUsers = response.data.filter(user => 
+        user.roleId?.name !== 'Client' && 
+        (!search || user.username.toLowerCase().includes(search.toLowerCase()))
+      );
+      setUserList(filteredUsers);
+      return;
+    } else if (roleId !== "all") {
       url = `http://localhost:5000/api/user/role/${roleId}`;
     }
     
@@ -262,6 +270,7 @@ const User = ({ setActiveComponent }) => {
                     className={`border p-2 rounded-lg text-lg shadow-sm ${theme === 'dark' ? 'bg-gray-600 text-white border-gray-500' : 'bg-white border-gray-300'}`}
                   >
                     <option value="all">All Roles</option>
+                    <option value="specialists">Only Specialists</option>
                     {roleList.map((role) => (
                       <option key={role.mysqlId || role.id} value={role.mysqlId || role.id}>
                         {role.name}
