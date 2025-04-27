@@ -20,6 +20,8 @@ const CategoryMongo = require('./Mongo/CategoryMongo');
 const CardMongo = require('./Mongo/CardMongo');
 const CardMemberMongo = require('./Mongo/CardMemberMongo');
 const AppointmentMongo = require('./Mongo/AppointmentMongo');
+const AttachmentMongo = require('./Mongo/AttachmentMongo');
+
 
 
 module.exports = {
@@ -45,5 +47,6 @@ module.exports = {
   CardMongo,
   CardMemberMongo,
   AppointmentMongo,
+  AttachmentMongo
 
 };

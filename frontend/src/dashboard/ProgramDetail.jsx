@@ -47,7 +47,9 @@ const ProgramDetail = () => {
   const [selectedFiles, setSelectedFiles] = useState([]);
   const [newChecklistItem, setNewChecklistItem] = useState('');
   const [removedAttachments, setRemovedAttachments] = useState([]);
-  const [setRoles] = useState([]);
+  // const [setRoles] = useState([]);
+  const [roles, setRoles] = useState([]);
+
 
   // Add this to your useEffect that fetches data
   const fetchRoles = async () => {
@@ -58,29 +60,28 @@ const ProgramDetail = () => {
       console.error('Error fetching roles:', error);
     }
   };
-  const getRoleName = (roleId) => {
-    const roleMap = {
-      '1': 'Client',
-      '680034bf14e38db2e7703fa6': 'Client',
-      '2': 'Fizioterapeut',
-      '680034bf14e38db2e7703fa8': 'Fizioterapeut',
-      '3': 'Nutricionist',
-      '680034bf14e38db2e7703faa': 'Nutricionist',
-      '4': 'Trajner',
-      '680034bf14e38db2e7703fac': 'Trajner',
-      '5': 'Psikolog',
-      '680034bf14e38db2e7703fae': 'Psikolog'
-    };
-    return roleMap[roleId] || 'Unknown Role';
+  
+  const findRole = (roleId) => {
+    return roles.find(r => r._id === roleId || r.mysqlId === roleId.toString());
   };
-  useEffect(() => {
-    if (members.length > 0) {
-      const theme = getProgramTheme(members);
-      setProgramTheme(theme);
-    } else {
-      setProgramTheme(getProgramTheme([]));
-    }
-  }, [members]);
+  
+  const getRoleName = (roleId) => {
+    const role = findRole(roleId);
+    return role ? role.name : 'Unknown Role';
+  };
+
+
+// In ProgramDetail.js
+useEffect(() => {
+  if (members.length > 0) {
+    const theme = getProgramTheme(members, roles);
+    setProgramTheme(theme);
+  } else {
+    setProgramTheme(getProgramTheme([], roles));
+  }
+}, [members, roles]);
+
+
   useEffect(() => {
     fetchRoles();
     const checkLoginStatus = async () => {

@@ -110,13 +110,31 @@ const roleThemes = {
   ];
   
   // Function to determine the theme based on roles present
-  export const getProgramTheme = (members = []) => {
+
+
+  
+  
+  // Helper function to normalize role keys
+  const getRoleKey = (roleId, roles = []) => {
+    const role = roles.find(r => r._id === roleId || r.mysqlId === roleId?.toString());
+    if (!role) return 'client';
+    
+    const roleNameMap = {
+      'Client': 'client',
+      'Fizioterapeut': 'fizioterapeut',
+      'Nutricionist': 'nutricionist',
+      'Trajner': 'trajner',
+      'Psikolog': 'psikolog'
+    };
+    
+    return roleNameMap[role.name] || 'client';
+  };
+  
+  export const getProgramTheme = (members = [], roles = []) => {
     if (!members.length) return roleThemes.client;
     
-    // Get unique roles from members
-    const rolesPresent = [...new Set(members.map(m => getRoleKey(m.role)))];
+    const rolesPresent = [...new Set(members.map(m => getRoleKey(m.role, roles)))];
     
-    // Find the highest priority role present
     for (const role of themePriority) {
       if (rolesPresent.includes(role)) {
         return roleThemes[role];
@@ -125,23 +143,6 @@ const roleThemes = {
     
     return roleThemes.client;
   };
-  
-  // Helper function to normalize role keys
-  const getRoleKey = (roleId) => {
-    const roleMap = {
-      '1': 'client',
-      '680034bf14e38db2e7703fa6': 'client',
-      '2': 'fizioterapeut',
-      '680034bf14e38db2e7703fa8': 'fizioterapeut',
-      '3': 'nutricionist',
-      '680034bf14e38db2e7703faa': 'nutricionist',
-      '4': 'trajner',
-      '680034bf14e38db2e7703fac': 'trajner',
-      '5': 'psikolog',
-      '680034bf14e38db2e7703fae': 'psikolog'
-    };
-    
-    return roleMap[roleId] || 'client';
-  };
-  
+
+
   export default roleThemes;
