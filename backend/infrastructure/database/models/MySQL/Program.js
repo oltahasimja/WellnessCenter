@@ -1,6 +1,5 @@
 const { DataTypes } = require('sequelize');
-const sequelize = require('../../../config/database');
-const User = require('../models/User');
+const sequelize = require('../../../../config/database');
 
 const Program = sequelize.define('Program', {
   title: {
@@ -14,7 +13,7 @@ const Program = sequelize.define('Program', {
   createdById: {
     type: DataTypes.INTEGER,
     references: {
-      model: User,
+      model: 'Users',  
       key: 'id',
     },
     onDelete: 'CASCADE',
@@ -28,8 +27,6 @@ const Program = sequelize.define('Program', {
   timestamps: false,
 });
 
-// Relationship: One User (Trainer/Nutritionist/Psychologist) creates multiple programs
-User.hasMany(Program, { foreignKey: 'createdById' });
-Program.belongsTo(User, { foreignKey: 'createdById' });
+
 
 module.exports = Program;

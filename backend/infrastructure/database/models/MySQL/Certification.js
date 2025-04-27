@@ -1,7 +1,5 @@
 const { DataTypes } = require('sequelize');
-const sequelize = require('../../../config/database');
-const User = require('../models/User');
-const Training = require('../models/Training');
+const sequelize = require('../../../../config/database');
 
 const Certification = sequelize.define("Certification", {
   title: {
@@ -36,7 +34,7 @@ const Certification = sequelize.define("Certification", {
     type: DataTypes.INTEGER,
     allowNull: false,
     references: {
-      model: User,
+      model: 'Users', // Changed to string reference
       key: 'id',
     },
     onDelete: 'CASCADE',
@@ -46,7 +44,7 @@ const Certification = sequelize.define("Certification", {
     type: DataTypes.INTEGER,
     allowNull: true, // Certifikimi mund të jetë i pavarur nga trajnimi
     references: {
-      model: Training,
+      model: 'Trainings',
       key: 'id',
     },
     onDelete: 'SET NULL',
@@ -56,11 +54,11 @@ const Certification = sequelize.define("Certification", {
   timestamps: false,
 });
 
-// Lidhjet me përdoruesit dhe trajnimet
-User.hasMany(Certification, { foreignKey: 'userId' });
-Certification.belongsTo(User, { foreignKey: 'userId' });
+// // Lidhjet me përdoruesit dhe trajnimet
+// User.hasMany(Certification, { foreignKey: 'userId' });
+// Certification.belongsTo(User, { foreignKey: 'userId' });
 
-Training.hasMany(Certification, { foreignKey: 'trainingId' });
-Certification.belongsTo(Training, { foreignKey: 'trainingId' });
+// Training.hasMany(Certification, { foreignKey: 'trainingId' });
+// Certification.belongsTo(Training, { foreignKey: 'trainingId' });
 
 module.exports = Certification;

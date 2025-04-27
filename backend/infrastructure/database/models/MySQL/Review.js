@@ -1,5 +1,5 @@
 const { DataTypes } = require('sequelize');
-const sequelize = require('../../../config/database');
+const sequelize = require('../../../../config/database');
 const User = require('./User');        
 const Product = require('./Product');
 
@@ -30,7 +30,7 @@ const Review = sequelize.define('Review', {
 });
 
 
-Review.belongsTo(User, { foreignKey: 'userId' });
+// Review.belongsTo(User, { foreignKey: 'userId' });
 Review.belongsTo(Product, { foreignKey: 'productId' });
 
 

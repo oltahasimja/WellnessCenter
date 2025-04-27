@@ -1,13 +1,12 @@
 const { DataTypes } = require('sequelize');
-const sequelize = require('../../../config/database');
-const User = require('./User');
+const sequelize = require('../../../../config/database');
 
 const Appointment = sequelize.define('Appointment', {
   userId: {
     type: DataTypes.INTEGER,
     allowNull: false,
     references: {
-      model: User,
+      model: 'Users',  
       key: 'id',
     },
     onDelete: 'CASCADE',
@@ -17,7 +16,7 @@ const Appointment = sequelize.define('Appointment', {
     type: DataTypes.INTEGER,
     allowNull: false,
     references: {
-      model: User,
+      model: 'Users',  
       key: 'id',
     },
     onDelete: 'CASCADE',
@@ -42,10 +41,5 @@ const Appointment = sequelize.define('Appointment', {
 }, {
   timestamps: true,
 });
-
-User.hasMany(Appointment, { foreignKey: 'userId', as: 'appointments' });
-User.hasMany(Appointment, { foreignKey: 'specialistId', as: 'clients' });
-Appointment.belongsTo(User, { foreignKey: 'userId', as: 'client' });
-Appointment.belongsTo(User, { foreignKey: 'specialistId', as: 'specialist' });
 
 module.exports = Appointment;

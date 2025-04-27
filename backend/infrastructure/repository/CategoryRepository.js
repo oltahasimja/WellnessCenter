@@ -1,8 +1,8 @@
 const mongoose = require('mongoose');
 const { ObjectId } = require('mongoose').Types;
-const Category = require("../database/models/Category");
-const CategoryMongo = require("../database/models/CategoryMongo");
 
+const Category = require("../database/models/MySQL/Category");
+const { CategoryMongo } = require('../database/models/indexMongo');
 
 class CategoryRepository {
   // Read operations - Get from MongoDB with fallback to MySQL

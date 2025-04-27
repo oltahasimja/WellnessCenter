@@ -1,8 +1,10 @@
-const Appointment = require('../database/models/Appointment');
-const User = require('../database/models/User');
-const AppointmentMongo = require("../database/models/AppointmentMongo");
-const UserMongo = require("../database/models/UserMongo");
+
 const mongoose = require('mongoose');
+
+const { Appointment, User } = require('../database/models/index');
+const { AppointmentMongo, UserMongo } = require('../database/models/indexMongo');
+
+
 
 class AppointmentRepository {
   /**

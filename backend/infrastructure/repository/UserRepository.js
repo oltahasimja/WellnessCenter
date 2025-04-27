@@ -2,18 +2,11 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 const { ObjectId } = require('mongoose').Types;
-const User = require("../database/models/User");
-const UserMongo = require("../database/models/UserMongo");
-const Role = require("../database/models/Role");
-const RoleMongo = require("../database/models/RoleMongo");
-const Country = require("../database/models/Country");
-const CountryMongo = require("../database/models/CountryMongo");
-const City = require("../database/models/City");
-const CityMongo = require("../database/models/CityMongo");
-const ProfileImage = require("../database/models/ProfileImage");
-const ProfileImageMongo = require("../database/models/ProfileImageMongo");
-const DashboardRole = require("../database/models/DashboardRole");
-const DashboardRoleMongo = require("../database/models/DashboardRoleMongo");
+
+const { UserMongo, RoleMongo, CountryMongo, CityMongo, ProfileImageMongo, DashboardRoleMongo } = require('../database/models/indexMongo');
+
+const { User, Country, City, ProfileImage, Role, DashboardRole } = require('../database/models/index');
+
 
 class UserRepository {
 

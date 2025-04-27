@@ -7,6 +7,7 @@ function Schedule() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedRole, setSelectedRole] = useState('All Specialist');
   const [currentPage, setCurrentPage] = useState(1);
   const specialistsPerPage = 5;
 
@@ -29,12 +30,16 @@ function Schedule() {
     fetchSchedules();
   }, []);
 
+  // Get unique roles for dropdown
+  const uniqueRoles = ['All Specialist', ...new Set(schedules.map(s => s.specialistRole))];
+
   const filteredSchedules = schedules.filter(specialist => {
-    const searchLower = searchTerm.toLowerCase();
-    return (
-      specialist.specialistName.toLowerCase().includes(searchLower) ||
-      specialist.specialistRole.toLowerCase().includes(searchLower)
-    );
+    const matchesSearch = specialist.specialistName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         specialist.specialistRole.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    const matchesRole = selectedRole === 'All Specialist' || specialist.specialistRole === selectedRole;
+    
+    return matchesSearch && matchesRole;
   });
 
   // Get current specialists
@@ -77,15 +82,16 @@ function Schedule() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-teal-50 to-cyan-100 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
-          <div className="absolute top-5 left-5 z-10">
-                  <Link 
-                    to="/" 
-                    className="flex items-center space-x-2 text-teal-600 hover:text-teal-800 dark:text-teal-400 dark:hover:text-blue-300 transition-colors duration-300"
-                  >
-                    <FaArrowLeft className="text-lg" />
-                    <span className="font-medium">Back to Home</span>
-                  </Link>
-                </div>
+        <div className="absolute top-5 left-5 z-10">
+          <Link 
+            to="/" 
+            className="flex items-center space-x-2 text-teal-600 hover:text-teal-800 dark:text-teal-400 dark:hover:text-blue-300 transition-colors duration-300"
+          >
+            <FaArrowLeft className="text-lg" />
+            <span className="font-medium">Back to Home</span>
+          </Link>
+        </div>
+        
         <div className="text-center mb-12">
           <h1 className="text-4xl font-extrabold text-gray-800 sm:text-5xl sm:tracking-tight lg:text-6xl">
             Specialist Schedules
@@ -95,8 +101,9 @@ function Schedule() {
           </p>
         </div>
 
-        {/* Search Bar */}
-        <div className="mb-8 max-w-md mx-auto">
+        {/* Search and Filter Bar */}
+        <div className="mb-8 max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* Search Bar */}
           <div className="relative">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
               <svg className="h-5 w-5 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
@@ -124,6 +131,26 @@ function Schedule() {
               </button>
             )}
           </div>
+
+          <div className="relative">
+            <select
+              value={selectedRole}
+              onChange={(e) => {
+                setSelectedRole(e.target.value);
+                setCurrentPage(1);
+              }}
+              className="block w-full pl-3 pr-10 py-3 border border-gray-300 rounded-lg bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 appearance-none"
+            >
+              {uniqueRoles.map(role => (
+                <option key={role} value={role}>{role}</option>
+              ))}
+            </select>
+            <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+              <svg className="h-5 w-5 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
+              </svg>
+            </div>
+          </div>
         </div>
 
         {filteredSchedules.length === 0 ? (
@@ -143,7 +170,9 @@ function Schedule() {
             </svg>
             <h3 className="mt-2 text-lg font-medium text-gray-900">No specialists found</h3>
             <p className="mt-1 text-gray-500">
-              {searchTerm ? 'Try a different search term' : 'No specialists available'}
+              {searchTerm || selectedRole !== 'All Specialist' 
+                ? 'Try different search criteria' 
+                : 'No specialists available'}
             </p>
           </div>
         ) : (

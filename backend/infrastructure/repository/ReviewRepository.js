@@ -1,8 +1,11 @@
 
 const mongoose = require('mongoose');
 const { ObjectId } = require('mongoose').Types;
-const Review = require("../database/models/Review");
-const ReviewMongo = require("../database/models/ReviewMongo");
+
+
+const Review = require("../database/models/MySQL/Review");
+const { ReviewMongo } = require('../database/models/indexMongo');
+
 
 
 class ReviewRepository {

@@ -1,7 +1,6 @@
 const { DataTypes } = require('sequelize');
-const sequelize = require('../../../config/database');
-const User = require('../models/User');
-const Program = require('../models/Program');
+const sequelize = require('../../../../config/database');
+
 
 const UserPrograms = sequelize.define('UserPrograms', {
   id: {
@@ -15,7 +14,7 @@ const UserPrograms = sequelize.define('UserPrograms', {
     type: DataTypes.INTEGER,
     allowNull: false,
     references: {
-      model: User,
+      model: 'Users',
       key: 'id',
     },
     onDelete: 'CASCADE',
@@ -25,7 +24,7 @@ const UserPrograms = sequelize.define('UserPrograms', {
     type: DataTypes.INTEGER,
     allowNull: false,
     references: {
-      model: Program,
+      model: 'Programs',
       key: 'id',
     },
     onDelete: 'CASCADE',
@@ -44,7 +43,7 @@ const UserPrograms = sequelize.define('UserPrograms', {
   timestamps: true,
 });
 
-User.belongsToMany(Program, { through: UserPrograms, foreignKey: 'userId' });
-Program.belongsToMany(User, { through: UserPrograms, foreignKey: 'programId' });
+// User.belongsToMany(Program, { through: UserPrograms, foreignKey: 'userId' });
+// Program.belongsToMany(User, { through: UserPrograms, foreignKey: 'programId' });
 
 module.exports = UserPrograms;

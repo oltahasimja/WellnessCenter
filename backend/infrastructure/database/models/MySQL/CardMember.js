@@ -1,7 +1,5 @@
 const { DataTypes } = require('sequelize');
-const sequelize = require('../../../config/database');
-const User = require('../models/User');
-const Card = require('../models/Card');
+const sequelize = require('../../../../config/database');
 
 const CardMember = sequelize.define('CardMember', {
   id: {
@@ -15,7 +13,7 @@ const CardMember = sequelize.define('CardMember', {
     type: DataTypes.INTEGER,
     allowNull: false,
     references: {
-      model: User,
+      model: 'Users',
       key: 'id',
     },
     onDelete: 'CASCADE',
@@ -25,7 +23,7 @@ const CardMember = sequelize.define('CardMember', {
     type: DataTypes.INTEGER,
     allowNull: false,
     references: {
-      model: Card,
+      model: 'Cards',
       key: 'id',
     },
     onDelete: 'CASCADE',
@@ -44,7 +42,5 @@ const CardMember = sequelize.define('CardMember', {
   timestamps: true,
 });
 
-User.belongsToMany(Card, { through: CardMember, foreignKey: 'userId' });
-Card.belongsToMany(User, { through: CardMember, foreignKey: 'cardId' });
 
 module.exports = CardMember;

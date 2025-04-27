@@ -1,12 +1,11 @@
 
 const mongoose = require('mongoose');
 const { ObjectId } = require('mongoose').Types;
-const CardMember = require("../database/models/CardMember");
-const CardMemberMongo = require("../database/models/CardMemberMongo");
-const User = require("../database/models/User");
-const UserMongo = require("../database/models/UserMongo");
-const Card = require("../database/models/Card");
-const CardMongo = require("../database/models/CardMongo");
+
+
+const { CardMember, User, Card } = require('../database/models/index');
+const { CardMemberMongo, UserMongo, CardMongo } = require('../database/models/indexMongo');
+
 
 class CardMemberRepository {
   // Read operations - Get from MongoDB with fallback to MySQL

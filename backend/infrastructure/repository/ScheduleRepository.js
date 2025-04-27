@@ -1,9 +1,12 @@
 const mongoose = require('mongoose');
 const { ObjectId } = require('mongoose').Types;
-const Schedule = require("../database/models/Schedule");
-const ScheduleMongo = require("../database/models/ScheduleMongo");
-const User = require("../database/models/User");
-const UserMongo = require("../database/models/UserMongo");
+
+
+
+const { ScheduleMongo, UserMongo } = require('../database/models/indexMongo');
+const { Schedule, User } = require('../database/models/index');
+
+
 
 class ScheduleRepository {
   async findAll(filter = {}) {

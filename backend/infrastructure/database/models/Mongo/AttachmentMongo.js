@@ -1,4 +1,3 @@
-// database/models/AttachmentMongo.js
 const mongoose = require('mongoose');
 
 const AttachmentSchema = new mongoose.Schema({

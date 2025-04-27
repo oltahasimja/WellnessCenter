@@ -1,11 +1,11 @@
 const mongoose = require('mongoose');
 const { ObjectId } = require('mongoose').Types;
-const UserPrograms = require("../database/models/UserPrograms");
-const UserProgramsMongo = require("../database/models/UserProgramsMongo");
-const User = require("../database/models/User");
-const UserMongo = require("../database/models/UserMongo");
-const Program = require("../database/models/Program");
-const ProgramMongo = require("../database/models/ProgramMongo");
+
+
+const { UserMongo, ProgramMongo, UserProgramsMongo } = require('../database/models/indexMongo');
+
+const { User, Program, UserPrograms } = require('../database/models/index');
+
 
 class UserProgramsRepository {
   async findAll() {

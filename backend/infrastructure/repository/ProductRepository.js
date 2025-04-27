@@ -1,9 +1,8 @@
 
 const mongoose = require('mongoose');
 const { ObjectId } = require('mongoose').Types;
-const Product = require("../database/models/Product");
-const ProductMongo = require("../database/models/ProductMongo");
-
+const Product = require("../database/models/MySQL/Product");
+const { ProductMongo } = require('../database/models/indexMongo');
 
 class ProductRepository {
   // Read operations - Get from MongoDB with fallback to MySQL

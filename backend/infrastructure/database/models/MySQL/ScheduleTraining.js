@@ -1,6 +1,6 @@
 // models/Schedule.js
 const { DataTypes } = require('sequelize');
-const sequelize = require('../../../config/database');
+const sequelize = require('../../../../config/database');
 const Training = require('./Training');
 
 const ScheduleTraining = sequelize.define('ScheduleTraining', {

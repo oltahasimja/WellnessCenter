@@ -1,10 +1,12 @@
 
 const mongoose = require('mongoose');
 const { ObjectId } = require('mongoose').Types;
-const Delivery = require("../database/models/Delivery");
-const DeliveryMongo = require("../database/models/DeliveryMongo");
-const Order = require("../database/models/Order");
-const OrderMongo = require("../database/models/OrderMongo");
+const Delivery = require("../database/models/MySQL/Delivery");
+
+
+
+const { DeliveryMongo, Order, OrderMongo } = require('../database/models/indexMongo');
+
 
 class DeliveryRepository {
   // Read operations - Get from MongoDB with fallback to MySQL

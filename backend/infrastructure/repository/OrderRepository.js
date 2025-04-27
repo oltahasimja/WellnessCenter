@@ -1,8 +1,8 @@
 
 const mongoose = require('mongoose');
 const { ObjectId } = require('mongoose').Types;
-const Order = require("../database/models/Order");
-const OrderMongo = require("../database/models/OrderMongo");
+const Order = require("../database/models/MySQL/Order");
+const { OrderMongo } = require('../database/models/indexMongo');
 
 
 class OrderRepository {

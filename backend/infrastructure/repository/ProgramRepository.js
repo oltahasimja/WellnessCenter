@@ -1,10 +1,10 @@
 
 const mongoose = require('mongoose');
 const { ObjectId } = require('mongoose').Types;
-const Program = require("../database/models/Program");
-const ProgramMongo = require("../database/models/ProgramMongo");
-const User = require("../database/models/User");
-const UserMongo = require("../database/models/UserMongo");
+
+const { Program, User } = require('../database/models/index');
+const { ProgramMongo, UserMongo } = require('../database/models/indexMongo');
+
 
 class ProgramRepository {
   // Read operations - Get from MongoDB with fallback to MySQL

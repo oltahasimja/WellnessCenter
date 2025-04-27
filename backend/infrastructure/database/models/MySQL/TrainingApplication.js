@@ -1,7 +1,5 @@
 const { DataTypes } = require('sequelize');
-const sequelize = require('../../../config/database');
-const User = require('../models/User');
-const Training = require('../models/Training');
+const sequelize = require('../../../../config/database');
 
 const TrainingApplication = sequelize.define("TrainingApplication", {
  status: {
@@ -18,7 +16,7 @@ const TrainingApplication = sequelize.define("TrainingApplication", {
     type: DataTypes.INTEGER,
     allowNull: false,
     references: {
-      model: User,
+      model: 'Users',
       key: 'id',
     },
     onDelete: 'CASCADE',
@@ -28,7 +26,7 @@ const TrainingApplication = sequelize.define("TrainingApplication", {
     type: DataTypes.INTEGER,
     allowNull: false,
     references: {
-      model: Training,
+      model: 'Trainings',
       key: 'id',
     },
     onDelete: 'CASCADE',
@@ -38,10 +36,10 @@ const TrainingApplication = sequelize.define("TrainingApplication", {
   timestamps: false,
 });
 
-User.hasMany(TrainingApplication, { foreignKey: 'userId' });
-TrainingApplication.belongsTo(User, { foreignKey: 'userId' });
+// User.hasMany(TrainingApplication, { foreignKey: 'userId' });
+// TrainingApplication.belongsTo(User, { foreignKey: 'userId' });
 
-Training.hasMany(TrainingApplication, { foreignKey: 'trainingId' });
-TrainingApplication.belongsTo(Training, { foreignKey: 'trainingId' });
+// Training.hasMany(TrainingApplication, { foreignKey: 'trainingId' });
+// TrainingApplication.belongsTo(Training, { foreignKey: 'trainingId' });
 
 module.exports = TrainingApplication;

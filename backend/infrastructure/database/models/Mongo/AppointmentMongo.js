@@ -5,16 +5,16 @@ const appointmentSchema = new Schema({
   mysqlId: {
     type: String,
     required: true,
-    unique: true, // Siguron që çdo takim ka një ID unike nga MySQL nëse e lidh me dy databaza
+    unique: true, 
   },
   userId: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'UserMongo', // Referon tek përdoruesi (klienti)
+    ref: 'UserMongo',
     required: true,
   },
   specialistId: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'UserMongo', // Referon tek specialisti (trajner, fizioterapeut, etj.)
+    ref: 'UserMongo', 
     required: true,
   },
   appointmentDate: {

@@ -1,11 +1,10 @@
 
 const mongoose = require('mongoose');
 const { ObjectId } = require('mongoose').Types;
-const List = require("../database/models/List"); 
-const ListMongo = require("../database/models/ListMongo");
-const User = require("../database/models/User");
-const UserMongo = require("../database/models/UserMongo");
-const ProgramMongo = require("../database/models/ProgramMongo");
+
+
+const { List, User } = require('../database/models/index');
+const { ListMongo, UserMongo, ProgramMongo  } = require('../database/models/indexMongo');
 
 
 class ListRepository {

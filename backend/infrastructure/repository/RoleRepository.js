@@ -1,8 +1,9 @@
 
 const mongoose = require('mongoose');
 const { ObjectId } = require('mongoose').Types;
-const Role = require("../database/models/Role");
-const RoleMongo = require("../database/models/RoleMongo");
+
+const { RoleMongo, UserMongo } = require('../database/models/indexMongo');
+const { Role } = require('../database/models/index');
 
 
 class RoleRepository {

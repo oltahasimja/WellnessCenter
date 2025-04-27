@@ -11,11 +11,14 @@ const { Op } = require('sequelize');
 const { OAuth2Client } = require('google-auth-library');
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
-const Role = require('../../infrastructure/database/models/Role')
+// const Role = require('../../infrastructure/database/models/Role')
 
-const User = require('../../infrastructure/database/models/User')
-const UserMongo = require('../../infrastructure/database/models/UserMongo')
-const RoleMongo = require('../../infrastructure/database/models/RoleMongo')
+// const User = require('../../infrastructure/database/models/User')
+const UserMongo = require('../../infrastructure/database/models/Mongo/UserMongo')
+const RoleMongo = require('../../infrastructure/database/models/Mongo/RoleMongo')
+
+
+const { User, Country, City, ProfileImage, Role } = require('../../infrastructure/database/models/index');
 
 
 const googleAuth = async (req, res) => {

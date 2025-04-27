@@ -1,6 +1,6 @@
 // models/Schedule.js
 const { DataTypes } = require('sequelize');
-const sequelize = require('../../../config/database');
+const sequelize = require('../../../../config/database');
 const User = require('./User');
 
 const Schedule = sequelize.define('Schedule', {
@@ -8,7 +8,7 @@ const Schedule = sequelize.define('Schedule', {
     type: DataTypes.INTEGER,
     allowNull: false,
     references: {
-      model: User,
+      model: 'Users', // Changed to string reference
       key: 'id',
     },
     unique: true
@@ -41,7 +41,7 @@ const Schedule = sequelize.define('Schedule', {
   timestamps: true
 });
 
-User.hasOne(Schedule, { foreignKey: 'specialistId' });
-Schedule.belongsTo(User, { foreignKey: 'specialistId' });
+// User.hasOne(Schedule, { foreignKey: 'specialistId' });
+// Schedule.belongsTo(User, { foreignKey: 'specialistId' });
 
 module.exports = Schedule;

@@ -1,7 +1,5 @@
 const { DataTypes } = require('sequelize');
-const sequelize = require('../../../config/database');
-const User = require('../models/User');
-const List = require('../models/List');
+const sequelize = require('../../../../config/database');
 
 const Card = sequelize.define('Card', {
   title: {
@@ -15,7 +13,7 @@ const Card = sequelize.define('Card', {
   createdById: {
     type: DataTypes.INTEGER,
     references: {
-      model: User,
+      model: 'Users', // Changed to string reference
       key: 'id',
     },
     onDelete: 'CASCADE',
@@ -24,7 +22,7 @@ const Card = sequelize.define('Card', {
   listId: {
     type: DataTypes.INTEGER,
     references: {
-      model: List,
+      model: 'Lists', // Changed to string reference
       key: 'id',
     },
     allowNull: false,
@@ -66,11 +64,6 @@ const Card = sequelize.define('Card', {
   timestamps: true,
 });
 
-// Relationships
-List.hasMany(Card, { foreignKey: 'listId', onDelete: 'CASCADE' });
-Card.belongsTo(List, { foreignKey: 'listId' });
 
-User.hasMany(Card, { foreignKey: 'createdById', onDelete: 'CASCADE' });
-Card.belongsTo(User, { foreignKey: 'createdById' });
 
 module.exports = Card;
