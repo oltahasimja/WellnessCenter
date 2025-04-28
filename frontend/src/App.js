@@ -29,7 +29,7 @@ import Appointment from './pages/Appointment'
 import Schedule from './pages/Schedule'
 import ProductsPage from './pages/ProductsPage';
 import ProductCard from './pages/ProductCard';
-
+import MyPrograms from './pages/MyPrograms';
 
 
 const AppRoutes = () => {
@@ -60,6 +60,7 @@ const AppRoutes = () => {
 
 
         <Route path="/Schedule" element={<Schedule />} />
+        <Route path="/MyPrograms" element={<MyPrograms />} />
         <Route path="/cardmember" element={<CardMember/>}/>
         <Route path="/list" element={<List />} />
         <Route path="/training" element={<Training />} />
