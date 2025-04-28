@@ -1,10 +1,18 @@
 const mongoose = require('mongoose');
-const Schema = mongoose.Schema;
+const { Schema } = mongoose;
 
-const orderSchema = new mongoose.Schema({
+const counterSchema = new Schema({
+  name: { type: String, required: true },
+  sequence_value: { type: Number, default: 0 },
+});
+
+const Counter = mongoose.model('Counter', counterSchema);
+
+const orderSchema = new Schema({
   mysqlId: {
-    type: String,
+    type: Number, 
     required: true,
+    unique: true,
   },
   clientData: {
     name: String,
@@ -19,11 +27,11 @@ const orderSchema = new mongoose.Schema({
     {
       productId: { 
         type: String,
-        required: true 
+        required: true,
       },
       quantity: { 
-        type: Number, 
-        default: 1 
+        type: Number,
+        default: 1,
       },
       price: Number,
     }
@@ -36,6 +44,23 @@ const orderSchema = new mongoose.Schema({
     type: Date, 
     default: Date.now 
   },
+});
+
+//auto incrementing mysql
+orderSchema.pre('save', async function(next) {
+  const order = this;
+
+  if (order.isNew) {
+    const counter = await Counter.findOneAndUpdate(
+      { name: 'orderId' },
+      { $inc: { sequence_value: 1 } },
+      { new: true, upsert: true }
+    );
+
+    order.mysqlId = counter.sequence_value;
+  }
+
+  next();
 });
 
 const Order = mongoose.model('Order', orderSchema);

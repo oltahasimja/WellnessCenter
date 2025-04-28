@@ -125,7 +125,7 @@ const handleCityChange = (e) => {
       });
 
       localStorage.removeItem("cart");
-      navigate("/dashboard");
+      navigate("/productspage");
 
     } 
     //displaying errors

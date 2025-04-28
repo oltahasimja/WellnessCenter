@@ -27,7 +27,8 @@ import Cart from './dashboard/Cart';
 import ClientOrderForm from './dashboard/ClientOrderForm';
 import Appointment from './pages/Appointment'
 import Schedule from './pages/Schedule'
-
+import ProductsPage from './pages/ProductsPage';
+import ProductCard from './pages/ProductCard';
 
 
 
@@ -73,7 +74,11 @@ const AppRoutes = () => {
         <Route path="/order" element={<Order />} />
         <Route path="/delivery" element={<Delivery/>}/>
         <Route path="/review" element={<Review/>}/>
+
         <Route path="/product" element={<Product/>}/>
+        <Route path="/productspage" element={<ProductsPage/>}/>
+        <Route path="/productcard" element={<ProductCard/>}/>
+        
         <Route path="/category" element={<Category/>}/>
         <Route path="/cart" element={<Cart/>}/>
         <Route path="/client-order-form" element={<ClientOrderForm/>}/>
