@@ -46,14 +46,15 @@ const updateProgram = async (req, res) => {
 };
 const deleteProgram = async (req, res) => {
   try {
-    const deletedResource = await UseCase.delete(req.params.id);
-    if (deletedResource) {
-      res.json({ message: "Program deleted" });
-    } else {
-      res.status(404).json({ message: "Program not found" });
-    }
+    const { id } = req.params;
+    const deletingUserId = req.body.userId; // Get from request body
+    
+    const result = await UseCase.delete(id, deletingUserId);
+    res.status(200).json(result);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ 
+      error: error.message 
+    });
   }
 };
 module.exports = { 

@@ -15,8 +15,8 @@ class ProgramUseCase {
   async update(id, data) {
     return await this.port.update(id, data);
   }
-  async delete(id) {
-    return await this.port.delete(id);
+  async delete(id, userId) {
+    return await this.port.delete(id, userId);
   }
 }
 module.exports = ProgramUseCase;

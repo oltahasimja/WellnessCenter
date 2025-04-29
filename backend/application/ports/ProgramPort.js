@@ -15,8 +15,8 @@ class ProgramPort {
   async update(id, data) {
     return await this.repository.update(id, data);
   }
-  async delete(id) {
-    return await this.repository.delete(id);
+  async delete(id, userId) {
+    return await this.repository.delete(id, userId);
   }
 }
 module.exports = ProgramPort;

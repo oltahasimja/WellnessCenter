@@ -17,6 +17,7 @@ const Training = require('./MySQL/Training');
 const TrainingApplication = require('./MySQL/TrainingApplication');
 const UserPrograms = require('./MySQL/UserPrograms');
 const List = require('./MySQL/List');
+const Log = require('./MySQL/log');
 
 // Initialize models - try to handle different patterns safely
 function initializeModel(model, seq) {
@@ -38,6 +39,7 @@ function initializeModel(model, seq) {
 }
 
 // Initialize all models safely
+const LogModel = initializeModel(Log, sequelize);
 const RoleModel = initializeModel(Role, sequelize);
 const CountryModel = initializeModel(Country, sequelize);
 const CityModel = initializeModel(City, sequelize);
@@ -54,6 +56,10 @@ const TrainingModel = initializeModel(Training, sequelize);
 const TrainingApplicationModel = initializeModel(TrainingApplication, sequelize);
 const UserProgramsModel = initializeModel(UserPrograms, sequelize);
 const ListModel = initializeModel(List, sequelize);
+
+// Log relationships
+UserModel.hasMany(LogModel, { foreignKey: 'userId' });
+LogModel.belongsTo(UserModel, { foreignKey: 'userId' });
 
 // User relationships
 RoleModel.hasMany(UserModel, { foreignKey: 'roleId' });

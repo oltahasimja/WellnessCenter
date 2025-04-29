@@ -4,6 +4,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const passport = require('passport');
 const nodemailer = require('nodemailer');
+const Log = require('../../infrastructure/database/models/MySQL/log');
 
 const UserRepository = require("../../infrastructure/repository/UserRepository");
 const UserPort = require("../../application/ports/UserPort");
