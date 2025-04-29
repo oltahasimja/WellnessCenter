@@ -1,158 +1,215 @@
-
 const mongoose = require('mongoose');
 const { ObjectId } = require('mongoose').Types;
-
-
+const Log = require('../database/models/MySQL/log');
 const { List, User } = require('../database/models/index');
-const { ListMongo, UserMongo, ProgramMongo  } = require('../database/models/indexMongo');
-
+const { ListMongo, UserMongo, ProgramMongo } = require('../database/models/indexMongo');
 
 class ListRepository {
   // Read operations - Get from MongoDB with fallback to MySQL
   async findAll() {
     try {
-      // Get all from MongoDB with populated relationships
-      return await ListMongo.find().populate([{ path: 'createdById', model: 'UserMongo' }, { path: 'programId', model: 'ProgramMongo' }])
-      .lean();
+      return await ListMongo.find().populate([
+        { path: 'createdById', model: 'UserMongo' }, 
+        { path: 'programId', model: 'ProgramMongo' }
+      ]).lean();
     } catch (error) {
-      // Fallback to MySQL if MongoDB fails
       console.error("MongoDB findAll failed, falling back to MySQL:", error);
-      // return await List.findAll({  });
+      // return await List.findAll({});
     }
   }
   
   async findById(id) {
     try {
-      // Get from MongoDB with populated relationships
       return await ListMongo.findOne({ mysqlId: id })
-      .populate([{ path: 'createdById', model: 'UserMongo' }, { path: 'programId', model: 'ProgramMongo' }])
-      .lean();
+        .populate([
+          { path: 'createdById', model: 'UserMongo' }, 
+          { path: 'programId', model: 'ProgramMongo' }
+        ])
+        .lean();
     } catch (error) {
-      // Fallback to MySQL if MongoDB fails
       console.error("MongoDB findById failed, falling back to MySQL:", error);
-      // return await List.findByPk(id, {  });
+      // return await List.findByPk(id, {});
     }
   }
   
-  // Write operations - Write to both MongoDB and MySQL
+  // Write operations with logging
   async create(data) {
     try {
       console.log("Creating List:", data);
-  
+      
+      // Log creation start
+      await Log.create({
+        userId: data.createdById || null,
+        action: 'CREATE_LIST_START',
+        details: `Attempting to create list: ${data.name}`
+      });
+
       // First create in MySQL
       const mysqlResource = await List.create(data);
-  
-      // Prepare data for MongoDB, remove _id to let MongoDB generate it automatically
+
+      // Prepare data for MongoDB
       const mongoData = {
         mysqlId: mysqlResource.id.toString(),
-        name: data.name, // Only include fields that exist in your schema
+        name: data.name,
         createdAt: new Date(),
       };
       
-      // Only convert programId to ObjectId if it's a valid MongoDB ID
-      // If it's a MySQL ID, we should look up the corresponding MongoDB document
+      // Handle programId reference
       if (data.programId) {
-        // Find the program in MongoDB that has this mysqlId
         const program = await ProgramMongo.findOne({ mysqlId: data.programId.toString() });
         if (program) {
           mongoData.programId = program._id;
         } else {
           console.warn(`Program with MySQL ID ${data.programId} not found in MongoDB`);
-          // Either skip or handle this case appropriately
         }
       }
-  
-      // Handle createdById similarly
+
+      // Handle createdById reference
       if (data.createdById) {
         const user = await UserMongo.findOne({ mysqlId: data.createdById.toString() });
         if (user) {
           mongoData.createdById = user._id;
         } else {
           console.warn(`User with MySQL ID ${data.createdById} not found in MongoDB`);
-          // Either skip or handle this case appropriately
         }
       }
-  
+
       // Create in MongoDB
       const mongoResource = await ListMongo.create(mongoData);
       console.log("List saved in MongoDB:", mongoResource);
-  
+
+      // Log successful creation
+      await Log.create({
+        userId: data.createdById || null,
+        action: 'CREATE_LIST_SUCCESS',
+        details: `Created list with ID ${mysqlResource.id} (${data.name})`
+      });
+
       return mysqlResource;
     } catch (error) {
+      // Log creation error
+      await Log.create({
+        userId: data.createdById || null,
+        action: 'CREATE_LIST_ERROR',
+        details: `Error creating list: ${error.message}`
+      });
       console.error("Error creating List:", error);
       throw new Error('Error creating List: ' + error.message);
     }
   }
   
-  async update(id, data) {
-    try {
-      // Update in MySQL
-      const [updatedCount] = await List.update(
-        { ...data },
-        { where: { id } }
-      );
-  
-      if (updatedCount === 0) {
-        throw new Error("List not found in MySQL");
-      }
-      
-      // Prepare update data for MongoDB
-      const mongoUpdateData = { 
-        name: data.name, // Only include fields that need updating
-        updatedAt: new Date() // Add updated timestamp
-      };
-      
-      // Handle programId - find corresponding MongoDB document
-      if (data.programId) {
-        const program = await ProgramMongo.findOne({ mysqlId: data.programId.toString() });
-        if (!program) {
-          console.warn(`Program with MySQL ID ${data.programId} not found in MongoDB`);
-        } else {
-          mongoUpdateData.programId = program._id;
-        }
-      }
-      
-      // Handle createdById - find corresponding MongoDB document
-      if (data.createdById) {
-        const user = await UserMongo.findOne({ mysqlId: data.createdById.toString() });
-        if (!user) {
-          console.warn(`User with MySQL ID ${data.createdById} not found in MongoDB`);
-        } else {
-          mongoUpdateData.createdById = user._id;
-        }
-      }
-      
-      // Update in MongoDB
-      const updatedMongoDB = await ListMongo.updateOne(
-        { mysqlId: id },
-        { $set: mongoUpdateData }
-      );
-  
-      if (updatedMongoDB.modifiedCount === 0) {
-        console.warn("List not found in MongoDB or no changes made");
-      }
-  
-      // Return the updated resource with populated relationships
-      return this.findById(id);
-    } catch (error) {
-      console.error("Error updating List:", error);
-      throw new Error('Error updating List: ' + error.message);
+ async update(id, data) {
+  try {
+    // Validate required fields
+    if (!data.name) {
+      throw new Error("List name is required");
     }
+
+    // Ensure we have a user ID for logging
+    const userId = data.updatedById || data.createdById;
+    if (!userId) {
+      throw new Error("User ID is required for logging");
+    }
+
+    // Log update start
+    await Log.create({
+      userId: userId,
+      action: 'UPDATE_LIST_START',
+      details: `Attempting to update list ${id}`
+    });
+
+    // Update in MySQL
+    const [updatedCount] = await List.update(
+      { name: data.name },
+      { where: { id } }
+    );
+
+    if (updatedCount === 0) {
+      await Log.create({
+        userId: userId,
+        action: 'UPDATE_LIST_FAILED',
+        details: `List with ID ${id} not found in MySQL`
+      });
+      throw new Error("List not found in MySQL");
+    }
+
+    // Prepare MongoDB update
+    const mongoUpdateData = { 
+      name: data.name,
+      updatedAt: new Date()
+    };
+
+    // Update in MongoDB
+    const updatedMongoDB = await ListMongo.updateOne(
+      { mysqlId: id },
+      { $set: mongoUpdateData }
+    );
+
+    // Log success
+    await Log.create({
+      userId: userId,
+      action: 'UPDATE_LIST_SUCCESS',
+      details: `Updated list with ID ${id}`
+    });
+
+    // Return the updated list with populated relationships
+    return this.findById(id);
+  } catch (error) {
+    // Log error with available user ID
+    await Log.create({
+      userId: data.updatedById || data.createdById || 0,
+      action: 'UPDATE_LIST_ERROR',
+      details: `Error updating list ${id}: ${error.message}`
+    });
+    console.error("Error updating List:", error);
+    throw error;
   }
-  async delete(id) {
-    try {
+}
+
+async delete(id, userId) { // Add userId parameter to track who performed the deletion
+  try {
+      await Log.create({
+          userId: userId || null,
+          action: 'DELETE_LIST_START',
+          details: `Attempting to delete list ${id}`
+      });
+
       // Delete from MySQL
       const deletedMySQL = await List.destroy({ where: { id } });
       
+      if (deletedMySQL === 0) {
+          await Log.create({
+              userId: userId || null,
+              action: 'DELETE_LIST_FAILED',
+              details: `List with ID ${id} not found in MySQL`
+          });
+          throw new Error("List not found in MySQL");
+      }
+
       // Delete from MongoDB
-      await ListMongo.deleteOne({ mysqlId: id });
+      const deleteResult = await ListMongo.deleteOne({ mysqlId: id });
       
+      if (deleteResult.deletedCount === 0) {
+          console.warn("List not found in MongoDB");
+      }
+
+      await Log.create({
+          userId: userId || null,
+          action: 'DELETE_LIST_SUCCESS',
+          details: `Successfully deleted list with ID ${id}`
+      });
+
       return deletedMySQL;
-    } catch (error) {
+  } catch (error) {
+      await Log.create({
+          userId: userId || null,
+          action: 'DELETE_LIST_ERROR',
+          details: `Error deleting list ${id}: ${error.message}`
+      });
       console.error("Error deleting List:", error);
-      throw new Error('Error deleting List: ' + error.message);
-    }
+      throw error;
   }
+}
 }
 
 module.exports = new ListRepository();

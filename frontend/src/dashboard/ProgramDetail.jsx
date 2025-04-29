@@ -319,21 +319,49 @@ useEffect(() => {
     }
   };
 
- const handleDeleteList = async (listId) => {
-  try {
-    await axios.delete(`http://localhost:5000/api/list/${listId}`);
-    setLists(lists.filter(list => list.id !== listId));
-  } catch (error) {
-    console.error('Error deleting list:', error);
-    alert('Failed to delete list: ' + (error.response?.data?.message || error.message));
-  } finally {
-    setDeleteListModal({
-      isOpen: false,
-      listId: null,
-      listName: ''
-    });
-  }
-};
+  const handleDeleteList = async (listId) => {
+    try {
+      if (!currentUser?.id) {
+        throw new Error('You must be logged in to delete lists');
+      }
+  
+      await axios.delete(`http://localhost:5000/api/list/${listId}`, {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        data: {
+          userId: currentUser.id
+        }
+      });
+      
+      // Optimistically update UI
+      setLists(prevLists => prevLists.filter(list => list.id !== listId));
+      
+      // Optional: Refresh data from server
+      await fetchLists();
+    } catch (error) {
+      console.error('Error deleting list:', error);
+      
+      // Show user-friendly error message
+      let errorMessage = 'Failed to delete list';
+      if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
+      alert(errorMessage);
+      
+      // Rollback UI if needed
+      await fetchLists();
+    } finally {
+      setDeleteListModal({
+        isOpen: false,
+        listId: null,
+        listName: ''
+      });
+    }
+  };
 
 const handleDeleteListClick = (listId, listName) => {
   setDeleteListModal({
@@ -354,22 +382,32 @@ const handleDeleteListClick = (listId, listName) => {
   };
 
   const saveListEdit = async (listId) => {
-    try {
-      await axios.put(`http://localhost:5000/api/list/${listId}`, {
-        name: editedListName
-      });
-
-      setLists(lists.map(list =>
-        list.id === listId ? { ...list, title: editedListName } : list
-      ));
-
-      setEditingListId(null);
-      setEditedListName('');
-    } catch (error) {
-      console.error('Error updating list:', error);
-      alert('Failed to update list: ' + (error.response?.data?.message || error.message));
+  try {
+    if (!currentUser) {
+      throw new Error("User not authenticated");
     }
-  };
+
+    const response = await axios.put(`http://localhost:5000/api/list/${listId}`, {
+      name: editedListName,  // Use 'name' instead of 'title'
+      updatedById: currentUser.id  // Include user ID for logging
+    });
+
+    // Update local state with the returned data from backend
+    setLists(lists.map(list => 
+      list.id === listId ? { 
+        ...list, 
+        title: response.data.name, // Use response data
+        name: response.data.name   // Keep consistent naming
+      } : list
+    ));
+
+    setEditingListId(null);
+    setEditedListName('');
+  } catch (error) {
+    console.error('Error updating list:', error);
+    alert('Failed to update list: ' + (error.response?.data?.message || error.message));
+  }
+};
   const handleAddMember = async (e) => {
     e.preventDefault();
 
