@@ -1,7 +1,7 @@
 
 const mongoose = require('mongoose');
 const { ObjectId } = require('mongoose').Types;
-
+const Log = require('../database/models/MySQL/log');
 const { Card, User, List } = require('../database/models/index');
 const { CardMongo, UserMongo, ListMongo, AttachmentMongo } = require('../database/models/indexMongo');
 
@@ -67,7 +67,6 @@ class CardRepository {
     try {
       console.log("Creating Card:", data);
   
-      // First create in MySQL
       const mysqlResource = await Card.create(data);
   
       // Handle attachments - initialize as empty array if not provided
@@ -125,9 +124,18 @@ class CardRepository {
         { _id: { $in: savedAttachments.map(att => att._id) } },
         { cardId: mongoResource._id }
       );
-  
+      await Log.create({
+        userId: data.createdById || null,
+        action: 'CREATE_CARD_SUCCESS',
+        details: `Created card with ID ${mysqlResource.id} (${data.title})`
+      });
       return mysqlResource;
     } catch (error) {
+      await Log.create({
+        userId: data.createdById || null,
+        action: 'CREATE_CARD_ERROR',
+        details: `Error creating card: ${error.message}`
+      });
       console.error("Error creating Card:", error);
       throw new Error('Error creating Card: ' + error.message);
     }
@@ -139,6 +147,24 @@ class CardRepository {
       const mysqlCard = await Card.findOne({ where: { id } });
       if (!mysqlCard) {
         throw new Error("Card not found in MySQL");
+      }
+  
+      // Ensure we have a userId for logging, either from data or from the card itself
+      const userId = mysqlCard.createdById;
+      
+      // Log update start
+      if (userId) {
+        await Log.create({
+          userId: userId,
+          action: 'UPDATE_CARD_START',
+          details: `Attempting to update card ${id}`
+        });
+      } else {
+        // Still log the action but without a user ID
+        await Log.create({
+          action: 'UPDATE_CARD_START',
+          details: `Attempting to update card ${id} (no user ID provided)`
+        });
       }
   
       // Prepare the MySQL update data
@@ -236,19 +262,64 @@ class CardRepository {
         });
       }
   
+      // Log success
+      if (userId) {
+        await Log.create({
+          userId: userId,
+          action: 'UPDATE_CARD_SUCCESS',
+          details: `Updated card with ID ${id}`
+        });
+      } else {
+        await Log.create({
+          action: 'UPDATE_CARD_SUCCESS',
+          details: `Updated card with ID ${id} (no user ID provided)`
+        });
+      }
+  
       return updatedMongoCard ? updatedMongoCard.toObject() : mysqlCard;
     } catch (error) {
       console.error("Error updating Card:", error);
+      
+      // Still log the error but don't require userId
+      try {
+        await Log.create({
+          userId: data.userId || data.createdById || null,
+          action: 'UPDATE_CARD_ERROR',
+          details: `Error updating card ${id}: ${error.message}`
+        });
+      } catch (logError) {
+        console.error("Error logging card update failure:", logError);
+      }
+      
       throw new Error('Error updating Card: ' + error.message);
     }
   }
-  async delete(id) {
+
+
+
+  async delete(id, userId) {
     try {
+
+      const mysqlCard = await Card.findOne({ where: { id } });
+      if (!mysqlCard) {
+        throw new Error("Card not found in MySQL");
+      }
+      const userId = mysqlCard.createdById;
+
+
       // Delete from MySQL
       const deletedMySQL = await Card.destroy({ where: { id } });
+
+      
       
       // Delete from MongoDB
       await CardMongo.deleteOne({ mysqlId: id });
+
+        await Log.create({
+                userId: userId,
+                action: 'DELETE_CARD_SUCCESS',
+                details: `Successfully deleted list with ID ${id}`
+            });
       
       return deletedMySQL;
     } catch (error) {

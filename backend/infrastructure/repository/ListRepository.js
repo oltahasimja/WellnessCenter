@@ -36,13 +36,7 @@ class ListRepository {
   async create(data) {
     try {
       console.log("Creating List:", data);
-      
-      // Log creation start
-      await Log.create({
-        userId: data.createdById || null,
-        action: 'CREATE_LIST_START',
-        details: `Attempting to create list: ${data.name}`
-      });
+  
 
       // First create in MySQL
       const mysqlResource = await List.create(data);
@@ -111,12 +105,6 @@ class ListRepository {
       throw new Error("User ID is required for logging");
     }
 
-    // Log update start
-    await Log.create({
-      userId: userId,
-      action: 'UPDATE_LIST_START',
-      details: `Attempting to update list ${id}`
-    });
 
     // Update in MySQL
     const [updatedCount] = await List.update(
@@ -128,7 +116,7 @@ class ListRepository {
       await Log.create({
         userId: userId,
         action: 'UPDATE_LIST_FAILED',
-        details: `List with ID ${id} not found in MySQL`
+        details: `List with ID ${data.name} not found in MySQL`
       });
       throw new Error("List not found in MySQL");
     }
@@ -149,7 +137,7 @@ class ListRepository {
     await Log.create({
       userId: userId,
       action: 'UPDATE_LIST_SUCCESS',
-      details: `Updated list with ID ${id}`
+      details: `Updated list with ID ${data.name}`
     });
 
     // Return the updated list with populated relationships
@@ -168,11 +156,7 @@ class ListRepository {
 
 async delete(id, userId) { // Add userId parameter to track who performed the deletion
   try {
-      await Log.create({
-          userId: userId || null,
-          action: 'DELETE_LIST_START',
-          details: `Attempting to delete list ${id}`
-      });
+
 
       // Delete from MySQL
       const deletedMySQL = await List.destroy({ where: { id } });
