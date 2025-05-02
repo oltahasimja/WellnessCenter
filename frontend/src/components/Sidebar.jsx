@@ -233,31 +233,39 @@ const Sidebar = () => {
           </div>
  </div>
 )}
-          <div className="mb-1">
-            <MenuItem 
-              icon={GraduationCap} 
-              label="Manage Training" 
-              hasDropdown={true}
-            />
-            {openDropdown === 'Manage Training' && isOpen && (
-              <div className={`ml-12 mt-1 space-y-1 ${theme === 'dark' ? 'bg-gray-800' : 'bg-gray-50'} rounded-md p-1`}>
-                <div 
-                  className="flex items-center px-3 py-2 hover:bg-blue-100 dark:hover:bg-gray-700 rounded cursor-pointer"
-                  onClick={() => handleMenuItemClick('training')}
-                >
-                  <Table className="w-5 h-5 mr-2" />
-                  <span>Training</span>
-                </div>
-                <div 
-                  className="flex items-center px-3 py-2 hover:bg-blue-100 dark:hover:bg-gray-700 rounded cursor-pointer"
-                  onClick={() => handleMenuItemClick('trainingapplication')}
-                >
-                  <UserPlus className="w-5 h-5 mr-2" />
-                  <span>TrainingApplication</span>
-                </div>
+        <div className="mb-1">
+          <MenuItem 
+            icon={GraduationCap} 
+            label="Manage Training" 
+            hasDropdown={true}
+          />
+          {openDropdown === 'Manage Training' && isOpen && (
+            <div className={`ml-12 mt-1 space-y-1 ${theme === 'dark' ? 'bg-gray-800' : 'bg-gray-50'} rounded-md p-1`}>
+              <div 
+                className="flex items-center px-3 py-2 hover:bg-blue-100 dark:hover:bg-gray-700 rounded cursor-pointer"
+                onClick={() => handleMenuItemClick('training')}
+              >
+                <Table className="w-5 h-5 mr-2" />
+                <span>Training</span>
               </div>
-            )}
-          </div>
+              <div 
+                className="flex items-center px-3 py-2 hover:bg-blue-100 dark:hover:bg-gray-700 rounded cursor-pointer"
+                onClick={() => handleMenuItemClick('trainingapplication')}
+              >
+                <UserPlus className="w-5 h-5 mr-2" />
+                <span>TrainingApplication</span>
+              </div>
+              <div 
+                className="flex items-center px-3 py-2 hover:bg-blue-100 dark:hover:bg-gray-700 rounded cursor-pointer"
+                onClick={() => handleMenuItemClick('scheduleTraining')}
+              >
+                <Calendar className="w-5 h-5 mr-2" />
+                <span>Schedule Training</span>
+              </div>
+            </div>
+          )}
+        </div>
+
 
 
           {/* Manage Orders Dropdown */}

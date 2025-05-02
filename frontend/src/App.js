@@ -30,6 +30,7 @@ import Schedule from './pages/Schedule'
 import ProductsPage from './pages/ProductsPage';
 import ProductCard from './pages/ProductCard';
 import MyPrograms from './pages/MyPrograms';
+import TrainingPage from './pages/TrainingPage'
 
 
 const AppRoutes = () => {
@@ -56,6 +57,7 @@ const AppRoutes = () => {
         <Route path="/Appointment" element={<Appointment />} />
         <Route path="/dashboard/*" element={<Dashboard />} />
 
+        <Route path="/trainingpage" element={<TrainingPage />} />
 
 
 
