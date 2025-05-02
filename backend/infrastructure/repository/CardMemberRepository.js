@@ -82,30 +82,7 @@ class CardMemberRepository {
     }
   }
 
-  // async findById(cardId) {
-  //   try {
-  //     // First try MongoDB
-  //     const cardMongo = await CardMongo.findOne({ 
-  //       $or: [{ mysqlId: cardId }, { _id: new ObjectId(cardId) }] 
-  //     });
-      
-  //     if (!cardMongo) return [];
-      
-  //     return await CardMemberMongo.find({ cardId: cardMongo._id })
-  //       .populate('userId')
-  //       .lean();
-  //   } catch (error) {
-  //     console.error("MongoDB findByCardId failed:", error);
-  //     // Fallback to MySQL
-  //     const cardMembers = await CardMember.findAll({
-  //       where: { cardId }
-  //     });
-  //     return cardMembers.map(cm => cm.get({ plain: true }));
-  //   }
-  // }
 
-  
-  // Write operations - Write to both MongoDB and MySQL
   
   async create(data) {
     try {

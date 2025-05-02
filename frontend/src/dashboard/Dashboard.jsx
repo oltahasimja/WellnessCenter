@@ -30,7 +30,7 @@ import Cart from './Cart';
 import Review from './Review';
 import CardMember from './CardMember';
 import ScheduleTraining from './ScheduleTraining'
-
+import Delivery from './Delivery';
 
 function Dashboard() {
   axios.defaults.withCredentials = true;
@@ -83,7 +83,7 @@ function Dashboard() {
     
 
     schedule: { component: <Schedule />, access: isOwner },
-    
+    delivery: { component: <Delivery />, access: isSpecialist || isOwner },
     // Client or Specialist components
     card: { component: <Card />, access: isClient || isSpecialist },
     

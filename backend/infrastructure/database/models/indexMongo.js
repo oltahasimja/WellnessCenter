@@ -14,7 +14,6 @@ const ReviewMongo = require('./Mongo/ReviewMongo');
 const ProductMongo = require('./Mongo/ProductMongo');
 const OrderMongo = require('./Mongo/OrderMongo');
 const ListMongo = require('./Mongo/ListMongo');
-const DeliveryMongo = require('./Mongo/DeliveryMongo');
 const CertificationMongo = require('./Mongo/CertificationMongo');
 const CategoryMongo = require('./Mongo/CategoryMongo');
 const CardMongo = require('./Mongo/CardMongo');
@@ -41,7 +40,6 @@ module.exports = {
   ProductMongo,
   OrderMongo,
   ListMongo,
-  DeliveryMongo,
   CertificationMongo,
   CategoryMongo,
   CardMongo,

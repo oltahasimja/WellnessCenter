@@ -1,6 +1,5 @@
 const { DataTypes } = require('sequelize');
 const sequelize = require('../../../../config/database');
-const User = require('./User');        
 const Product = require('./Product');
 
 const Review = sequelize.define('Review', {
@@ -14,25 +13,23 @@ const Review = sequelize.define('Review', {
     allowNull: false,
     validate: {
       min: 1,
-      max: 5
-    }
+      max: 5,
+    },
   },
   comment: {
     type: DataTypes.TEXT,
-    allowNull: true
+    allowNull: true,
   },
   verifiedPurchase: {
     type: DataTypes.BOOLEAN,
-    defaultValue: false
-  }
+    defaultValue: false,
+  },
 }, {
-  timestamps: true
+  timestamps: true,
 });
 
 
-// Review.belongsTo(User, { foreignKey: 'userId' });
-Review.belongsTo(Product, { foreignKey: 'productId' });
-
+ Review.belongsTo(Product, { foreignKey: 'productId' });
 
 module.exports = Review;
 
