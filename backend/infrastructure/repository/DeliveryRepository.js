@@ -1,19 +1,17 @@
 
 const mongoose = require('mongoose');
 const { ObjectId } = require('mongoose').Types;
-const Delivery = require("../database/models/MySQL/Delivery");
-
-
-
-const { DeliveryMongo, Order, OrderMongo } = require('../database/models/indexMongo');
-
+const Delivery = require("../database/models/Delivery");
+const DeliveryMongo = require("../database/models/DeliveryMongo");
+const Order = require("../database/models/index");
+const OrderMongo = require("../database/models/Mongo/OrderMongo");
 
 class DeliveryRepository {
   // Read operations - Get from MongoDB with fallback to MySQL
   async findAll() {
     try {
       // Get all from MongoDB with populated relationships
-      return await DeliveryMongo.find().populate([{ path: 'orderId', model: 'OrderMongo' }]).lean();
+      return await DeliveryMongo.find().populate([{ path: 'orderMongoId', model: 'Order' }]).lean();
     } catch (error) {
       // Fallback to MySQL if MongoDB fails
       console.error("MongoDB findAll failed, falling back to MySQL:", error);
@@ -43,18 +41,22 @@ class DeliveryRepository {
       // Prepare data for MongoDB
       const mongoData = {
         mysqlId: mysqlResource.id.toString(),
-        ...data
+        deliveryAddress: data.deliveryAddress,
+        status: data.status || 'pending',
+        emailSent: data.emailSent || false,
+        // Copy other fields as needed
       };
       
-      // Handle foreign keys - convert MySQL IDs to MongoDB references
-      
+      // Handle order reference conversion
       if (data.orderId) {
         // Find the related document in MongoDB
         const order = await OrderMongo.findOne({ mysqlId: data.orderId.toString() });
         if (!order) {
           throw new Error(`Order with MySQL ID ${data.orderId} not found in MongoDB`);
         }
-        mongoData.orderId = new ObjectId(order._id.toString());
+        mongoData.orderMongoId = order._id; // Use the correct field name from schema
+      } else {
+        throw new Error("Order ID is required");
       }
       
       // Create in MongoDB
