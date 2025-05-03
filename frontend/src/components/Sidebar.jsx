@@ -8,14 +8,13 @@ import {
   Calendar,  UserCircle2,  CheckSquare,  FileText,   Table,  FileInput,  MessageCircle,
     Mail, Menu,  ChevronDown,  Github, Trello,LogOut, ListCheck,Clipboard, Antenna,
   Users, Layers, Shield, CalendarClock, GraduationCap, ListOrdered, Package, Tags,
-  ClipboardList, UserPlus, ShoppingCart,Star,TruckIcon
+  ClipboardList, UserPlus,Star,TruckIcon
 
 } from 'lucide-react';
 
 const Sidebar = () => {
   const [isOpen, setIsOpen] = useState(true);
   const [openDropdown, setOpenDropdown] = useState(null);
-  const [cartItemCount, setCartItemCount] = useState(0); // <-- Track cart items
   const { isChecking, user } = useAuthCheck(); 
   const navigate = useNavigate();
   const { theme } = useTheme();
@@ -376,13 +375,6 @@ const Sidebar = () => {
             icon={MessageCircle} 
             label="Chat" 
             componentName="chat"
-          />
-          {/* shopping cart*/}
-          <MenuItem 
-            icon={ShoppingCart} 
-            label="Shopping Cart" 
-            componentName="cart" 
-            hasDropdown={false} 
           />
           
         </div>

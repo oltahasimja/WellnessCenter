@@ -22,8 +22,6 @@ import ForgotPassword from './components/ForgotPassword';
 import ResetPassword from './components/ResetPassword';
 import Product from './dashboard/Product';
 import Category from './dashboard/Category';
-import Cart from './dashboard/Cart';
-import ClientOrderForm from './dashboard/ClientOrderForm';
 import Appointment from './pages/Appointment'
 import Schedule from './pages/Schedule'
 import ProductsPage from './pages/ProductsPage';
@@ -81,8 +79,6 @@ const AppRoutes = () => {
         <Route path="/productcard" element={<ProductCard/>}/>
         
         <Route path="/category" element={<Category/>}/>
-        <Route path="/cart" element={<Cart/>}/>
-        <Route path="/client-order-form" element={<ClientOrderForm/>}/>
       
 
         <Route path="/forgot-password" element={<ForgotPassword />} />

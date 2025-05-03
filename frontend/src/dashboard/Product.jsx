@@ -5,13 +5,10 @@ const Product = () => {
   const [formData, setFormData] = useState({});
   const [productList, setProductList] = useState([]);
   const [categoryList, setCategoryList] = useState([]);
-  const [cart, setCart] = useState([]);
 
   useEffect(() => {
     fetchProducts();
     fetchCategories();
-    const storedCart = JSON.parse(localStorage.getItem("cart")) || [];
-    setCart(storedCart);
   }, []);
 
   const fetchProducts = async () => {
@@ -109,22 +106,6 @@ const Product = () => {
     }
   };
 
-  const addToCart = (product) => {
-    const updatedCart = [...cart];
-    const existingItem = updatedCart.find(item => item.id === product.id);
-
-    if (existingItem) {
-      existingItem.quantity += 1;
-    } else {
-      updatedCart.push({ ...product, quantity: 1 });
-    }
-    
-
-    setCart(updatedCart);
-    localStorage.setItem("cart", JSON.stringify(updatedCart));
-    alert("Product added to cart!");
-  };
-
   return (
     <div className="flex justify-center items-center min-h-screen bg-gray-100">
       <div className="bg-white shadow-lg rounded-lg p-6 w-full max-w-8xl">
@@ -212,7 +193,6 @@ const Product = () => {
                     <td className="py-3 px-6 flex justify-center space-x-2">
                       <button onClick={() => handleEdit(item)} className="bg-yellow-500 hover:bg-yellow-600 text-white py-1 px-3 rounded-md text-sm">Edit</button>
                       <button onClick={() => handleDelete(item.mysqlId || item.id)} className="bg-red-500 hover:bg-red-600 text-white py-1 px-3 rounded-md text-sm">Delete</button>
-                      <button onClick={() => addToCart(item)} className="bg-green-500 hover:bg-green-600 text-white py-1 px-3 rounded-md text-sm">Add to Cart</button>
                     </td>
                   </tr>
                 ))

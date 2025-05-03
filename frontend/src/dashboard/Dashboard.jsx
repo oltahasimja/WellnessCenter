@@ -26,7 +26,6 @@ import Appointments from './Appointment/Appointment';
 import CreateAppointment from './Appointment/CreateAppointment';
 import Product from './Product';
 import Category from './Category';
-import Cart from './Cart';
 import CardMember from './CardMember';
 import ScheduleTraining from './ScheduleTraining'
 import Delivery from './Delivery';
@@ -53,7 +52,6 @@ function Dashboard() {
   const componentConfig = {
     // Public components (available to all authenticated users)
     profile: { component: <Profile />, access: true },
-    cart: { component: <Cart />, access: true },
     appointment: { component: <Appointments />, access: true },
     createappointment: { component: <CreateAppointment />, access: true },
     notfound: { component: <NotFound />, access: true },
