@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link, useLocation } from 'react-router-dom';
-import { FaBars, FaTimes, FaUser } from 'react-icons/fa';
+import { FaBars, FaTimes, FaUser, FaShoppingCart } from 'react-icons/fa';
 
-const Header = () => {
+const Header = ({ cart = [], showCart, setShowCart }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const location = useLocation();
@@ -55,7 +55,7 @@ const Header = () => {
           </motion.div>
 
           {/* Desktop Navigation */}
-          <nav className="hidden md:flex space-x-8 mr-[5rem]">
+          <nav className="hidden md:flex space-x-8 mr-[5rem] items-center">
             {navItems.map((item) => (
               <motion.div
                 key={item.name}
@@ -90,6 +90,26 @@ const Header = () => {
                 <FaUser className="mr-2" />
                 Dashboard
               </Link>
+            </motion.div>
+            {/* Cart */}
+            <motion.div
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => setShowCart(!showCart)}
+              className="relative ml-4 cursor-pointer"
+            >
+              <FaShoppingCart 
+                className="text-xl text-teal-600 hover:text-teal-700"
+              />
+              {cart.length > 0 && (
+                <motion.span 
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  className="absolute -top-2 -right-2 bg-amber-400 text-white text-xs font-bold w-5 h-5 rounded-full flex items-center justify-center"
+                >
+                  {cart.length}
+                </motion.span>
+              )}
             </motion.div>
           </nav>
 
