@@ -107,10 +107,10 @@ const Product = () => {
   };
 
   return (
-    <div className="flex justify-center items-center min-h-screen bg-gray-100">
-      <div className="bg-white shadow-lg rounded-lg p-6 w-full max-w-8xl">
-        <h1 className="text-3xl font-bold text-center mb-6 text-gray-700">Product Management</h1>
-
+    <div className="flex justify-center items-center min-h-screen bg-gray-700">
+      <div className="bg-gray-800 shadow-lg rounded-lg p-6 w-full max-w-8xl">
+        <h1 className="text-3xl font-bold text-center mb-6 text-white">Product Management</h1>
+  
         {/* form */}
         <form onSubmit={handleSubmit} className="mb-6 space-y-4">
           <input
@@ -118,15 +118,15 @@ const Product = () => {
             placeholder="name"
             value={formData.name || ''}
             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-            className="border p-3 rounded-md w-full focus:ring-2 focus:ring-blue-500 outline-none"
+            className="border border-gray-600 bg-gray-700 text-white p-3 rounded-md w-full focus:ring-2 focus:ring-blue-500 outline-none placeholder-gray-400"
           />
-
+  
           <input
             type="text"
             placeholder="description"
             value={formData.description || ''}
             onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-            className="border p-3 rounded-md w-full focus:ring-2 focus:ring-blue-500 outline-none"
+            className="border border-gray-600 bg-gray-700 text-white p-3 rounded-md w-full focus:ring-2 focus:ring-blue-500 outline-none placeholder-gray-400"
           />
           
           {/* price */}
@@ -138,39 +138,39 @@ const Product = () => {
               const numericValue = parseFloat(e.target.value);
               setFormData({ ...formData, price: isNaN(numericValue) ? '' : numericValue });
             }}
-            className="border p-3 rounded-md w-full focus:ring-2 focus:ring-blue-500 outline-none"
+            className="border border-gray-600 bg-gray-700 text-white p-3 rounded-md w-full focus:ring-2 focus:ring-blue-500 outline-none placeholder-gray-400"
           />
-
+  
           <select
             value={formData.category || ''}
             onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-            className="border p-3 rounded-md w-full focus:ring-2 focus:ring-blue-500 outline-none"
+            className="border border-gray-600 bg-gray-700 text-white p-3 rounded-md w-full focus:ring-2 focus:ring-blue-500 outline-none"
           >
-            <option value="">Select Category</option>
+            <option value="" className="bg-gray-700">Select Category</option>
             {categoryList.map((category) => (
-              <option key={category.id} value={category.id}>
+              <option key={category.id} value={category.id} className="bg-gray-700">
                 {category.name}
               </option>
             ))}
           </select>
-
+  
           <input
             type="file"
             accept="image/*"
             onChange={handleImageChange}
-            className="border p-3 rounded-md w-full focus:ring-2 focus:ring-blue-500 outline-none"
+            className="border border-gray-600 bg-gray-700 text-white p-3 rounded-md w-full focus:ring-2 focus:ring-blue-500 outline-none file:bg-gray-600 file:text-white file:border-none file:rounded-md file:px-4 file:py-2 file:mr-4"
           />
-
-          <button type="submit" className="w-full bg-blue-500 hover:bg-blue-600 text-white py-2 rounded-md font-semibold text-lg">
+  
+          <button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-md font-semibold text-lg">
             {formData.id ? 'Update' : 'Add'}
           </button>
         </form>
-
+  
         {/* table */}
         <div className="overflow-x-auto">
-          <table className="w-full border-collapse shadow-md rounded-md bg-white">
+          <table className="w-full border-collapse shadow-md rounded-md bg-gray-800">
             <thead>
-              <tr className="bg-gray-200 text-gray-600 uppercase text-sm leading-normal">
+              <tr className="bg-gray-700 text-gray-300 uppercase text-sm leading-normal">
                 <th className="py-3 px-6 text-left">name</th>
                 <th className="py-3 px-6 text-left">description</th>
                 <th className="py-3 px-6 text-left">price</th>
@@ -179,10 +179,10 @@ const Product = () => {
                 <th className="py-3 px-6 text-center">Actions</th>
               </tr>
             </thead>
-            <tbody className="text-gray-700 text-sm font-light">
+            <tbody className="text-gray-300 text-sm font-light">
               {productList.length > 0 ? (
                 productList.map((item) => (
-                  <tr key={`${item.id}-${item.name}`} className="border-b border-gray-200 hover:bg-gray-100">
+                  <tr key={`${item.id}-${item.name}`} className="border-b border-gray-700 hover:bg-gray-700">
                     <td className="py-3 px-6 text-left">{item.name}</td>
                     <td className="py-3 px-6 text-left">{item.description}</td>
                     <td className="py-3 px-6 text-left">{new Intl.NumberFormat('en-US').format(item.price)} €</td>
@@ -191,14 +191,14 @@ const Product = () => {
                       {item.image && <img src={item.image} alt={item.name} className="w-16 h-16 object-cover rounded" />}
                     </td>
                     <td className="py-3 px-6 flex justify-center space-x-2">
-                      <button onClick={() => handleEdit(item)} className="bg-yellow-500 hover:bg-yellow-600 text-white py-1 px-3 rounded-md text-sm">Edit</button>
-                      <button onClick={() => handleDelete(item.mysqlId || item.id)} className="bg-red-500 hover:bg-red-600 text-white py-1 px-3 rounded-md text-sm">Delete</button>
+                      <button onClick={() => handleEdit(item)} className="bg-yellow-600 hover:bg-yellow-700 text-white py-1 px-3 rounded-md text-sm">Edit</button>
+                      <button onClick={() => handleDelete(item.mysqlId || item.id)} className="bg-red-600 hover:bg-red-700 text-white py-1 px-3 rounded-md text-sm">Delete</button>
                     </td>
                   </tr>
                 ))
               ) : (
                 <tr>
-                  <td colSpan="6" className="text-center text-gray-500 py-4">No data available</td>
+                  <td colSpan="6" className="text-center text-gray-400 py-4">No data available</td>
                 </tr>
               )}
             </tbody>
