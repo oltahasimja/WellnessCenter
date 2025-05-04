@@ -10,7 +10,7 @@ const TrainingMongo = require('./Mongo/TrainingMongo');
 const TrainingApplicationMongo = require('./Mongo/TrainingApplicationMongo');
 const ScheduleTrainingMongo = require('./Mongo/ScheduleTrainingMongo');
 const ScheduleMongo = require('./Mongo/ScheduleMongo');
-const ReviewMongo = require('./Mongo/ReviewMongo');
+{/*const ReviewMongo = require('./Mongo/ReviewMongo');*/}
 const ProductMongo = require('./Mongo/ProductMongo');
 const OrderMongo = require('./Mongo/OrderMongo');
 const ListMongo = require('./Mongo/ListMongo');
@@ -36,7 +36,7 @@ module.exports = {
   ScheduleTrainingMongo,
   ScheduleMongo,
   RoleMongo,
-  ReviewMongo,
+  //ReviewMongo,
   ProductMongo,
   OrderMongo,
   ListMongo,

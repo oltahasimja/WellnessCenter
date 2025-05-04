@@ -27,7 +27,6 @@ import CreateAppointment from './Appointment/CreateAppointment';
 import Product from './Product';
 import Category from './Category';
 import Cart from './Cart';
-import Review from './Review';
 import CardMember from './CardMember';
 import ScheduleTraining from './ScheduleTraining'
 import Delivery from './Delivery';
@@ -77,7 +76,7 @@ function Dashboard() {
     order: { component: <Order />, access: isSpecialist || isOwner },
     product: { component: <Product />, access: isSpecialist || isOwner },
     category: { component: <Category />, access: isSpecialist || isOwner },
-    review: { component: <Review />, access: isSpecialist || isOwner },
+   // review: { component: <Review />, access: isSpecialist || isOwner },
     scheduleTraining: { component: <ScheduleTraining />, access: isSpecialist || isOwner },
 
     
