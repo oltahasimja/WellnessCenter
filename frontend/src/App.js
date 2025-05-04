@@ -24,8 +24,8 @@ import Product from './dashboard/Product';
 import Category from './dashboard/Category';
 import Appointment from './pages/Appointment'
 import Schedule from './pages/Schedule'
-import ProductsPage from './pages/ProductsPage';
-import ProductCard from './pages/ProductCard';
+import ProductsPage from './pages/product/ProductsPage';
+import ProductCard from './pages/product/ProductCard';
 import MyPrograms from './pages/MyPrograms';
 import TrainingPage from './pages/TrainingPage'
 

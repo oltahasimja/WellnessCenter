@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { FiClock, FiCalendar, FiUser, FiStar, FiHeart, FiShare2, FiChevronDown, FiChevronUp } from 'react-icons/fi';
+import Footer from './Footer';
 
 const TrainingPage = () => {
   const [activeTab, setActiveTab] = useState('classes');
@@ -399,7 +400,7 @@ const TrainingPage = () => {
         )}
       </div>
 
-      {/* CTA Section */}
+     {/* CTA Section 
       <div className="bg-teal-700 py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-3xl font-bold text-white mb-4">Ready to Start Your Wellness Journey?</h2>
@@ -411,6 +412,9 @@ const TrainingPage = () => {
           </button>
         </div>
       </div>
+      */}
+      <Footer />
+      
     </div>
   );
 };
