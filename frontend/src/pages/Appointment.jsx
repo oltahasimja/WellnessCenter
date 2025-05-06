@@ -132,6 +132,8 @@ const WellnessCenter = () => {
     slidesToScroll: 1,
     autoplay: true,
     autoplaySpeed: 5000,
+  
+  
     cssEase: "cubic-bezier(0.645, 0.045, 0.355, 1)",
     responsive: [
       {
@@ -166,7 +168,7 @@ const WellnessCenter = () => {
     {
       id: 1,
       title: "Personal Training",
-      description: "Customized workout programs designed by certified trainers to help you achieve your fitness goals.",
+      description: "Customized workout programs designed by certified trainers to help you achieve your fitness goals. Rinarda Vesa",
       icon: <FaDumbbell className="text-4xl text-blue-500" />,
       bgColor: "bg-blue-50",
       borderColor: "border-blue-200",
@@ -196,7 +198,7 @@ const WellnessCenter = () => {
     {
       id: 3,
       title: "Psychology Services",
-      description: "Professional mental health support to help you achieve balance and wellbeing.",
+      description: "Professional mental health support to help you achieve balance and wellbeing. dasdasdasfadsasdasdasd",
       icon: <MdPsychology className="text-4xl text-purple-500" />,
       bgColor: "bg-purple-50",
       borderColor: "border-purple-200",

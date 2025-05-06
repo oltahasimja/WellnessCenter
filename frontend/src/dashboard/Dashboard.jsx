@@ -29,6 +29,8 @@ import Category from './Category';
 import CardMember from './CardMember';
 import ScheduleTraining from './ScheduleTraining'
 import Delivery from './Delivery';
+import Group from './Group';
+import UsersGroup from './UsersGroup';
 
 function Dashboard() {
   axios.defaults.withCredentials = true;
@@ -76,6 +78,8 @@ function Dashboard() {
     category: { component: <Category />, access: isSpecialist || isOwner },
    // review: { component: <Review />, access: isSpecialist || isOwner },
     scheduleTraining: { component: <ScheduleTraining />, access: isSpecialist || isOwner },
+    creategroup: { component: <Group />, access: isSpecialist || isOwner },
+    usersgroup: { component: <UsersGroup />, access: isSpecialist || isOwner },
 
     
 

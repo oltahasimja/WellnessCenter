@@ -18,6 +18,8 @@ const TrainingApplication = require('./MySQL/TrainingApplication');
 const UserPrograms = require('./MySQL/UserPrograms');
 const List = require('./MySQL/List');
 const Log = require('./MySQL/log');
+const Group = require('./MySQL/Group');
+const UsersGroup = require('./MySQL/UsersGroup');
 
 // Initialize models - try to handle different patterns safely
 function initializeModel(model, seq) {
@@ -56,6 +58,9 @@ const TrainingModel = initializeModel(Training, sequelize);
 const TrainingApplicationModel = initializeModel(TrainingApplication, sequelize);
 const UserProgramsModel = initializeModel(UserPrograms, sequelize);
 const ListModel = initializeModel(List, sequelize);
+const GroupModel = initializeModel(Group, sequelize);
+const UsersGroupModel = initializeModel(UsersGroup, sequelize);
+
 
 // Log relationships
 UserModel.hasMany(LogModel, { foreignKey: 'userId' });
@@ -89,6 +94,12 @@ AppointmentModel.belongsTo(UserModel, { foreignKey: 'specialistId', as: 'special
 // Program relationships
 UserModel.hasMany(ProgramModel, { foreignKey: 'createdById' });
 ProgramModel.belongsTo(UserModel, { foreignKey: 'createdById' });
+
+UserModel.hasMany(GroupModel, { foreignKey: 'createdById' });
+GroupModel.belongsTo(UserModel, { foreignKey: 'createdById' });
+
+UserModel.belongsToMany(Group, { through: UsersGroup, foreignKey: 'userId' });
+Group.belongsToMany(UserModel, { through: UsersGroup, foreignKey: 'groupId' });
 
 UserModel.belongsToMany(ProgramModel, { through: UserProgramsModel, foreignKey: 'userId' });
 ProgramModel.belongsToMany(UserModel, { through: UserProgramsModel, foreignKey: 'programId' });
@@ -141,5 +152,8 @@ module.exports = {
   Training: TrainingModel,
   TrainingApplication: TrainingApplicationModel,
   UserPrograms: UserProgramsModel,
-  List: ListModel
+  List: ListModel,
+  Log: LogModel,
+  Group: GroupModel,
+  UsersGroup: UsersGroupModel,
 };
