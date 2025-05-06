@@ -1,5 +1,7 @@
 require('dotenv').config();
 const express = require('express');
+const http = require('http');
+const socketIo = require('socket.io');
 const session = require('express-session');
 const bodyParser = require('body-parser');
 const cors = require('cors');
@@ -15,14 +17,132 @@ const sequelize = require('./config/database');
 const isAuthenticated = require('./middlewares/authMiddleware').isAuthenticated;
 
 const mongoose = require('mongoose')
-const { User, Country, City, ProfileImage, Role, DashboardRole } = require('./infrastructure/database/models/index');
-const { UserMongo, CountryMongo, CityMongo, ProfileImageMongo, RoleMongo, DashboardRoleMongo } = require('./infrastructure/database/models/indexMongo');
+const { User, Country, City, ProfileImage, Role, DashboardRole, UsersGroup, Group } = require('./infrastructure/database/models/index');
+const { UserMongo, MessageMongo, CountryMongo, CityMongo, ProfileImageMongo, RoleMongo, DashboardRoleMongo, UsersGroupMongo, GroupMongo } = require('./infrastructure/database/models/indexMongo');
 
 
 
 
 
 const app = express();
+const server = http.createServer(app);
+const io = socketIo(server, {
+  cors: {
+    origin: ["http://localhost:3000", "http://192.168.0.114:3000"],
+    methods: ["GET", "POST"],
+    credentials: true
+  }
+});
+
+
+
+// Socket.io connection handler
+io.on('connection', (socket) => {
+  console.log('User connected:', socket.id);
+  
+  // Auth middleware
+  const isAuthenticated = async (next) => {
+    try {
+      // Get user info from the session/cookies
+      // This would need to be adapted to your auth system
+      const userId = socket.handshake.auth.userId || socket.request.session?.passport?.user;
+      
+      if (!userId) {
+        return next(new Error('Not authenticated'));
+      }
+      
+      const user = await UserMongo.findOne({ mysqlId: userId });
+      if (!user) {
+        return next(new Error('User not found'));
+      }
+      
+      socket.user = user;
+      next();
+    } catch (err) {
+      next(new Error('Authentication error'));
+    }
+  };
+
+  // Join a chat room (group)
+  socket.on('joinRoom', (groupId) => {
+    socket.join(groupId);
+    console.log(`User ${socket.id} joined room ${groupId}`);
+  });
+
+  // Leave a chat room
+  socket.on('leaveRoom', (groupId) => {
+    socket.leave(groupId);
+    console.log(`User ${socket.id} left room ${groupId}`);
+  });
+
+  // Handle new message
+  socket.on('sendMessage', async (data) => {
+    try {
+      const { groupId, text, userId } = data;
+      
+      if (!groupId || !text || !userId) {
+        socket.emit('error', 'Missing required fields');
+        return;
+      }
+      
+      // Find user in MongoDB
+      const user = await UserMongo.findOne({ mysqlId: userId });
+      
+      if (!user) {
+        socket.emit('error', 'User not found');
+        return;
+      }
+      
+      // Create and save the message
+      const newMessage = new MessageMongo({
+        text,
+        userId: user._id,
+        groupId,
+        createdAt: new Date()
+      });
+      
+      await newMessage.save();
+      
+      // Populate user info for the response
+      const populatedMessage = await MessageMongo.findById(newMessage._id)
+        .populate('userId', 'name lastName')
+        .exec();
+      
+      // Broadcast to all users in the group
+      io.to(groupId).emit('newMessage', populatedMessage);
+      
+      console.log(`Message sent to group ${groupId} by user ${userId}`);
+    } catch (error) {
+      console.error('Error sending message:', error);
+      socket.emit('error', 'Failed to send message');
+    }
+  });
+
+  // Handle disconnection
+  socket.on('disconnect', () => {
+    console.log('User disconnected:', socket.id);
+  });
+});
+
+// app.get('/api/message/:groupId', async (req, res) => {
+//   try {
+//     const { groupId } = req.params;
+    
+//     if (!groupId) {
+//       return res.status(400).json({ message: "Group ID is required" });
+//     }
+    
+//     const messages = await MessageMongo.find({ groupId })
+//       .populate('userId', 'name lastName')
+//       .sort({ createdAt: 1 })
+//       .exec();
+    
+//     res.json(messages);
+//   } catch (error) {
+//     console.error('Error fetching messages:', error);
+//     res.status(500).json({ message: error.message });
+//   }
+// });
 
 
 // Middleware setup
@@ -384,7 +504,11 @@ app.use(passport.session());
 
 const PORT = 5000;
 
+// sequelize.sync().then(() => {
+//   //    console.log('Database synced successfully');
+//   app.listen(PORT, () => console.log(`Server: ${PORT} OK`))
+// }).catch((err) => console.log(err));
+
 sequelize.sync().then(() => {
-  //    console.log('Database synced successfully');
-  app.listen(PORT, () => console.log(`Server: ${PORT} OK`))
+  server.listen(PORT, () => console.log(`Server with WebSockets: ${PORT} OK`));
 }).catch((err) => console.log(err));

@@ -31,6 +31,7 @@ import ScheduleTraining from './ScheduleTraining'
 import Delivery from './Delivery';
 import Group from './Group';
 import UsersGroup from './UsersGroup';
+import Chat from './Chat';
 
 function Dashboard() {
   axios.defaults.withCredentials = true;
@@ -57,6 +58,7 @@ function Dashboard() {
     appointment: { component: <Appointments />, access: true },
     createappointment: { component: <CreateAppointment />, access: true },
     notfound: { component: <NotFound />, access: true },
+    chat: { component: <Chat />, access: true },
 
     
     // Owner only components

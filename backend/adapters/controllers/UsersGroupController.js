@@ -4,14 +4,29 @@ const UsersGroupPort = require("../../application/ports/UsersGroupPort");
 const UsersGroupUseCase = require("../../application/use-cases/UsersGroupUseCase");
 const port = new UsersGroupPort(UsersGroupRepository);
 const UseCase = new UsersGroupUseCase(port);
-const getAllUsersGroups = async (req, res) => {
+async function getAllUsersGroups(req, res) {
   try {
-    const result = await UseCase.getAll();
-    res.json(result);
+    // Check if we're filtering by groupId
+    const { groupId } = req.query;
+    
+    let usersGroups;
+    
+    if (groupId) {
+      // If groupId is provided, filter by it
+      usersGroups = await UsersGroupRepository.findByGroupId(groupId);
+    } else {
+      // Otherwise, get all
+      usersGroups = await UsersGroupRepository.findAll();
+    }
+    
+    return res.status(200).json(usersGroups);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    return handleError(res, error);
   }
-};
+}
+
+
+
 const getUsersGroupById = async (req, res) => {
   try {
     const result = await UseCase.getById(req.params.id);
