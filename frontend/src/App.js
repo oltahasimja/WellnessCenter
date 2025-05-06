@@ -30,6 +30,8 @@ import TrainingPage from './pages/TrainingPage'
 import ProductDemoWellness from './pages/product/ProductDemoWellness';
 import CreateAppointment from './pages/CreateAppointment';
 import MyAppointments from './pages/MyAppointments';
+import Profile from './pages/Profile';
+import Chat from './pages/Chat';
 
 
 const AppRoutes = () => {
@@ -56,8 +58,10 @@ const AppRoutes = () => {
         <Route path="/dashboard/*" element={<Dashboard />} />
         <Route path="/CreateAppointment" element={<CreateAppointment />} />
         <Route path="/MyAppointments" element={<MyAppointments />} />
+        <Route path="/Profile" element={<Profile />} />
 
         <Route path="/trainingpage" element={<TrainingPage />} />
+        <Route path="/chat" element={<Chat />} />
 
 
 

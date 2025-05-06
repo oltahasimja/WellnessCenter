@@ -5,6 +5,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { FaBars, FaTimes, FaUser, FaShoppingCart, FaSignInAlt, FaSignOutAlt } from 'react-icons/fa';
 import axios from "axios";
 
+
 const Header = ({ cart = [], showCart, setShowCart }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
@@ -64,9 +65,16 @@ const Header = ({ cart = [], showCart, setShowCart }) => {
 
   const handleProfileClick = () => {
     if (userData) {
-      navigate("/dashboard/profile");
+      navigate("/profile");
     } else {
-      // Ruaj rrugën aktuale para se të ridrejtohet në login
+      localStorage.setItem('redirectAfterLogin', window.location.pathname);
+      navigate("/login");
+    }
+  };
+  const handleChatClick = () => {
+    if (userData) {
+      navigate("/chat");
+    } else {
       localStorage.setItem('redirectAfterLogin', window.location.pathname);
       navigate("/login");
     }
@@ -239,6 +247,26 @@ const Header = ({ cart = [], showCart, setShowCart }) => {
                 </button>
               </motion.div>
             )}
+
+<motion.div 
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={handleChatClick}
+              className="cursor-pointer ml-4"
+            >
+              
+              <div className="hidden md:flex items-center ml-4">
+            <Link href="/chat" className="text-white hover:text-emerald-100">
+              <button className="h-16 w-16 bg-[#E4C18A] rounded-full flex items-center justify-center shadow-lg">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="h-8 w-8 text-white">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                </svg>
+              </button>
+            </Link>
+          </div>
+              
+            </motion.div>
+        
           </nav>
 
           {/* Mobile menu button */}

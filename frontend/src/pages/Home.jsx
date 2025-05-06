@@ -1,4 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { Link, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FaDumbbell, FaAppleAlt, FaBrain, FaRunning, FaQuoteLeft, FaArrowRight, FaArrowLeft, FaMapMarkerAlt, FaPhone, FaEnvelope, FaStar } from 'react-icons/fa';
 import { GiMuscleUp } from 'react-icons/gi';
@@ -9,6 +11,7 @@ import Header from './Header';
 import "slick-carousel/slick/slick.css"; 
 import "slick-carousel/slick/slick-theme.css";
 import axios from 'axios';
+
 
 axios.defaults.withCredentials = true;
 
@@ -77,7 +80,11 @@ const WellnessCenter = () => {
   const [hoveredTeam, setHoveredTeam] = useState(null);
   const [teamMembers, setTeamMembers] = useState([]);
   const [loading, setLoading] = useState(true);
+    const [userData, setUserData] = useState(null);
+
   const [error, setError] = useState(null);
+  const navigate = useNavigate();
+  const location = useLocation();
 
   useEffect(() => {
     const fetchTeamMembers = async () => {
@@ -338,32 +345,38 @@ const WellnessCenter = () => {
                 className="mt-10 flex items-center gap-x-6"
               >
                 <motion.a
-                  whileHover={{ 
-                    scale: 1.05, 
-                    backgroundColor: "#fde047",
-                    boxShadow: "0 10px 25px -5px rgba(253, 224, 71, 0.3)"
-                  }}
-                  whileTap={{ scale: 0.98 }}
-                  initial={{ boxShadow: "0 0 0 rgba(253, 224, 71, 0)" }}
-                  animate={{ 
-                    boxShadow: ["0 0 0 rgba(253, 224, 71, 0)", "0 0 25px rgba(253, 224, 71, 0.4)", "0 0 0 rgba(253, 224, 71, 0)"]
-                  }}
-                  transition={{ 
-                    boxShadow: { 
-                      duration: 3, 
-                      repeat: Infinity,
-                      ease: "easeInOut"
-                    } 
-                  }}
-                //   href="#services"
-                href='/createappointment'
-                  className="rounded-md bg-yellow-400 px-6 py-3 text-lg font-semibold text-gray-900 hover:bg-yellow-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-yellow-400 transition-all duration-300"
-                >
-                  Book Now
-                </motion.a>
+                whileHover={{ 
+                  scale: 1.05, 
+                  backgroundColor: "#fde047",
+                  boxShadow: "0 10px 25px -5px rgba(253, 224, 71, 0.3)"
+                }}
+                whileTap={{ scale: 0.98 }}
+                initial={{ boxShadow: "0 0 0 rgba(253, 224, 71, 0)" }}
+                animate={{ 
+                  boxShadow: ["0 0 0 rgba(253, 224, 71, 0)", "0 0 25px rgba(253, 224, 71, 0.4)", "0 0 0 rgba(253, 224, 71, 0)"]
+                }}
+                transition={{ 
+                  boxShadow: { 
+                    duration: 3, 
+                    repeat: Infinity,
+                    ease: "easeInOut"
+                  } 
+                }}
+                href="/CreateAppointment"
+                onClick={(e) => {
+                  if (userData) {
+                    e.preventDefault();
+                    localStorage.setItem('redirectAfterLogin', '/CreateAppointment');
+                    navigate('/login');
+                  }
+                }}
+                className="rounded-md bg-[#FFE660] px-6 py-3 text-lg font-semibold text-gray-900 hover:bg-yellow-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-yellow-400 transition-all duration-300"
+              >
+                Book Now
+              </motion.a>
                 <motion.a 
                   whileHover={{ x: 5 }}
-                  target='_blank'
+                  // target='_blank'
                   href="/schedule" 
                   className="text-lg font-semibold leading-6 text-white hover:text-yellow-200 transition-all duration-300 flex items-center"
                 >

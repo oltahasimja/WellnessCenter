@@ -3,8 +3,8 @@ const mongoose = require('mongoose');
 const { ObjectId } = require('mongoose').Types;
 
 
-const { User, Group } = require("../database/models/index");
-const { UserMongo, GroupMongo } = require("../database/models/indexMongo");
+const { User, Group, UsersGroup } = require("../database/models/index");
+const { UserMongo, GroupMongo, UsersGroupMongo } = require("../database/models/indexMongo");
 
 
 class GroupRepository {
@@ -58,6 +58,23 @@ class GroupRepository {
       // Create in MongoDB
       const mongoResource = await GroupMongo.create(mongoData);
       console.log("Group saved in MongoDB:", mongoResource);
+      
+      // Add creator to the group (MySQL)
+      await UsersGroup.create({
+        userId: data.createdById,
+        groupId: mysqlResource.id,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      });
+      
+      // Add creator to the group (MongoDB)
+      const mongoUserGroup = new UsersGroupMongo({
+        mysqlId: `${data.createdById}-${mysqlResource.id}`, // or generate a unique ID
+        userId: mongoData.createdById,
+        groupId: mongoResource._id,
+        createdAt: new Date()
+      });
+      await mongoUserGroup.save();
       
       return mysqlResource;
     } catch (error) {

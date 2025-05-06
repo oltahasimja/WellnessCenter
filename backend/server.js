@@ -105,8 +105,8 @@ io.on('connection', (socket) => {
       
       // Populate user info for the response
       const populatedMessage = await MessageMongo.findById(newMessage._id)
-        .populate('userId', 'name lastName')
-        .exec();
+      .populate('userId', 'name lastName mysqlId')
+      .exec();
       
       // Broadcast to all users in the group
       io.to(groupId).emit('newMessage', populatedMessage);

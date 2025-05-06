@@ -134,8 +134,6 @@ function Chat() {
   // Fetch members of a specific group
   const fetchGroupMembers = async (groupId) => {
     try {
-      // This should match the endpoint pattern in your Express router
-      // Use the correct query parameter to fetch users in a specific group
       const response = await fetch(`${API_BASE_URL}/usersgroup?groupId=${groupId}`, {
         credentials: 'include'
       });
@@ -202,116 +200,113 @@ function Chat() {
   }, [user]);
 
   if (loading) {
-    return <div className="flex items-center justify-center h-screen">Loading...</div>;
+    return <div className="flex items-center justify-center h-screen bg-teal-50">Loading...</div>;
   }
 
   if (error) {
-    return <div className="text-red-500 p-4">{error}</div>;
+    return <div className="text-red-500 p-4 bg-teal-50">{error}</div>;
   }
 
   return (
-    <div className="flex h-screen bg-gray-100">
+    <div className="flex h-screen bg-gradient-to-r from-teal-50 to-teal-100 font-sans">
+      {/* Header */}
       {/* Sidebar - Group List */}
-      <div className="w-1/4 bg-white border-r border-gray-300 overflow-y-auto">
-        <div className="p-4 border-b border-gray-300">
-          <h2 className="text-xl font-semibold">Groups</h2>
-          {user && (
-            <p className="text-sm text-gray-600 mt-1">Logged in as: {user.name || user.username}</p>
-          )}
+      <div className="w-1/4 bg-white border-r border-teal-200 shadow-md">
+        <div className="p-5 bg-gradient-to-r from-teal-400 to-teal-500 text-white rounded-b-2xl shadow">
+          <h2 className="text-2xl font-bold">💬 Chat Groups</h2>
+          {user && <p className="text-sm mt-1">👤 {user.name}</p>}
         </div>
-        <div className="divide-y divide-gray-200">
+        <div className="divide-y divide-teal-100 mt-2 overflow-y-auto">
           {groups.map(group => (
             <div 
-              key={group.id} 
-              className={`p-4 cursor-pointer hover:bg-gray-100 ${selectedGroup?.id === group.id ? 'bg-blue-50' : ''}`}
+              key={group.id}
               onClick={() => handleSelectGroup(group)}
+              className={`cursor-pointer px-5 py-4 transition-all duration-200 hover:bg-teal-100 ${
+                selectedGroup?.id === group.id ? 'bg-teal-200 font-semibold rounded-r-full shadow-inner' : ''
+              }`}
             >
-              <h3 className="font-medium">{group.name}</h3>
+              <span className="text-teal-800  items-center gap-2">
+                <span className="text-lg">#</span> {group.name}
+              </span>
             </div>
           ))}
           {groups.length === 0 && (
-            <div className="p-4 text-gray-500">No groups found</div>
+            <div className="p-4 text-teal-600">No groups found</div>
           )}
         </div>
       </div>
-
+  
       {/* Main Chat Area */}
       <div className="flex-1 flex flex-col">
         {selectedGroup ? (
           <>
             {/* Chat Header */}
-            <div className="bg-white p-4 border-b border-gray-300 flex justify-between items-center">
-              <div>
-                <h2 className="text-xl font-semibold">{selectedGroup.name}</h2>
-              </div>
+            <div className="bg-gradient-to-r from-teal-400 to-teal-500 p-5 flex justify-between items-center text-white shadow-md">
+              <h2 className="text-xl font-bold">{selectedGroup.name}</h2>
               <div className="relative group">
-                <button className="text-gray-600 hover:text-gray-800 focus:outline-none">
-                  Members ({groupMembers.length})
-                </button>
-                <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg hidden group-hover:block z-10">
-                  <div className="py-1">
-                    {groupMembers.map(member => (
-                      <div key={member._id} className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                        {member.name} {member.lastName}
-                      </div>
-                    ))}
-                  </div>
+                <button className="hover:underline">👥 Members ({groupMembers.length})</button>
+                <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-xl hidden group-hover:block z-10 border border-teal-200">
+                  {groupMembers.map(member => (
+                    <div key={member._id} className="px-4 py-2 text-sm text-teal-800 hover:bg-teal-50">
+                      {member.name} {member.lastName}
+                    </div>
+                  ))}
                 </div>
               </div>
             </div>
-
+  
             {/* Messages */}
-            <div className="flex-1 overflow-y-auto p-4 bg-gray-50">
-              {messages.map((message, index) => {
-                const isCurrentUser = message.userId?._id === user.id || message.userId === user.id;
-                
-                return (
-                  <div 
-                    key={message._id || index} 
-                    className={`mb-4 flex ${isCurrentUser ? 'justify-end' : 'justify-start'}`}
-                  >
-                    <div 
-                      className={`max-w-xs md:max-w-md rounded-lg px-4 py-2 ${
-                        isCurrentUser 
-                          ? 'bg-blue-500 text-white ml-auto text-right' 
-                          : 'bg-white border border-gray-300 mr-auto text-left'
-                      }`}
-                    >
-                      {!isCurrentUser && (
-                        <div className="font-medium text-xs mb-1">
-                          {message.userId?.name || 'User'} {message.userId?.lastName || ''}
-                        </div>
-                      )}
-                      <p>{message.text}</p>
-                      <div className={`text-xs mt-1 text-right ${isCurrentUser ? 'text-blue-100' : 'text-gray-500'}`}>
-                        {formatTime(message.createdAt)}
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
+            <div className="flex-1 overflow-y-auto p-6 space-y-4 bg-teal-50">
+            {messages.map((message, index) => {
+const isCurrentUser = 
+(typeof message.userId === 'string' && message.userId === user.id) ||
+(typeof message.userId === 'object' && (message.userId._id === user.id || message.userId.mysqlId === user.id.toString()));
+return (
+    <div 
+      key={message._id || index} 
+      className={`flex ${isCurrentUser ? 'justify-end' : 'justify-start'} animate-fade-in`}
+    >
+      <div 
+        className={`max-w-[70%] p-4 rounded-2xl shadow ${
+          isCurrentUser 
+            ? 'bg-teal-400 text-white text-right'
+            : 'bg-white border border-teal-200 text-left'
+        }`}
+      >
+       <div className="text-xs font-semibold text-teal-600 mb-1">
+  {isCurrentUser
+    ? `You (${user.name} ${user.lastName})`
+    : `${message.userId?.name || 'User'} ${message.userId?.lastName || ''}`}
+</div>
+
+        <p className="leading-snug">{message.text}</p>
+        <div className="text-[0.7rem] mt-1 text-right opacity-70">
+          {formatTime(message.createdAt)}
+        </div>
+      </div>
+    </div>
+  );
+})}
+
               <div ref={messagesEndRef} />
-              
               {messages.length === 0 && (
-                <div className="text-center text-gray-500 mt-10">
-                  No messages yet. Start the conversation!
-                </div>
+                <div className="text-center text-teal-500 mt-10">No messages yet. Start the conversation!</div>
               )}
             </div>
-
+  
             {/* Message Input */}
-            <div className="bg-white border-t border-gray-300 p-4">
-              <form onSubmit={handleSendMessage} className="flex">
+            <div className="bg-white border-t border-teal-200 px-6 py-4">
+              <form onSubmit={handleSendMessage} className="flex gap-2">
                 <input
                   type="text"
-                  className="flex-1 border border-gray-300 rounded-l-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="Type a message..."
+                  className="flex-1 px-4 py-3 rounded-full border border-teal-300 focus:ring-2 focus:ring-teal-400 focus:outline-none"
+                  placeholder="Type your message..."
                   value={newMessage}
                   onChange={(e) => setNewMessage(e.target.value)}
                 />
                 <button
                   type="submit"
-                  className="bg-blue-500 text-white px-4 py-2 rounded-r-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="bg-teal-500 hover:bg-teal-600 text-white px-6 py-3 rounded-full font-semibold transition-all shadow-md"
                 >
                   Send
                 </button>
@@ -319,15 +314,14 @@ function Chat() {
             </div>
           </>
         ) : (
-          <div className="flex-1 flex items-center justify-center bg-gray-50">
-            <div className="text-center text-gray-500">
-              <p className="text-xl">Select a group to start chatting</p>
-            </div>
+          <div className="flex-1 flex items-center justify-center bg-teal-50">
+            <p className="text-teal-600 text-xl">Select a group to start chatting 🗨️</p>
           </div>
         )}
       </div>
     </div>
   );
+  
 }
 
 export default Chat;

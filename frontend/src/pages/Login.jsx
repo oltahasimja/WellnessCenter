@@ -70,7 +70,7 @@ const Login = () => {
         { withCredentials: true }
       );
       localStorage.setItem('isLoggedIn', true);
-      navigate('/dashboard');
+      navigate('/');
     } catch (error) {
       console.error('Google login error:', error);
       setMessage('Gabim gjatë Google login.');

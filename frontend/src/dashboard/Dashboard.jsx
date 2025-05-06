@@ -147,7 +147,10 @@ function Dashboard() {
   
   if (!isAuthenticated) {
     return <div className="flex justify-center items-center h-screen">Ju lutemi identifikohuni...</div>;
-  }
+}
+if (user?.role === 'Client' && user?.dashboardRole !== 'Owner') {
+  return <AccessDenied />;
+}
 
   const renderComponent = () => {
     const config = componentConfig[activeComponent];

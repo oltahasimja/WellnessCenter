@@ -24,11 +24,11 @@ const AccessDenied = () => {
         
         <div className="flex justify-center space-x-4">
           <button
-            onClick={() => navigate('/dashboard')}
+            onClick={() => navigate('/')}
             className="flex items-center px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors"
           >
             <Home size={16} className="mr-2" />
-            Go to Dashboard
+            Go to Home
           </button>
         </div>
       </div>

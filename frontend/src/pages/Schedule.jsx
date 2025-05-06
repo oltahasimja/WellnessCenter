@@ -266,8 +266,20 @@ function Schedule() {
                             ))}
                           </div>
                         </div>
+                        
                       )}
                     </div>
+                    <div className="mt-6 text-right">
+                        <Link
+                          to={`/createappointment?specialist=${specialist.specialistName}`}
+                          className={`inline-flex items-center px-4 py-2 border border-transparent text-base font-medium rounded-lg shadow-sm text-white bg-teal-500 mb-[5px] mr-[5px] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-violet-500 transition-colors duration-200`}
+                        >
+                          Book Appointment To this Specialist
+                          <svg className="ml-2 -mr-1 w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                            <path fillRule="evenodd" d="M10.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L12.586 11H5a1 1 0 110-2h7.586l-2.293-2.293a1 1 0 010-1.414z" clipRule="evenodd" />
+                          </svg>
+                        </Link>
+                      </div>
                   </div>
                 );
               })}
@@ -320,7 +332,7 @@ function Schedule() {
                 Found the perfect specialist? Book your appointment now and take the first step towards your wellness journey.
               </p>
               <Link
-                to="/dashboard/createappointment"
+                to="/createappointment"
                 className="inline-flex items-center px-6 py-3 border border-transparent text-lg font-medium rounded-lg shadow-sm text-white bg-teal-600 hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500 transition-colors duration-200"
               >
                 Book Now
