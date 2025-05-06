@@ -22,13 +22,14 @@ import ForgotPassword from './components/ForgotPassword';
 import ResetPassword from './components/ResetPassword';
 import Product from './dashboard/Product';
 import Category from './dashboard/Category';
-import Appointment from './pages/Appointment'
 import Schedule from './pages/Schedule'
 import ProductsPage from './pages/product/ProductsPage';
 import ProductCard from './pages/product/ProductCard';
 import MyPrograms from './pages/MyPrograms';
 import TrainingPage from './pages/TrainingPage'
 import ProductDemoWellness from './pages/product/ProductDemoWellness';
+import CreateAppointment from './pages/CreateAppointment';
+import MyAppointments from './pages/MyAppointments';
 
 
 const AppRoutes = () => {
@@ -49,11 +50,12 @@ const AppRoutes = () => {
       <Route path="*" element={<Navigate to="/" />} />
 
 
-        <Route path="/" element={<Appointment />} />
+        <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
-        <Route path="/Appointment" element={<Appointment />} />
         <Route path="/dashboard/*" element={<Dashboard />} />
+        <Route path="/CreateAppointment" element={<CreateAppointment />} />
+        <Route path="/MyAppointments" element={<MyAppointments />} />
 
         <Route path="/trainingpage" element={<TrainingPage />} />
 

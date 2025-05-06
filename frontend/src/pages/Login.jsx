@@ -38,7 +38,9 @@ const Login = () => {
 
       setMessage('Login ishte i suksesshëm.');
       localStorage.setItem('isLoggedIn', true); 
-      navigate('/dashboard'); 
+      const redirectPath = localStorage.getItem('redirectAfterLogin') || '/';
+      localStorage.removeItem('redirectAfterLogin'); 
+      navigate(redirectPath);
 
     } catch (error) {
       console.error('Gabim gjatë login:', error);
