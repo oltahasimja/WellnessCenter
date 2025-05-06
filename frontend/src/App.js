@@ -28,6 +28,7 @@ import ProductsPage from './pages/product/ProductsPage';
 import ProductCard from './pages/product/ProductCard';
 import MyPrograms from './pages/MyPrograms';
 import TrainingPage from './pages/TrainingPage'
+import ProductDemoWellness from './pages/product/ProductDemoWellness';
 
 
 const AppRoutes = () => {
@@ -76,13 +77,16 @@ const AppRoutes = () => {
 
         <Route path="/product" element={<Product/>}/>
         <Route path="/productspage" element={<ProductsPage/>}/>
-        <Route path="/productcard" element={<ProductCard/>}/>
-        
+        <Route path="/product/:productName" element={<ProductDemoWellness />} />
+
         <Route path="/category" element={<Category/>}/>
       
 
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password/:token" element={<ResetPassword />} />
+       
+
+         
       
       </Routes>
     </Router>
