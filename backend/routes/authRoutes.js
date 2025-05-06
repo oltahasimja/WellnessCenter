@@ -5,9 +5,9 @@ const crypto = require('crypto');
 const bcrypt = require('bcryptjs');
 const { Op } = require('sequelize');
 const nodemailer = require('nodemailer');
-const { User } = require('../infrastructure/database/models/index');
+const { User } = require('../domain/database/models/index');
 
-const UserMongo = require('../infrastructure/database/models/Mongo/UserMongo');
+const UserMongo = require('../domain/database/models/Mongo/UserMongo');
 // Configure email transporter
 const transporter = nodemailer.createTransport({
   service: 'gmail',

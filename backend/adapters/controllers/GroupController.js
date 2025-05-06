@@ -1,5 +1,5 @@
 
-const GroupRepository = require("../../infrastructure/repository/GroupRepository");
+const GroupRepository = require("../../domain/repository/GroupRepository");
 const GroupPort = require("../../application/ports/GroupPort");
 const GroupUseCase = require("../../application/use-cases/GroupUseCase");
 const port = new GroupPort(GroupRepository);

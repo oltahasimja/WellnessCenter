@@ -1,5 +1,5 @@
 const nodemailer = require('nodemailer');
-const UserProgramsRepository = require("../../infrastructure/repository/UserProgramsRepository");
+const UserProgramsRepository = require("../../domain/repository/UserProgramsRepository");
 const UserProgramsPort = require("../../application/ports/UserProgramsPort");
 const UserProgramsUseCase = require("../../application/use-cases/UserProgramsUseCase");
 const port = new UserProgramsPort(UserProgramsRepository);
@@ -44,8 +44,8 @@ const createUserPrograms = async (req, res) => {
     const userId = req.body.userId;
     const programId = req.body.programId;
     
-    const UserRepository = require("../../infrastructure/repository/UserRepository");
-    const ProgramRepository = require("../../infrastructure/repository/ProgramRepository");
+    const UserRepository = require("../../domain/repository/UserRepository");
+    const ProgramRepository = require("../../domain/repository/ProgramRepository");
     
     const user = await UserRepository.findById(userId);
     const program = await ProgramRepository.findById(programId);

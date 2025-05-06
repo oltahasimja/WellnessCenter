@@ -1,5 +1,5 @@
 
-const UsersGroupRepository = require("../../infrastructure/repository/UsersGroupRepository");
+const UsersGroupRepository = require("../../domain/repository/UsersGroupRepository");
 const UsersGroupPort = require("../../application/ports/UsersGroupPort");
 const UsersGroupUseCase = require("../../application/use-cases/UsersGroupUseCase");
 const port = new UsersGroupPort(UsersGroupRepository);

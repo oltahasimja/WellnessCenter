@@ -1,4 +1,4 @@
-const ProductRepository = require("../../infrastructure/repository/ProductRepository");
+const ProductRepository = require("../../domain/repository/ProductRepository");
 const ProductPort = require("../../application/ports/ProductPort");
 const ProductUseCase = require("../../application/use-cases/ProductUseCase");
 const port = new ProductPort(ProductRepository);

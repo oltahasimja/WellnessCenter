@@ -1,5 +1,5 @@
 
-const RoleRepository = require("../../infrastructure/repository/RoleRepository");
+const RoleRepository = require("../../domain/repository/RoleRepository");
 const RolePort = require("../../application/ports/RolePort");
 const RoleUseCase = require("../../application/use-cases/RoleUseCase");
 const port = new RolePort(RoleRepository);

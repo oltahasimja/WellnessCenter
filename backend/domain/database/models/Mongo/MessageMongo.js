@@ -1,4 +1,4 @@
-// infrastructure/database/models/Mongo/MessageMongo.js
+// domains/database/models/Mongo/MessageMongo.js
 const mongoose = require('mongoose');
 
 const MessageSchema = new mongoose.Schema({

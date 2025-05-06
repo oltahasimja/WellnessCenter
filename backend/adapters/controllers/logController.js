@@ -1,4 +1,4 @@
-const Log = require('../../infrastructure/database/models/MySQL/log');
+const Log = require('../../domain/database/models/MySQL/log');
 
 // Fetch all logs
 const getLogs = async (req, res) => {

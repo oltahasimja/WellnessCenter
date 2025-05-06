@@ -1,5 +1,5 @@
 
-const ProgramRepository = require("../../infrastructure/repository/ProgramRepository");
+const ProgramRepository = require("../../domain/repository/ProgramRepository");
 const ProgramPort = require("../../application/ports/ProgramPort");
 const ProgramUseCase = require("../../application/use-cases/ProgramUseCase");
 const port = new ProgramPort(ProgramRepository);

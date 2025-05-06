@@ -1,5 +1,5 @@
 
-const TrainingRepository = require("../../infrastructure/repository/TrainingRepository");
+const TrainingRepository = require("../../domain/repository/TrainingRepository");
 const TrainingPort = require("../../application/ports/TrainingPort");
 const TrainingUseCase = require("../../application/use-cases/TrainingUseCase");
 const port = new TrainingPort(TrainingRepository);

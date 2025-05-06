@@ -1,4 +1,4 @@
-// infrastructure/repository/MessageMongoRepository.js
+// domain/repository/MessageMongoRepository.js
 const MessageMongo = require("../database/models/Mongo/MessageMongo");
 
 class MessageMongoRepository {

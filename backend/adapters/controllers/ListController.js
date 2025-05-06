@@ -1,6 +1,6 @@
 
 
-const ListRepository = require("../../infrastructure/repository/ListRepository");
+const ListRepository = require("../../domain/repository/ListRepository");
 const ListPort = require("../../application/ports/ListPort");
 const ListUseCase = require("../../application/use-cases/ListUseCase");
 const port = new ListPort(ListRepository);

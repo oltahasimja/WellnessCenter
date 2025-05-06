@@ -1,5 +1,5 @@
 
-const CertificationRepository = require("../../infrastructure/repository/CertificationRepository");
+const CertificationRepository = require("../../domain/repository/CertificationRepository");
 const CertificationPort = require("../../application/ports/CertificationPort");
 const CertificationUseCase = require("../../application/use-cases/CertificationUseCase");
 const port = new CertificationPort(CertificationRepository);

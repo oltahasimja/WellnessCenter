@@ -1,5 +1,5 @@
 
-const OrderRepository = require("../../infrastructure/repository/OrderRepository");
+const OrderRepository = require("../../domain/repository/OrderRepository");
 const OrderPort = require("../../application/ports/OrderPort");
 const OrderUseCase = require("../../application/use-cases/OrderUseCase");
 const port = new OrderPort(OrderRepository);

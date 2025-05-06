@@ -1,5 +1,5 @@
 
-const DashboardRoleRepository = require("../../infrastructure/repository/DashboardRoleRepository");
+const DashboardRoleRepository = require("../../domain/repository/DashboardRoleRepository");
 const DashboardRolePort = require("../../application/ports/DashboardRolePort");
 const DashboardRoleUseCase = require("../../application/use-cases/DashboardRoleUseCase");
 const port = new DashboardRolePort(DashboardRoleRepository);

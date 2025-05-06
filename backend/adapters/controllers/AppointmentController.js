@@ -1,7 +1,7 @@
 
 const nodemailer = require('nodemailer');
 
-const AppointmentRepository = require("../../infrastructure/repository/AppointmentRepository");
+const AppointmentRepository = require("../../domain/repository/AppointmentRepository");
 const AppointmentPort = require("../../application/ports/AppointmentPort");
 const AppointmentUseCase = require("../../application/use-cases/AppointmentUseCase");
 const port = new AppointmentPort(AppointmentRepository);

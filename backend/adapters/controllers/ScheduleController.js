@@ -1,5 +1,5 @@
 
-const ScheduleRepository = require("../../infrastructure/repository/ScheduleRepository");
+const ScheduleRepository = require("../../domain/repository/ScheduleRepository");
 const SchedulePort = require("../../application/ports/SchedulePort");
 const ScheduleUseCase = require("../../application/use-cases/ScheduleUseCase");
 const port = new SchedulePort(ScheduleRepository);

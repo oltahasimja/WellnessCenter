@@ -1,5 +1,5 @@
-const State = require('./infrastructure/database/models/State');
-const StateMongo = require('./infrastructure/database/models/StateMongo');
+const State = require('./domain/database/models/State');
+const StateMongo = require('./domain/database/models/StateMongo');
 
 async function syncStates() {
   try {

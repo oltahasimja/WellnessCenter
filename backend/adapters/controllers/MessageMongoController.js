@@ -1,5 +1,5 @@
 // adapters/controllers/MessageMongoController.js
-const MessageMongoRepository = require("../../infrastructure/repository/MessageMongoRepository");
+const MessageMongoRepository = require("../../domain/repository/MessageMongoRepository");
 const MessageMongoPort = require("../../application/ports/MessageMongoPort");
 const MessageMongoUseCase = require("../../application/use-cases/MessageMongoUseCase");
 

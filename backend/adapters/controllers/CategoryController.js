@@ -1,4 +1,4 @@
-const CategoryRepository = require("../../infrastructure/repository/CategoryRepository");
+const CategoryRepository = require("../../domain/repository/CategoryRepository");
 const CategoryPort = require("../../application/ports/CategoryPort");
 const CategoryUseCase = require("../../application/use-cases/CategoryUseCase");
 const port = new CategoryPort(CategoryRepository);

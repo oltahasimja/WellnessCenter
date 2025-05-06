@@ -1,5 +1,5 @@
 
-const CardRepository = require("../../infrastructure/repository/CardRepository");
+const CardRepository = require("../../domain/repository/CardRepository");
 const CardPort = require("../../application/ports/CardPort");
 const CardUseCase = require("../../application/use-cases/CardUseCase");
 const port = new CardPort(CardRepository);
