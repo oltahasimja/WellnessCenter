@@ -14,7 +14,9 @@ const MessageSchema = new mongoose.Schema({
     ref: 'GroupMongo',
     required: true 
   },
-  createdAt: { type: Date, default: Date.now }
+  createdAt: { type: Date, default: Date.now },
+  systemMessage: { type: Boolean, default: true }
+
 });
 
 const MessageMongo = mongoose.model('MessageMongo', MessageSchema);

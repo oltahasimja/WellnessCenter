@@ -40,11 +40,15 @@ const io = socketIo(server, {
 io.on('connection', (socket) => {
   console.log('User connected:', socket.id);
   
+  // Objekti për ruajtjen e përdoruesve aktivë
+  // Nëse nuk ekziston tashmë në nivel global, krijo një
+  if (!global.onlineUsers) {
+    global.onlineUsers = {};
+  }
+  
   // Auth middleware
   const isAuthenticated = async (next) => {
     try {
-      // Get user info from the session/cookies
-      // This would need to be adapted to your auth system
       const userId = socket.handshake.auth.userId || socket.request.session?.passport?.user;
       
       if (!userId) {
@@ -63,16 +67,122 @@ io.on('connection', (socket) => {
     }
   };
 
+  // Kur një përdorues lidhet, regjistro ID-në e tij si online
+  socket.on('userConnected', async (userData) => {
+    try {
+      const userId = userData.userId;
+      if (!userId) return;
+      
+      // Gje informacionin e plotë të përdoruesit
+      const user = await UserMongo.findOne({ mysqlId: userId });
+      
+      if (user) {
+        // Ruaj përdoruesin në listën e përdoruesve online
+        global.onlineUsers[userId] = {
+          socketId: socket.id,
+          userId: userId,
+          name: user.name,
+          lastName: user.lastName,
+          lastActive: new Date()
+        };
+        
+        // Emetoni një event që njofton të gjithë që një përdorues është online
+        io.emit('userOnlineStatus', { 
+          userId: userId, 
+          isOnline: true,
+          onlineUsers: Object.values(global.onlineUsers)
+        });
+      }
+    } catch (error) {
+      console.error('Error registering online user:', error);
+    }
+  });
+
   // Join a chat room (group)
   socket.on('joinRoom', (groupId) => {
     socket.join(groupId);
     console.log(`User ${socket.id} joined room ${groupId}`);
+    
+    // Dërgo listën e përdoruesve online për këtë grup
+    const onlineUsersList = Object.values(global.onlineUsers || {});
+    socket.emit('onlineUsersList', onlineUsersList);
   });
 
   // Leave a chat room
   socket.on('leaveRoom', (groupId) => {
     socket.leave(groupId);
     console.log(`User ${socket.id} left room ${groupId}`);
+  });
+
+  // Handle typing indicator
+  socket.on('typing', (data) => {
+    const { groupId, userId, userName } = data;
+    
+    if (!groupId || !userId || !userName) {
+      socket.emit('error', 'Missing required fields for typing');
+      return;
+    }
+    
+    // Broadcast to all users in the group except the sender
+    socket.to(groupId).emit('userTyping', { userId, userName, groupId });
+  });
+
+  // Handle stopped typing
+  socket.on('stoppedTyping', (data) => {
+    const { groupId, userId } = data;
+    
+    if (!groupId || !userId) {
+      socket.emit('error', 'Missing required fields for stopped typing');
+      return;
+    }
+    
+    // Broadcast to all users in the group except the sender
+    socket.to(groupId).emit('userStoppedTyping', { userId, groupId });
+  });
+
+  socket.on('leaveGroup', async (data) => {
+    try {
+      const { groupId, userId, userName, lastName } = data;
+      
+      if (!groupId || !userId || !userName) {
+        socket.emit('error', 'Missing required fields for leaving group');
+        return;
+      }
+      
+      // Leave the socket room
+      socket.leave(groupId);
+      console.log(`User ${socket.id} (${userName}) left group ${groupId}`);
+      
+      // Create a system message indicating the user left
+      const user = await UserMongo.findOne({ mysqlId: userId });
+      
+      if (!user) {
+        socket.emit('error', 'User not found');
+        return;
+      }
+      
+      // Create a system message
+      const systemMessage = new MessageMongo({
+        text: `${userName} ${lastName || ''} left the group`,
+        systemMessage: true,
+        userId: user._id,
+        groupId,
+        createdAt: new Date()
+      });
+      
+      await systemMessage.save();
+      
+      // Broadcast the system message to all users in the group
+      const populatedMessage = await MessageMongo.findById(systemMessage._id)
+        .populate('userId', 'name lastName mysqlId')
+        .exec();
+      
+      io.to(groupId).emit('newMessage', populatedMessage);
+      
+    } catch (error) {
+      console.error('Error handling group leave:', error);
+      socket.emit('error', 'Failed to process leaving group');
+    }
   });
 
   // Handle new message
@@ -91,6 +201,11 @@ io.on('connection', (socket) => {
       if (!user) {
         socket.emit('error', 'User not found');
         return;
+      }
+      
+      // Përditëso kohën e fundit të aktivitetit
+      if (global.onlineUsers && global.onlineUsers[userId]) {
+        global.onlineUsers[userId].lastActive = new Date();
       }
       
       // Create and save the message
@@ -121,28 +236,50 @@ io.on('connection', (socket) => {
   // Handle disconnection
   socket.on('disconnect', () => {
     console.log('User disconnected:', socket.id);
+    
+    // Gjej përdoruesin që u shkëput dhe hiqe nga lista e përdoruesve online
+    if (global.onlineUsers) {
+      const userId = Object.keys(global.onlineUsers).find(
+        key => global.onlineUsers[key].socketId === socket.id
+      );
+      
+      if (userId) {
+        delete global.onlineUsers[userId];
+        
+        // Njofto të gjithë që përdoruesi është offline
+        io.emit('userOnlineStatus', { 
+          userId: userId, 
+          isOnline: false,
+          onlineUsers: Object.values(global.onlineUsers)
+        });
+      }
+    }
   });
 });
 
-// app.get('/api/message/:groupId', async (req, res) => {
-//   try {
-//     const { groupId } = req.params;
+// Opsionale: Kontrollo periodikisht për përdoruesit joaktivë
+// dhe hiqi ata nga lista e përdoruesve online pas një kohe të caktuar
+setInterval(() => {
+  if (global.onlineUsers) {
+    const now = new Date();
+    const inactiveThreshold = 10 * 60 * 1000; // 10 minuta
     
-//     if (!groupId) {
-//       return res.status(400).json({ message: "Group ID is required" });
-//     }
-    
-//     const messages = await MessageMongo.find({ groupId })
-//       .populate('userId', 'name lastName')
-//       .sort({ createdAt: 1 })
-//       .exec();
-    
-//     res.json(messages);
-//   } catch (error) {
-//     console.error('Error fetching messages:', error);
-//     res.status(500).json({ message: error.message });
-//   }
-// });
+    Object.keys(global.onlineUsers).forEach(userId => {
+      const user = global.onlineUsers[userId];
+      if (now - user.lastActive > inactiveThreshold) {
+        delete global.onlineUsers[userId];
+        
+        // Njofto të gjithë që përdoruesi është offline për shkak të joaktivitetit
+        io.emit('userOnlineStatus', { 
+          userId: userId, 
+          isOnline: false,
+          onlineUsers: Object.values(global.onlineUsers) 
+        });
+      }
+    });
+  }
+}, 60000); // Kontrollo çdo minutë
+
 
 
 // Middleware setup

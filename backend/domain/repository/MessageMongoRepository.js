@@ -1,32 +1,59 @@
-// domain/repository/MessageMongoRepository.js
 const MessageMongo = require("../database/models/Mongo/MessageMongo");
 
 class MessageMongoRepository {
   async findAll() {
-    return MessageMongo.find().populate('userId', 'name lastName');
+    return MessageMongo.find()
+      .populate({
+        path: 'userId',
+        select: 'name lastName mysqlId profileImage',
+        populate: {
+          path: 'profileImageId',
+          select: 'name data'
+        }
+      })
+      .lean();
   }
   
   async findByGroupId(groupId) {
     return MessageMongo.find({ groupId })
-      .populate('userId', 'name lastName')
-      .sort({ createdAt: 1 });
+      .populate({
+        path: 'userId',
+        select: 'name lastName mysqlId profileImageId',
+        populate: {
+          path: 'profileImageId',
+          select: 'name data'
+        }
+      })
+      .sort({ createdAt: 1 })
+      .lean();
   }
   
   async findById(id) {
-    return MessageMongo.findById(id).populate('userId', 'name lastName');
+    return MessageMongo.findById(id)
+      .populate('userId', 'name lastName mysqlId')
+      .lean();
   }
   
   async create(data) {
     const newMessage = new MessageMongo(data);
-    return newMessage.save();
+    await newMessage.save();
+    return MessageMongo.findById(newMessage._id)
+      .populate('userId', 'name lastName mysqlId')
+      .lean();
   }
   
   async update(id, data) {
-    return MessageMongo.findByIdAndUpdate(id, data, { new: true });
+    return MessageMongo.findByIdAndUpdate(id, data, { 
+      new: true 
+    })
+    .populate('userId', 'name lastName mysqlId')
+    .lean();
   }
   
   async delete(id) {
-    return MessageMongo.findByIdAndDelete(id);
+    return MessageMongo.findByIdAndDelete(id)
+      .populate('userId', 'name lastName mysqlId')
+      .lean();
   }
 }
 
