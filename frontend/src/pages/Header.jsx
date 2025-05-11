@@ -1,13 +1,10 @@
 import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { motion, AnimatePresence } from 'framer-motion';
-import { Link, useLocation } from 'react-router-dom';
-import { FaBars, FaTimes, FaUser, FaShoppingCart, FaSignInAlt, FaSignOutAlt } from 'react-icons/fa';
+import { useNavigate, Link, useLocation } from "react-router-dom";
+import { motion } from 'framer-motion';
+import { FaShoppingCart, FaSignInAlt, FaSignOutAlt, FaComment } from 'react-icons/fa';
 import axios from "axios";
 
-
 const Header = ({ cart = [], showCart, setShowCart }) => {
-  const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [userData, setUserData] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -16,50 +13,36 @@ const Header = ({ cart = [], showCart, setShowCart }) => {
 
   useEffect(() => {
     const handleScroll = () => {
-      if (window.scrollY > 10) {
-        setScrolled(true);
-      } else {
-        setScrolled(false);
-      }
+      setScrolled(window.scrollY > 10);
     };
-
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
-
-  const toggleMenu = () => {
-    setIsOpen(!isOpen);
-  };
 
   const navItems = [
     { name: 'Program', path: '/myprograms' },
     { name: 'Schedule', path: '/schedule' },
     { name: 'Shop', path: '/productspage' },
     { name: 'Training', path: '/trainingpage' },
-    // { name: 'MyAppointment', path: '/myappointments' },
   ];
 
+
+  
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        const response = await axios.get('http://localhost:5000/user', {
-          withCredentials: true
-        });
-        
-        if (response.data.user) {
-          setUserData(response.data.user);
-        }
+        const res = await axios.get('http://localhost:5000/user', { withCredentials: true });
+        if (res.data.user) setUserData(res.data.user);
       } catch (err) {
-        console.error('Error fetching user data:', err);
+        console.error("User fetch error:", err);
       } finally {
         setLoading(false);
       }
     };
-
     fetchUserData();
   }, []);
 
-  const initials = userData 
+  const initials = userData
     ? `${userData.name?.charAt(0) || ''}${userData.lastName?.charAt(0) || ''}`
     : '';
 
@@ -71,6 +54,7 @@ const Header = ({ cart = [], showCart, setShowCart }) => {
       navigate("/login");
     }
   };
+
   const handleChatClick = () => {
     if (userData) {
       navigate("/chat");
@@ -82,249 +66,119 @@ const Header = ({ cart = [], showCart, setShowCart }) => {
 
   const handleLogout = async () => {
     try {
-      const response = await axios.post('http://localhost:5000/logout', {}, { withCredentials: true });
-      if (response.status === 200) {
+      const res = await axios.post('http://localhost:5000/logout', {}, { withCredentials: true });
+      if (res.status === 200) {
         localStorage.removeItem('redirectAfterLogin');
         navigate('/login');
       }
-    } catch (error) {
-      console.error("Logout failed:", error);
+    } catch (err) {
+      console.error("Logout failed:", err);
     }
   };
 
+
   return (
-    <motion.header
-      initial={{ y: -100 }}
-      animate={{ y: 0 }}
-      transition={{ duration: 0.5, ease: "easeOut" }}
-      className={`fixed w-full z-50 transition-all duration-300 ${scrolled ? 'bg-white shadow-md' : 'bg-transparent'}`}
-    >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-20">
-          {/* Logo */}
-          <motion.div 
-            whileHover={{ scale: 1.05 }}
-            className="flex-shrink-0"
-          >
-            <Link to="/" className="flex items-center">
-              <span className={`text-2xl font-bold ${scrolled ? 'text-teal-600' : 'text-white'}`}>
-                WellnessCenter
-              </span>
-            </Link>
-          </motion.div>
+<motion.header
+  initial={{ y: -100 }}
+  animate={{ y: 0 }}
+  transition={{ duration: 0.5, ease: "easeOut" }}
+  className={`fixed w-full z-50 px-8 transition-all duration-300 ${
+    scrolled 
+      ? 'bg-emerald-900 shadow-lg shadow-emerald-800/30 backdrop-blur-sm'
+      : 'bg-gradient-to-b from-emerald-900 to-emerald-800'
+  }`}
+>
+  <div className="flex items-center justify-between h-20 max-w-7xl mx-auto">
+    {/* Left: Logo + Text */}
+    <div className="flex items-center">
+      <Link to="/" className="flex items-center group">
+        <img 
+          src="/images/logo.PNG"
+          alt="WellnessCenter Logo"
+          className="h-12 w-auto mr-3 transition-transform duration-300 group-hover:scale-105"
+        />
+        <span className="text-3xl font-light text-emerald-100 tracking-tight font-serif">
+        Wellness<span className="font-medium">Center</span>
+        </span>
+      </Link>
+    </div>
 
-          {/* Desktop Navigation */}
-          <nav className="hidden md:flex space-x-8 mr-[5rem] items-center">
-            {navItems.map((item) => (
-              <motion.div
-                key={item.name}
-                whileHover={{ y: -2 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                <Link
-                  to={item.path}
-                  onClick={() => {
-                    if (!userData) {
-                      localStorage.setItem('redirectAfterLogin', item.path);
-                    }
-                  }}
-                  className={`px-3 py-2 text-lg font-medium transition-colors duration-300 ${
-                    location.pathname === item.path
-                      ? 'text-teal-600 border-b-2 border-teal-600'
-                      : scrolled
-                      ? 'text-gray-700 hover:text-teal-600'
-                      : 'text-teal-600 hover:text-teal-300'
-                  }`}
-                >
-                  {item.name}
-                </Link>
-              </motion.div>
-            ))}
+    {/* Center: Navigation Items */}
+    <div className="hidden md:flex space-x-10 absolute left-1/2 transform -translate-x-1/2">
+      {navItems.map((item) => (
+        <Link
+          key={item.name}
+          to={item.path}
+          className={`text-lg font-normal transition-all duration-300 relative group font-sans ${
+            location.pathname === item.path
+              ? 'text-emerald-300'
+              : 'text-emerald-100 hover:text-white'
+          }`}
+        >
+          {item.name}
+          <span className={`absolute -bottom-1 left-0 w-0 h-px bg-emerald-300 transition-all duration-500 group-hover:w-full ${
+            location.pathname === item.path ? 'w-full' : ''
+          }`}></span>
+        </Link>
+      ))}
+    </div>
 
-            {/* Dashboard/Login Button */}
-            {userData ? (
-              (["Owner", "Fizioterapeut", "Nutricionist", "Trajner", "Psikolog"].includes(userData.role) || 
-              (userData.role === "Client" && ["Owner", "Admin", "Manager"].includes(userData.dashboardRole))) ? (
-                <motion.div
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  className="ml-4"
-                >
-                  <Link
-                    to="/dashboard"
-                    className={`flex items-center px-4 py-2 rounded-lg text-white bg-teal-600 hover:bg-teal-700 transition-colors duration-300 ${
-                      scrolled ? '' : 'shadow-lg'
-                    }`}
-                  >
-                    <FaUser className="mr-2" />
-                    Dashboard
-                  </Link>
-                </motion.div>
-              ) : null
-            ) : (
-              <motion.div
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                className="ml-4"
-              >
-                <Link
-                  to="/login"
-                  onClick={() => localStorage.setItem('redirectAfterLogin', window.location.pathname)}
-                  className={`flex items-center px-4 py-2 rounded-lg text-white bg-teal-600 hover:bg-teal-700 transition-colors duration-300 ${
-                    scrolled ? '' : 'shadow-lg'
-                  }`}
-                >
-                  <FaSignInAlt className="mr-2" />
-                  Log in
-                </Link>
-              </motion.div>
-            )}
+    {/* Right: Icons */}
+    <div className="flex space-x-5 items-center">
+      {/* Chat */}
+      <button 
+        onClick={handleChatClick} 
+        className="relative p-2.5 rounded-full bg-emerald-700/40 hover:bg-emerald-600/50 transition-all duration-300 group
+                   focus:outline-none focus:ring-2 focus:ring-emerald-300/50"
+      >
+        <FaComment className="text-emerald-100 text-lg group-hover:text-white transition-colors" />
+        <span className="absolute inset-0 rounded-full border border-emerald-300/30 opacity-0 group-hover:opacity-100 animate-ping duration-1000"></span>
+      </button>
 
-            {/* Cart */}
-            <motion.div
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={() => setShowCart(!showCart)}
-              className="relative ml-4 cursor-pointer"
-            >
-              <FaShoppingCart 
-                className="text-xl text-teal-600 hover:text-teal-700"
-              />
-              {cart.length > 0 && (
-                <motion.span 
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
-                  className="absolute -top-2 -right-2 bg-amber-400 text-white text-xs font-bold w-5 h-5 rounded-full flex items-center justify-center"
-                >
-                  {cart.length}
-                </motion.span>
-              )}
-            </motion.div>
-
-            {/* Profile Icon */}
-            <motion.div 
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={handleProfileClick}
-              className="cursor-pointer ml-4"
-            >
-              {loading ? (
-                <div className="w-10 h-10 rounded-full bg-gray-200 animate-pulse"></div>
-              ) : userData ? (
-                userData.profileImage ? (
-                  <img
-                    src={`data:image/jpeg;base64,${userData.profileImage}`}
-                    alt="Profile"
-                    className="w-10 h-10 rounded-full object-cover border-2 border-blue-500 hover:border-blue-600 transition-colors"
-                  />
-                ) : (
-                  <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center hover:bg-blue-200 transition-colors">
-                    <span className="text-blue-600 font-bold">
-                      {initials}
-                    </span>
-                  </div>
-                )
-              ) : (
-                <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center hover:bg-gray-200 transition-colors">
-                  <FaUser className="text-gray-600" />
-                </div>
-              )}
-            </motion.div>
-
-            {userData && (
-              <motion.div
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                className="ml-4"
-              >
-                <button
-                  onClick={handleLogout}
-                  className={`flex items-center px-4 py-2 rounded-lg text-white bg-red-600 hover:bg-red-700 transition-colors duration-300 ${
-                    scrolled ? '' : 'shadow-lg'
-                  }`}
-                >
-                  <FaSignOutAlt className="" />
-                </button>
-              </motion.div>
-            )}
-
-<motion.div 
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={handleChatClick}
-              className="cursor-pointer ml-4"
-            >
-              
-              <div className="hidden md:flex items-center ml-4">
-            <Link href="/chat" className="text-white hover:text-emerald-100">
-              <button className="h-16 w-16 bg-[#E4C18A] rounded-full flex items-center justify-center shadow-lg">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="h-8 w-8 text-white">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                </svg>
-              </button>
-            </Link>
-          </div>
-              
-            </motion.div>
-        
-          </nav>
-
-          {/* Mobile menu button */}
-          <div className="md:hidden flex items-center">
-            <motion.button
-              whileTap={{ scale: 0.9 }}
-              onClick={toggleMenu}
-              className={`inline-flex items-center justify-center p-2 rounded-md focus:outline-none ${
-                scrolled ? 'text-gray-700' : 'text-white'
-              }`}
-              aria-label="Main menu"
-            >
-              {isOpen ? (
-                <FaTimes className="h-6 w-6" />
-              ) : (
-                <FaBars className="h-6 w-6" />
-              )}
-            </motion.button>
-          </div>
-        </div>
-      </div>
-
-      {/* Mobile Navigation */}
-      <AnimatePresence>
-        {isOpen && (
-          <motion.div
-            initial={{ x: -20, opacity: 0 }}
-            animate={{ x: 0, opacity: 1 }}
-            transition={{ duration: 0.3, delay: 0.1 }}
-            className="pt-2"
-          >
-            {userData ? (
-              (["Owner", "Fizioterapeut", "Nutricionist", "Trajner", "Psikolog"].includes(userData.role) || 
-              (userData.role === "Client" && ["Owner", "Admin", "Manager"].includes(userData.dashboardRole))) ? (
-                <Link
-                  to="/dashboard"
-                  onClick={toggleMenu}
-                  className="block w-full px-4 py-2 text-center rounded-md bg-teal-600 text-white font-medium hover:bg-teal-700"
-                >
-                  Dashboard
-                </Link>
-              ) : null
-            ) : (
-              <Link
-                to="/login"
-                onClick={() => {
-                  localStorage.setItem('redirectAfterLogin', window.location.pathname);
-                  toggleMenu();
-                }}
-                className="block w-full px-4 py-2 text-center rounded-md bg-teal-600 text-white font-medium hover:bg-teal-700"
-              >
-                Log in
-              </Link>
-            )}
-          </motion.div>
+      {/* Cart */}
+      <button
+        onClick={() => setShowCart(!showCart)} 
+        className="relative p-2.5 rounded-full bg-emerald-700/40 hover:bg-emerald-600/50 transition-all duration-300 group
+                   focus:outline-none focus:ring-2 focus:ring-emerald-300/50"
+      >
+        <FaShoppingCart className="text-emerald-100 text-lg group-hover:text-white transition-colors" />
+        {cart.length > 0 && (
+          <span className="absolute -top-1 -right-1 bg-amber-400 text-emerald-900 text-xs font-bold w-5 h-5 rounded-full flex items-center justify-center border border-emerald-800">
+            {cart.length}
+          </span>
         )}
-      </AnimatePresence>
-    </motion.header>
+      </button>
+
+      {/* Profile */}
+      <button
+        onClick={handleProfileClick}
+        className="relative w-10 h-10 bg-emerald-700/60 text-emerald-100 rounded-full flex items-center justify-center hover:bg-emerald-600 transition-all duration-300 group
+                   focus:outline-none focus:ring-2 focus:ring-emerald-300/50"
+      >
+        {initials || <span className="text-lg">👤</span>}
+      </button>
+
+      {/* Login/Logout */}
+      {userData ? (
+        <button 
+          onClick={handleLogout} 
+          className="p-2.5 rounded-full bg-rose-800/40 hover:bg-rose-700/50 text-rose-100 hover:text-white transition-all duration-300
+                     focus:outline-none focus:ring-2 focus:ring-rose-300/50"
+        >
+          <FaSignOutAlt />
+        </button>
+      ) : (
+        <Link 
+          to="/login" 
+          className="p-2.5 rounded-full bg-emerald-700/40 hover:bg-emerald-600/50 text-emerald-100 hover:text-white transition-all duration-300
+                     focus:outline-none focus:ring-2 focus:ring-emerald-300/50"
+        >
+          <FaSignInAlt />
+        </Link>
+      )}
+    </div>
+  </div>
+</motion.header>
   );
 };
 
