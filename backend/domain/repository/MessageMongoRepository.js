@@ -14,19 +14,23 @@ class MessageMongoRepository {
       .lean();
   }
   
-  async findByGroupId(groupId) {
-    return MessageMongo.find({ groupId })
-      .populate({
-        path: 'userId',
-        select: 'name lastName mysqlId profileImageId',
-        populate: {
-          path: 'profileImageId',
-          select: 'name data'
-        }
-      })
-      .sort({ createdAt: 1 })
-      .lean();
-  }
+ async findByGroupId(groupId) {
+  return MessageMongo.find({ groupId })
+    .populate({
+      path: 'userId',
+      select: 'name lastName mysqlId profileImageId',
+      populate: {
+        path: 'profileImageId',
+        select: 'name data'
+      }
+    })
+    .populate({
+      path: 'seenBy.userId',
+      select: 'name lastName mysqlId'
+    })
+    .sort({ createdAt: 1 })
+    .lean();
+}
   
   async findById(id) {
     return MessageMongo.findById(id)

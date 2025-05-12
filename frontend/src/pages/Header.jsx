@@ -1,13 +1,14 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, Link, useLocation } from "react-router-dom";
 import { motion } from 'framer-motion';
-import { FaShoppingCart, FaSignInAlt, FaSignOutAlt, FaComment } from 'react-icons/fa';
+import { FaShoppingCart, FaSignInAlt, FaSignOutAlt, FaComment, FaUser, FaBars, FaTimes } from 'react-icons/fa';
 import axios from "axios";
 
 const Header = ({ cart = [], showCart, setShowCart }) => {
   const [scrolled, setScrolled] = useState(false);
   const [userData, setUserData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -26,8 +27,6 @@ const Header = ({ cart = [], showCart, setShowCart }) => {
     { name: 'Training', path: '/trainingpage' },
   ];
 
-
-  
   useEffect(() => {
     const fetchUserData = async () => {
       try {
@@ -76,109 +75,274 @@ const Header = ({ cart = [], showCart, setShowCart }) => {
     }
   };
 
+  const toggleMobileMenu = () => {
+    setMobileMenuOpen(!mobileMenuOpen);
+  };
 
   return (
-<motion.header
-  initial={{ y: -100 }}
-  animate={{ y: 0 }}
-  transition={{ duration: 0.5, ease: "easeOut" }}
-  className={`fixed w-full z-50 px-8 transition-all duration-300 ${
-    scrolled 
-      ? 'bg-emerald-900 shadow-lg shadow-emerald-800/30 backdrop-blur-sm'
-      : 'bg-gradient-to-b from-emerald-900 to-emerald-800'
-  }`}
->
-  <div className="flex items-center justify-between h-20 max-w-7xl mx-auto">
-    {/* Left: Logo + Text */}
-    <div className="flex items-center">
-      <Link to="/" className="flex items-center group">
-        <img 
-          src="/images/logo.PNG"
-          alt="WellnessCenter Logo"
-          className="h-12 w-auto mr-3 transition-transform duration-300 group-hover:scale-105"
-        />
-        <span className="text-3xl font-light text-emerald-100 tracking-tight font-serif">
-        Wellness<span className="font-medium">Center</span>
-        </span>
-      </Link>
-    </div>
+    <motion.header
+      initial={{ y: -100 }}
+      animate={{ y: 0 }}
+      transition={{ duration: 0.5, ease: "easeOut" }}
+      className={`fixed w-full z-50 px-4 md:px-8 transition-all duration-300 ${
+        scrolled 
+          ? 'bg-teal-600 shadow-lg shadow-emerald-800/30 backdrop-blur-sm'
+          : 'bg-gradient-to-br from-teal-700 to-teal-500'
+      }`}
+    >
+      <div className="flex items-center justify-between h-20 max-w-7xl mx-auto">
+        {/* Left: Logo + Text */}
+        <div className="flex items-center">
+          <Link to="/" className="flex items-center group">
+            <img 
+              src="/images/logo.PNG"
+              alt="WellnessCenter Logo"
+              className="h-12 w-auto mr-3 transition-transform duration-300 group-hover:scale-105"
+            />
+            <span className="text-3xl font-light text-emerald-100 tracking-tight font-serif">
+              Wellness<span className="font-medium">Center</span>
+            </span>
+          </Link>
+        </div>
 
-    {/* Center: Navigation Items */}
-    <div className="hidden md:flex space-x-10 absolute left-1/2 transform -translate-x-1/2">
-      {navItems.map((item) => (
-        <Link
-          key={item.name}
-          to={item.path}
-          className={`text-lg font-normal transition-all duration-300 relative group font-sans ${
-            location.pathname === item.path
-              ? 'text-emerald-300'
-              : 'text-emerald-100 hover:text-white'
-          }`}
+        {/* Mobile Menu Button */}
+        <div className="md:hidden flex items-center">
+          <button 
+            onClick={toggleMobileMenu}
+            className="p-2 text-emerald-100 hover:text-white focus:outline-none"
+          >
+            {mobileMenuOpen ? <FaTimes size={24} /> : <FaBars size={24} />}
+          </button>
+        </div>
+
+        {/* Center: Navigation Items (Desktop) */}
+        <div className="hidden md:flex space-x-10 absolute left-1/2 transform -translate-x-1/2">
+          {navItems.map((item) => (
+            <Link
+              key={item.name}
+              to={item.path}
+              className={`text-lg font-normal transition-all duration-300 relative group font-sans ${
+                location.pathname === item.path
+                  ? 'text-emerald-300'
+                  : 'text-emerald-100 hover:text-white'
+              }`}
+            >
+              {item.name}
+              <span className={`absolute -bottom-1 left-0 w-0 h-px bg-emerald-300 transition-all duration-500 group-hover:w-full ${
+                location.pathname === item.path ? 'w-full' : ''
+              }`}></span>
+            </Link>
+          ))}
+        </div>
+
+        {/* Right: Icons */}
+        <div className="hidden md:flex space-x-5 items-center">
+          {/* Chat */}
+          <button 
+            onClick={handleChatClick} 
+            className="relative p-2.5 rounded-full bg-emerald-700/40 hover:bg-emerald-600/50 transition-all duration-300 group
+                       focus:outline-none focus:ring-2 focus:ring-emerald-300/50"
+          >
+            <FaComment className="text-emerald-100 text-lg group-hover:text-white transition-colors" />
+            <span className="absolute inset-0 rounded-full border border-emerald-300/30 opacity-0 group-hover:opacity-100 animate-ping duration-1000"></span>
+          </button>
+
+          {/* Cart */}
+          <button
+            onClick={() => setShowCart(!showCart)} 
+            className="relative p-2.5 rounded-full bg-emerald-700/40 hover:bg-emerald-600/50 transition-all duration-300 group
+                       focus:outline-none focus:ring-2 focus:ring-emerald-300/50"
+          >
+            <FaShoppingCart className="text-emerald-100 text-lg group-hover:text-white transition-colors" />
+            {cart.length > 0 && (
+              <span className="absolute -top-1 -right-1 bg-amber-400 text-emerald-900 text-xs font-bold w-5 h-5 rounded-full flex items-center justify-center border border-emerald-800">
+                {cart.length}
+              </span>
+            )}
+          </button>
+
+          {/* Profile */}
+          <motion.div 
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={handleProfileClick}
+            className="cursor-pointer ml-4"
+          >
+            {loading ? (
+              <div className="w-10 h-10 rounded-full bg-gray-200 animate-pulse"></div>
+            ) : userData ? (
+              userData.profileImage ? (
+                <img
+                  src={`data:image/jpeg;base64,${userData.profileImage}`}
+                  alt="Profile"
+                  className="w-10 h-10 rounded-full object-cover border-2 border-blue-500 hover:border-blue-600 transition-colors"
+                />
+              ) : (
+                <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center hover:bg-blue-200 transition-colors">
+                  <span className="text-blue-600 font-bold">
+                    {initials}
+                  </span>
+                </div>
+              )
+            ) : (
+              <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center hover:bg-gray-200 transition-colors">
+                <FaUser className="text-gray-600" />
+              </div>
+            )}
+          </motion.div>
+
+          {userData ? (
+              (["Owner", "Fizioterapeut", "Nutricionist", "Trajner", "Psikolog"].includes(userData.role) || 
+              (userData.role === "Client" && ["Owner", "Admin", "Manager"].includes(userData.dashboardRole))) ? (
+                <motion.div
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  className="ml-4"
+                >
+                  <Link
+                    to="/dashboard"
+                    className={`flex items-center px-4 py-2 rounded-lg text-white bg-teal-600 hover:bg-teal-700 transition-colors duration-300 ${
+                      scrolled ? '' : 'shadow-lg'
+                    }`}
+                  >
+                    <FaUser className="mr-2" />
+                    Dashboard
+                  </Link>
+                </motion.div>
+              ) : null
+            ) : (
+              <motion.div
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className="ml-4"
+              >
+               
+              </motion.div>
+            )}
+
+          {/* Login/Logout */}
+          {userData ? (
+            <button 
+              onClick={handleLogout} 
+              className="p-2.5 rounded-full bg-rose-800/40 hover:bg-rose-700/50 text-rose-100 hover:text-white transition-all duration-300
+                         focus:outline-none focus:ring-2 focus:ring-rose-300/50"
+            >
+              <FaSignOutAlt />
+            </button>
+          ) : (
+            <Link 
+              to="/login" 
+              className="p-2.5 rounded-full bg-emerald-700/40 hover:bg-emerald-600/50 text-emerald-100 hover:text-white transition-all duration-300
+                         focus:outline-none focus:ring-2 focus:ring-emerald-300/50"
+            >
+              <FaSignInAlt />
+            </Link>
+          )}
+        </div>
+      </div>
+
+      {/* Mobile Menu */}
+      {mobileMenuOpen && (
+        <motion.div 
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3 }}
+          className="md:hidden bg-emerald-800 shadow-lg"
         >
-          {item.name}
-          <span className={`absolute -bottom-1 left-0 w-0 h-px bg-emerald-300 transition-all duration-500 group-hover:w-full ${
-            location.pathname === item.path ? 'w-full' : ''
-          }`}></span>
-        </Link>
-      ))}
-    </div>
+          <div className="px-4 py-2 space-y-4">
+            {navItems.map((item) => (
+              <Link
+                key={item.name}
+                to={item.path}
+                onClick={() => setMobileMenuOpen(false)}
+                className={`block px-3 py-2 rounded-md text-lg font-medium ${
+                  location.pathname === item.path
+                    ? 'bg-emerald-700 text-white'
+                    : 'text-emerald-100 hover:bg-emerald-700 hover:text-white'
+                }`}
+              >
+                {item.name}
+              </Link>
+            ))}
 
-    {/* Right: Icons */}
-    <div className="flex space-x-5 items-center">
-      {/* Chat */}
-      <button 
-        onClick={handleChatClick} 
-        className="relative p-2.5 rounded-full bg-emerald-700/40 hover:bg-emerald-600/50 transition-all duration-300 group
-                   focus:outline-none focus:ring-2 focus:ring-emerald-300/50"
-      >
-        <FaComment className="text-emerald-100 text-lg group-hover:text-white transition-colors" />
-        <span className="absolute inset-0 rounded-full border border-emerald-300/30 opacity-0 group-hover:opacity-100 animate-ping duration-1000"></span>
-      </button>
+            <div className="pt-4 border-t border-emerald-700 flex flex-col space-y-4">
+              <button 
+                onClick={() => {
+                  handleChatClick();
+                  setMobileMenuOpen(false);
+                }}
+                className="flex items-center px-3 py-2 rounded-md text-lg font-medium text-emerald-100 hover:bg-emerald-700 hover:text-white"
+              >
+                <FaComment className="mr-3" />
+                Chat
+              </button>
 
-      {/* Cart */}
-      <button
-        onClick={() => setShowCart(!showCart)} 
-        className="relative p-2.5 rounded-full bg-emerald-700/40 hover:bg-emerald-600/50 transition-all duration-300 group
-                   focus:outline-none focus:ring-2 focus:ring-emerald-300/50"
-      >
-        <FaShoppingCart className="text-emerald-100 text-lg group-hover:text-white transition-colors" />
-        {cart.length > 0 && (
-          <span className="absolute -top-1 -right-1 bg-amber-400 text-emerald-900 text-xs font-bold w-5 h-5 rounded-full flex items-center justify-center border border-emerald-800">
-            {cart.length}
-          </span>
-        )}
-      </button>
+              <button
+                onClick={() => {
+                  setShowCart(!showCart);
+                  setMobileMenuOpen(false);
+                }}
+                className="flex items-center px-3 py-2 rounded-md text-lg font-medium text-emerald-100 hover:bg-emerald-700 hover:text-white relative"
+              >
+                <FaShoppingCart className="mr-3" />
+                Cart
+                {cart.length > 0 && (
+                  <span className="ml-auto bg-amber-400 text-emerald-900 text-xs font-bold w-5 h-5 rounded-full flex items-center justify-center">
+                    {cart.length}
+                  </span>
+                )}
+              </button>
 
-      {/* Profile */}
-      <button
-        onClick={handleProfileClick}
-        className="relative w-10 h-10 bg-emerald-700/60 text-emerald-100 rounded-full flex items-center justify-center hover:bg-emerald-600 transition-all duration-300 group
-                   focus:outline-none focus:ring-2 focus:ring-emerald-300/50"
-      >
-        {initials || <span className="text-lg">👤</span>}
-      </button>
+              <button
+                onClick={() => {
+                  handleProfileClick();
+                  setMobileMenuOpen(false);
+                }}
+                className="flex items-center px-3 py-2 rounded-md text-lg font-medium text-emerald-100 hover:bg-emerald-700 hover:text-white"
+              >
+                <FaUser className="mr-3" />
+                Profile
+              </button>
 
-      {/* Login/Logout */}
-      {userData ? (
-        <button 
-          onClick={handleLogout} 
-          className="p-2.5 rounded-full bg-rose-800/40 hover:bg-rose-700/50 text-rose-100 hover:text-white transition-all duration-300
-                     focus:outline-none focus:ring-2 focus:ring-rose-300/50"
-        >
-          <FaSignOutAlt />
-        </button>
-      ) : (
-        <Link 
-          to="/login" 
-          className="p-2.5 rounded-full bg-emerald-700/40 hover:bg-emerald-600/50 text-emerald-100 hover:text-white transition-all duration-300
-                     focus:outline-none focus:ring-2 focus:ring-emerald-300/50"
-        >
-          <FaSignInAlt />
-        </Link>
+              {userData && (["Owner", "Fizioterapeut", "Nutricionist", "Trajner", "Psikolog"].includes(userData.role) || 
+                (userData.role === "Client" && ["Owner", "Admin", "Manager"].includes(userData.dashboardRole)) && (
+                <Link
+                  to="/dashboard"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="flex items-center px-3 py-2 rounded-md text-lg font-medium text-emerald-100 hover:bg-emerald-700 hover:text-white"
+                >
+                  <FaUser className="mr-3" />
+                  Dashboard
+                </Link>
+))}
+
+
+              {userData ? (
+                <button 
+                  onClick={() => {
+                    handleLogout();
+                    setMobileMenuOpen(false);
+                  }}
+                  className="flex items-center px-3 py-2 rounded-md text-lg font-medium text-rose-100 hover:bg-rose-700 hover:text-white"
+                >
+                  <FaSignOutAlt className="mr-3" />
+                  Logout
+                </button>
+              ) : (
+                <Link 
+                  to="/login"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="flex items-center px-3 py-2 rounded-md text-lg font-medium text-emerald-100 hover:bg-emerald-700 hover:text-white"
+                >
+                  <FaSignInAlt className="mr-3" />
+                  Login
+                </Link>
+              )}
+            </div>
+          </div>
+        </motion.div>
       )}
-    </div>
-  </div>
-</motion.header>
+    </motion.header>
   );
 };
 

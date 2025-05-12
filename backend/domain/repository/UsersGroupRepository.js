@@ -77,23 +77,63 @@ class UsersGroupRepository {
   }
   
   // Write operations - Write to both MongoDB and MySQL
-  async create(data) {
-    try {
-      console.log("Creating UsersGroup:", data);
+ async create(data) {
+  try {
+    console.log("Creating UsersGroup:", data);
+    
+    // Handle case where userId is an array
+    if (Array.isArray(data.userId)) {
+      // Create an array of promises for each user-group relationship
+      const createPromises = data.userId.map(async (userId) => {
+        const singleData = {
+          ...data,
+          userId: userId
+        };
+        
+        // First create in MySQL
+        const mysqlResource = await UsersGroup.create(singleData);
+        
+        // Prepare data for MongoDB
+        const mongoData = {
+          mysqlId: mysqlResource.id.toString(),
+          ...singleData
+        };
+        
+        // Handle user reference
+        const user = await UserMongo.findOne({ mysqlId: userId.toString() });
+        if (!user) {
+          throw new Error(`User with MySQL ID ${userId} not found in MongoDB`);
+        }
+        mongoData.userId = new ObjectId(user._id.toString());
+        
+        // Handle group reference
+        if (data.groupId) {
+          const group = await GroupMongo.findOne({ mysqlId: data.groupId.toString() });
+          if (!group) {
+            throw new Error(`Group with MySQL ID ${data.groupId} not found in MongoDB`);
+          }
+          mongoData.groupId = new ObjectId(group._id.toString());
+        }
+        
+        // Create in MongoDB
+        return UsersGroupMongo.create(mongoData);
+      });
       
-      // First create in MySQL
+      // Wait for all creations to complete
+      const results = await Promise.all(createPromises);
+      console.log("UsersGroups saved in MongoDB:", results);
+      
+      return results;
+    } else {
+      // Original single-user implementation
       const mysqlResource = await UsersGroup.create(data);
       
-      // Prepare data for MongoDB
       const mongoData = {
         mysqlId: mysqlResource.id.toString(),
         ...data
       };
       
-      // Handle foreign keys - convert MySQL IDs to MongoDB references
-      
       if (data.userId) {
-        // Find the related document in MongoDB
         const user = await UserMongo.findOne({ mysqlId: data.userId.toString() });
         if (!user) {
           throw new Error(`User with MySQL ID ${data.userId} not found in MongoDB`);
@@ -102,7 +142,6 @@ class UsersGroupRepository {
       }
 
       if (data.groupId) {
-        // Find the related document in MongoDB
         const group = await GroupMongo.findOne({ mysqlId: data.groupId.toString() });
         if (!group) {
           throw new Error(`Group with MySQL ID ${data.groupId} not found in MongoDB`);
@@ -110,16 +149,18 @@ class UsersGroupRepository {
         mongoData.groupId = new ObjectId(group._id.toString());
       }
       
-      // Create in MongoDB
       const mongoResource = await UsersGroupMongo.create(mongoData);
       console.log("UsersGroup saved in MongoDB:", mongoResource);
       
       return mysqlResource;
-    } catch (error) {
-      console.error("Error creating UsersGroup:", error);
-      throw new Error('Error creating UsersGroup: ' + error.message);
     }
+  } catch (error) {
+    console.error("Error creating UsersGroup:", error);
+    throw new Error('Error creating UsersGroup: ' + error.message);
   }
+}
+
+  
   
   async update(id, data) {
     try {

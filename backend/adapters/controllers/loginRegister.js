@@ -126,7 +126,9 @@ const googleAuth = async (req, res) => {
               httpOnly: true,
               secure: process.env.NODE_ENV === 'production',
               sameSite: 'Strict',
-              maxAge: 15 * 60 * 1000,
+            //   maxAge: 15 * 60 * 1000,
+            maxAge: 24 * 60 * 60 * 1000 // 24 
+
           });
 
           return res.status(200).json({ 
@@ -189,7 +191,9 @@ const googleAuth = async (req, res) => {
           httpOnly: true,
           secure: process.env.NODE_ENV === 'production',
           sameSite: 'Strict',
-          maxAge: 15 * 60 * 1000, // 15 min
+        //   maxAge: 15 * 60 * 1000, // 15 min
+          maxAge: 24 * 60 * 60 * 1000 // 24 orë
+
         });
   
         res.status(200).json({ message: 'Login i suksesshëm', accessToken, refreshToken });
@@ -219,7 +223,27 @@ const googleAuth = async (req, res) => {
         res.status(500).json({ error: error.message });
     }
 };
-
+const getUserByIdentifier = async (req, res) => {
+    try {
+        const user = await User.findOne({ 
+            where: { 
+                [Op.or]: [
+                    { username: req.params.identifier },
+                    { email: req.params.identifier }
+                ]
+            },
+            // include: ['profileImageId'] // Include any associations you need
+        });
+        
+        if (!user) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+        
+        res.json(user);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
   
 
-  module.exports = {loginUser, getByUsernameOrEmail, googleAuth  };
+  module.exports = {loginUser, getByUsernameOrEmail, googleAuth, getUserByIdentifier};  

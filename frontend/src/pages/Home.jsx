@@ -1,6 +1,4 @@
-import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { Link, useLocation } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FaDumbbell, FaAppleAlt, FaBrain, FaRunning, FaQuoteLeft, FaArrowRight, FaArrowLeft, FaMapMarkerAlt, FaPhone, FaEnvelope, FaStar } from 'react-icons/fa';
 import { GiMuscleUp } from 'react-icons/gi';
@@ -11,7 +9,6 @@ import Header from './Header';
 import "slick-carousel/slick/slick.css"; 
 import "slick-carousel/slick/slick-theme.css";
 import axios from 'axios';
-
 
 axios.defaults.withCredentials = true;
 
@@ -80,11 +77,7 @@ const WellnessCenter = () => {
   const [hoveredTeam, setHoveredTeam] = useState(null);
   const [teamMembers, setTeamMembers] = useState([]);
   const [loading, setLoading] = useState(true);
-    const [userData, setUserData] = useState(null);
-
   const [error, setError] = useState(null);
-  const navigate = useNavigate();
-  const location = useLocation();
 
   useEffect(() => {
     const fetchTeamMembers = async () => {
@@ -175,7 +168,7 @@ const WellnessCenter = () => {
     {
       id: 1,
       title: "Personal Training",
-      description: "Customized workout programs designed by certified trainers to help you achieve your fitness goals.",
+      description: "Customized workout programs designed by certified trainers to help you achieve your fitness goals. Rinarda Vesa",
       icon: <FaDumbbell className="text-4xl text-blue-500" />,
       bgColor: "bg-blue-50",
       borderColor: "border-blue-200",
@@ -205,7 +198,7 @@ const WellnessCenter = () => {
     {
       id: 3,
       title: "Psychology Services",
-      description: "Professional mental health support to help you achieve balance and wellbeing.Empowering you for more fulfilled life. ",
+      description: "Professional mental health support to help you achieve balance and wellbeing. dasdasdasfadsasdasdasd",
       icon: <MdPsychology className="text-4xl text-purple-500" />,
       bgColor: "bg-purple-50",
       borderColor: "border-purple-200",
@@ -273,7 +266,7 @@ const WellnessCenter = () => {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 1 }}
-        className="relative bg-gradient-to-br bg-white text-teal-400 overflow-hidden"
+        className="relative bg-gradient-to-br from-teal-600 to-teal-400 text-white overflow-hidden"
       >
         {/* Animated background elements */}
         <div className="absolute inset-0 overflow-hidden">
@@ -315,32 +308,27 @@ const WellnessCenter = () => {
               animate="visible"
               className="text-left"
             >
-                <motion.h1 
-  variants={fadeInUp}
-  className="text-4xl font-light tracking-tight sm:text-5xl md:text-6xl font-serif"
->
-  Your Journey to
-  <motion.span 
-    animate={{ 
-      color: ['#34d399', '#10b981', '#34d399'], // Emerald gradient
-      textShadow: [
-        '0 0 8px rgba(167,243,208,0.3)', 
-        '0 0 15px rgba(110,231,183,0.5)', 
-        '0 0 8px rgba(167,243,208,0.3)'
-      ]
-    }}
-    transition={{ duration: 3, repeat: Infinity, repeatType: 'reverse' }}
-    className="font-medium ml-2 inline-block"
-  >
-    Total Wellness
-  </motion.span>
-  <br />
-  <span className="text-emerald-300">Starts Here</span>
-</motion.h1>
+              <motion.h1 
+                variants={fadeInUp}
+                className="text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl"
+              >
+                Your Journey to 
+                <motion.span 
+                  animate={{ 
+                    color: ['#fef08a', '#fde047', '#fef08a'],
+                    textShadow: ['0 0 8px rgba(254,240,138,0.3)', '0 0 15px rgba(254,240,138,0.5)', '0 0 8px rgba(254,240,138,0.3)']
+                  }}
+                  transition={{ duration: 3, repeat: Infinity, repeatType: 'reverse' }}
+                  className="text-yellow-300 ml-2 inline-block"
+                >
+                  Total Wellness
+                </motion.span>
+                <br />Begins Here
+              </motion.h1>
               
               <motion.p 
                 variants={fadeInUp}
-                className="mt-6 text-xl leading-8 text-black max-w-2xl"
+                className="mt-6 text-xl leading-8 text-blue-100 max-w-2xl"
               >
                 Discover our integrated approach to health with expert services in training, nutrition, psychology, and physiotherapy.
               </motion.p>
@@ -350,40 +338,34 @@ const WellnessCenter = () => {
                 className="mt-10 flex items-center gap-x-6"
               >
                 <motion.a
-                whileHover={{ 
-                  scale: 1.05, 
-                  backgroundColor: "#fde047",
-                  boxShadow: "0 10px 25px -5px rgba(253, 224, 71, 0.3)"
-                }}
-                whileTap={{ scale: 0.98 }}
-                initial={{ boxShadow: "0 0 0 rgba(253, 224, 71, 0)" }}
-                animate={{ 
-                  boxShadow: ["0 0 0 rgba(253, 224, 71, 0)", "0 0 25px rgba(253, 224, 71, 0.4)", "0 0 0 rgba(253, 224, 71, 0)"]
-                }}
-                transition={{ 
-                  boxShadow: { 
-                    duration: 3, 
-                    repeat: Infinity,
-                    ease: "easeInOut"
-                  } 
-                }}
-                href="/CreateAppointment"
-                onClick={(e) => {
-                  if (userData) {
-                    e.preventDefault();
-                    localStorage.setItem('redirectAfterLogin', '/CreateAppointment');
-                    navigate('/login');
-                  }
-                }}
-                className="rounded-md bg-[#FFE660] px-6 py-3 text-lg font-semibold text-gray-900 hover:bg-yellow-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-yellow-400 transition-all duration-300"
-              >
-                Book Now
-              </motion.a>
+                  whileHover={{ 
+                    scale: 1.05, 
+                    backgroundColor: "#fde047",
+                    boxShadow: "0 10px 25px -5px rgba(253, 224, 71, 0.3)"
+                  }}
+                  whileTap={{ scale: 0.98 }}
+                  initial={{ boxShadow: "0 0 0 rgba(253, 224, 71, 0)" }}
+                  animate={{ 
+                    boxShadow: ["0 0 0 rgba(253, 224, 71, 0)", "0 0 25px rgba(253, 224, 71, 0.4)", "0 0 0 rgba(253, 224, 71, 0)"]
+                  }}
+                  transition={{ 
+                    boxShadow: { 
+                      duration: 3, 
+                      repeat: Infinity,
+                      ease: "easeInOut"
+                    } 
+                  }}
+                //   href="#services"
+                href='/createappointment'
+                  className="rounded-md bg-yellow-400 px-6 py-3 text-lg font-semibold text-gray-900 hover:bg-yellow-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-yellow-400 transition-all duration-300"
+                >
+                  Book Now
+                </motion.a>
                 <motion.a 
                   whileHover={{ x: 5 }}
-                  // target='_blank'
+                  target='_blank'
                   href="/schedule" 
-                  className="text-lg font-semibold leading-6 text-black  hover:text-yellow-200 transition-all duration-300 flex items-center"
+                  className="text-lg font-semibold leading-6 text-white hover:text-yellow-200 transition-all duration-300 flex items-center"
                 >
                   Schedule
                   <motion.span 
@@ -394,7 +376,7 @@ const WellnessCenter = () => {
                       ease: "easeInOut"
                     }}
                     aria-hidden="true"
-                    className="ml-1 text-black"
+                    className="ml-1"
                   >→</motion.span>
                 </motion.a>
               </motion.div>
@@ -405,7 +387,7 @@ const WellnessCenter = () => {
           initial={{ opacity: 0, x: 100 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ delay: 0.5, duration: 1.2 }}
-          className="absolute inset-y-0 right-0  lg:block w-1/2"
+          className="absolute inset-y-0 right-0 hidden lg:block w-1/2"
         >
           <div className="absolute inset-0 bg-gradient-to-l from-blue-600 to-purple-600 opacity-80"></div>
           <motion.img
@@ -418,7 +400,7 @@ const WellnessCenter = () => {
               ease: "easeInOut"
             }}
             className="h-full w-full object-cover"
-            src="/images/homepg.jpg"
+            src="https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80"
             alt="Wellness center"
           />
         </motion.div>
@@ -463,7 +445,7 @@ const WellnessCenter = () => {
                     }}
                     exit={{ opacity: 0, scale: 1.2 }}
                     transition={{ duration: 0.8, ease: "easeInOut" }}
-                    className={`${stat.color} text-4xl font-semibold sm:text-5xl`}
+                    className={`${stat.color} text-4xl font-bold sm:text-5xl`}
                   >
                     {stat.value}
                   </motion.div>
@@ -502,8 +484,8 @@ const WellnessCenter = () => {
                 Our Expertise
               </motion.span>
             </motion.div>
-            <h2 className="text-3xl font-semibold tracking-tight text-gray-900 sm:text-4xl">
-              Our <span className="text-teal-600">Integrated</span> Services
+            <h2 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
+              Our <span className="text-teal-500">Integrated</span> Services
             </h2>
             <p className="mt-4 max-w-2xl text-xl text-gray-600 mx-auto">
               Comprehensive care for your body and mind through our specialized services.
@@ -567,7 +549,7 @@ const WellnessCenter = () => {
                     </motion.div>
                   </motion.div>
                   
-                  <h3 className="text-2xl font-semibold text-center text-gray-900 mb-4">{service.title}</h3>
+                  <h3 className="text-2xl font-bold text-center text-gray-900 mb-4">{service.title}</h3>
                   <p className="text-gray-600 text-center mb-6">{service.description}</p>
                   <ul className="space-y-2 mb-6">
                     {service.features.map((feature, index) => (
@@ -675,8 +657,8 @@ const WellnessCenter = () => {
                   Our Philosophy
                 </motion.span>
               </motion.div>
-              <h2 className="text-3xl font-semibold tracking-tight text-gray-900 sm:text-4xl">
-                Our <span className="text-teal-600">Holistic</span> Approach
+              <h2 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
+                Our <span className="text-teal-500">Holistic</span> Approach
               </h2>
               <p className="mt-6 text-lg leading-8 text-gray-600">
                 At our wellness center, we believe true health comes from addressing all aspects of wellbeing.
@@ -684,17 +666,17 @@ const WellnessCenter = () => {
               <div className="mt-10 space-y-6">
                 {[
                   {
-                    icon: <RiMentalHealthLine className="h-20 w-8 text-purple-500" />,
+                    icon: <RiMentalHealthLine className="h-8 w-8 text-purple-500" />,
                     title: "Mind-Body Connection",
                     text: "We emphasize the powerful connection between mental and physical health in all our programs."
                   },
                   {
-                    icon: <GiMuscleUp className="h-20 w-8 text-blue-500" />,
+                    icon: <GiMuscleUp className="h-8 w-8 text-blue-500" />,
                     title: "Evidence-Based Methods",
                     text: "All our therapies and training programs are based on the latest scientific research."
                   },
                   {
-                    icon: <FaBrain className="h-20 w-8 text-emerald-500" />,
+                    icon: <FaBrain className="h-8 w-8 text-emerald-500" />,
                     title: "Personalized Plans",
                     text: "Every client receives a customized program tailored to their unique needs and goals."
                   }
@@ -750,7 +732,7 @@ const WellnessCenter = () => {
                   viewport={{ once: true }}
                   transition={{ duration: 1.5 }}
                   className="w-full h-full object-cover"
-                  src="/images/tennis.jpg"
+                  src="https://images.unsplash.com/photo-1545205597-3d9d02c29597?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80"
                   alt="Wellness approach"
                 />
               </motion.div>
@@ -763,7 +745,7 @@ const WellnessCenter = () => {
                   whileHover={{ y: -5 }}
                   className="bg-blue-50 border border-blue-100 p-6 rounded-xl shadow-sm transition-all duration-300"
                 >
-                  <div className="text-blue-500 text-3xl font-semibold">15+</div>
+                  <div className="text-blue-500 text-3xl font-bold">15+</div>
                   <div className="text-gray-700 mt-2">Years Combined Experience</div>
                 </motion.div>
                 <motion.div
@@ -774,7 +756,7 @@ const WellnessCenter = () => {
                   whileHover={{ y: -5 }}
                   className="bg-purple-50 border border-purple-100 p-6 rounded-xl shadow-sm transition-all duration-300"
                 >
-                  <div className="text-purple-500 text-3xl font-semibold">100%</div>
+                  <div className="text-purple-500 text-3xl font-bold">100%</div>
                   <div className="text-gray-700 mt-2">Certified Specialists</div>
                 </motion.div>
               </div>
@@ -799,10 +781,10 @@ const WellnessCenter = () => {
             viewport={{ once: true }}
             className="text-center mb-16"
           >
-            <h2 className="text-3xl font-medium tracking-tight text-gray-900 sm:text-4xl">
+            <h2 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
               Meet Our <span className="text-teal-400">Experts</span>
             </h2>
-            <p className="mt-4 max-w-2xl text-xl font-semibold text-gray-600 mx-auto">
+            <p className="mt-4 max-w-2xl text-xl text-gray-600 mx-auto">
               Our team of certified professionals is dedicated to your wellness journey.
             </p>
           </motion.div>
@@ -852,7 +834,7 @@ const WellnessCenter = () => {
                         </motion.span>
                       </motion.div>
                     </motion.div>
-                    <h3 className="text-xl font-semibold text-gray-900">{member.name}</h3>
+                    <h3 className="text-xl font-bold text-gray-900">{member.name}</h3>
                     {/* <p className="text-blue-600 font-medium mt-2">{member.role}</p> */}
                     <p className="text-gray-500 mt-2">{member.specialty}</p>
                     <div className="mt-6">
@@ -888,7 +870,7 @@ const WellnessCenter = () => {
             viewport={{ once: true }}
             className="text-center mb-16"
           >
-            <h2 className="text-3xl font-semibold tracking-tight text-gray-900 sm:text-4xl">
+            <h2 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
               Success <span className="text-teal-400">Stories</span>
             </h2>
             <p className="mt-4 max-w-2xl text-xl text-gray-600 mx-auto">
@@ -942,7 +924,7 @@ const WellnessCenter = () => {
         viewport={{ once: true }}
         transition={{ duration: 0.8 }}
         id="contact" 
-        className="bg-emerald-900 py-16 sm:py-24 px-6 sm:px-8"
+        className="bg-gradient-to-r from-teal-700 to-teal-600 py-16 sm:py-24 px-6 sm:px-8"
       >
         <div className="max-w-7xl mx-auto">
           <div className="lg:grid lg:grid-cols-2 lg:gap-16 items-center">
@@ -953,11 +935,11 @@ const WellnessCenter = () => {
               transition={{ duration: 0.8 }}
               className="mb-12 lg:mb-0"
             >
-              <h2 className="text-3xl font-semibold tracking-tight text-white sm:text-4xl">
+              <h2 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
                 Ready to Book Your <motion.span 
                   animate={{ scale: [1, 1.05, 1] }}
                   transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-                  className="text-yellow-200 inline-block"
+                  className="text-yellow-300 inline-block"
                 >
                   Appointment
                 </motion.span>?
@@ -984,30 +966,30 @@ const WellnessCenter = () => {
               whileInView={{ x: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.8, delay: 0.2 }}
-              className=" p-8 rounded-2xl shadow-lg"
+              className="bg-white p-8 rounded-2xl shadow-lg"
             >
-              <h3 className="text-xl font-semibold text-white mb-6">Contact Information</h3>
+              <h3 className="text-xl font-bold text-gray-900 mb-6">Contact Information</h3>
               <div className="space-y-4">
                 {[
                   {
-                    icon: <FaMapMarkerAlt className="h-6 w-6 text-black-300" />,
+                    icon: <FaMapMarkerAlt className="h-6 w-6 text-blue-600" />,
                     content: <>
-                      <p className="font-semibold text-white">123 Wellness Avenue</p>
-                      <p className="text-gray-400">Health City, HC 54321</p>
+                      <p className="font-medium">123 Wellness Avenue</p>
+                      <p className="text-gray-500">Health City, HC 54321</p>
                     </>
                   },
                   {
-                    icon: <FaPhone className="h-6 w-6 text-black-300" />,
+                    icon: <FaPhone className="h-6 w-6 text-blue-600" />,
                     content: <>
-                      <p className="font-semibold text-white">+1 (555) 123-4567</p>
-                      <p className="text-gray-400">Mon-Fri: 8:00 AM - 6:00 PM</p>
+                      <p className="font-medium">+1 (555) 123-4567</p>
+                      <p className="text-gray-500">Mon-Fri: 8:00 AM - 6:00 PM</p>
                     </>
                   },
                   {
-                    icon: <FaEnvelope className="h-6 w-6 text-black-300" />,
+                    icon: <FaEnvelope className="h-6 w-6 text-blue-600" />,
                     content: <>
-                      <p className="font-semibold text-white">info@wellnesscenter.com</p>
-                      <p className="text-gray-400">support@wellnesscenter.com</p>
+                      <p className="font-medium">info@wellnesscenter.com</p>
+                      <p className="text-gray-500">support@wellnesscenter.com</p>
                     </>
                   }
                 ].map((item, index) => (

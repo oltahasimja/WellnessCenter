@@ -233,6 +233,157 @@ io.on('connection', (socket) => {
     }
   });
 
+  // Add this event handler in the existing socket.io connection handler
+socket.on('messageRead', async (data) => {
+  try {
+    const { messageId, userId, groupId } = data;
+    
+    if (!messageId || !userId || !groupId) {
+      socket.emit('error', 'Missing required fields for message read');
+      return;
+    }
+    
+    // Find the user in MongoDB
+    const user = await UserMongo.findOne({ mysqlId: userId });
+    
+    if (!user) {
+      socket.emit('error', 'User not found');
+      return;
+    }
+    
+    // Update the message to add the user to seenBy array
+    const updatedMessage = await MessageMongo.findByIdAndUpdate(
+      messageId, 
+      {
+        $addToSet: {
+          seenBy: {
+            userId: user._id,
+            seenAt: new Date()
+          }
+        }
+      }, 
+      { new: true }
+    ).populate('seenBy.userId', 'name lastName mysqlId');
+    
+    if (!updatedMessage) {
+      socket.emit('error', 'Message not found');
+      return;
+    }
+    
+    // Broadcast the updated message with seen status to all users in the group
+    io.to(groupId).emit('messageSeenUpdate', {
+      messageId,
+      groupId,
+      seenBy: updatedMessage.seenBy
+    });
+    
+  } catch (error) {
+    console.error('Error processing message read:', error);
+    socket.emit('error', 'Failed to process message read');
+  }
+});
+
+// Add this event handler in the existing socket.io connection handler
+socket.on('removeMemberFromGroup', async (data) => {
+  try {
+    const { 
+      groupId, 
+      adminUserId, 
+      memberToRemoveId 
+    } = data;
+    
+    if (!groupId || !adminUserId || !memberToRemoveId) {
+      socket.emit('error', 'Missing required fields for removing member');
+      return;
+    }
+    
+    // Find the admin user
+    const adminUser = await UserMongo.findOne({ mysqlId: adminUserId });
+    if (!adminUser) {
+      socket.emit('error', 'Admin user not found');
+      return;
+    }
+    
+    // Find the group to check if the admin is the creator
+    const group = await GroupMongo.findOne({ 
+      $or: [
+        { _id: groupId },
+        { mysqlId: groupId }
+      ]
+    });
+    
+    if (!group) {
+      socket.emit('error', 'Group not found');
+      return;
+    }
+    
+    // Check if the admin is the group creator
+    if (group.createdById.toString() !== adminUser._id.toString()) {
+      socket.emit('error', 'Only group creator can remove members');
+      return;
+    }
+    
+    // Find the member to remove
+    const memberToRemove = await UserMongo.findOne({ 
+      $or: [
+        { _id: memberToRemoveId },
+        { mysqlId: memberToRemoveId }
+      ]
+    });
+    
+    if (!memberToRemove) {
+      socket.emit('error', 'Member to remove not found');
+      return;
+    }
+    
+    // Remove the user from the UsersGroup collection in both MySQL and MongoDB
+    const removedFromMySQL = await UsersGroup.destroy({
+      where: {
+        userId: memberToRemove.mysqlId,
+        groupId: group.mysqlId
+      }
+    });
+    
+    const removedFromMongo = await UsersGroupMongo.deleteOne({
+      userId: memberToRemove._id,
+      groupId: group._id
+    });
+    
+    // Create a system message about the member being removed
+    const systemMessage = new MessageMongo({
+      text: `${memberToRemove.name} ${memberToRemove.lastName || ''} was removed from the group by ${adminUser.name} ${adminUser.lastName || ''}`,
+      systemMessage: true,
+      userId: adminUser._id,
+      groupId: group._id,
+      createdAt: new Date()
+    });
+    
+    await systemMessage.save();
+    
+    // Populate and broadcast the system message
+    const populatedMessage = await MessageMongo.findById(systemMessage._id)
+      .populate('userId', 'name lastName mysqlId')
+      .exec();
+    
+    io.to(groupId).emit('newMessage', populatedMessage);
+    
+    // Emit an event to inform the client about the member removal
+    io.to(groupId).emit('memberRemoved', {
+      groupId,
+      memberId: memberToRemove._id,
+      memberName: `${memberToRemove.name} ${memberToRemove.lastName || ''}`
+    });
+    
+    console.log(`Member ${memberToRemove.name} removed from group ${group.name} by ${adminUser.name}`);
+    
+  } catch (error) {
+    console.error('Error removing member from group:', error);
+    socket.emit('error', 'Failed to remove member from group');
+  }
+});
+// Add this to your socket.io server code
+
+
   // Handle disconnection
   socket.on('disconnect', () => {
     console.log('User disconnected:', socket.id);
@@ -257,8 +408,6 @@ io.on('connection', (socket) => {
   });
 });
 
-// Opsionale: Kontrollo periodikisht për përdoruesit joaktivë
-// dhe hiqi ata nga lista e përdoruesve online pas një kohe të caktuar
 setInterval(() => {
   if (global.onlineUsers) {
     const now = new Date();
@@ -278,7 +427,7 @@ setInterval(() => {
       }
     });
   }
-}, 60000); // Kontrollo çdo minutë
+}, 60000); 
 
 
 
