@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import io from 'socket.io-client';
 import { useNavigate } from 'react-router-dom';
 import { useLocation } from 'react-router-dom';
+import axios from 'axios';
 
 function Chat() {
   const [socket, setSocket] = useState(null);
@@ -601,10 +602,6 @@ const isCreator =
   }
 };
 
-  const fetchUsersGroups = async () => {
-    const response = await axios.get('http://localhost:5000/api/usersgroup');
-    setUsersGroupList(response.data);
-  };
 
 // Add members
 const fetchAvailableUsers = async () => {
