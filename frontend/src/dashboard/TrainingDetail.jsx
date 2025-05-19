@@ -145,9 +145,28 @@ const handleCompleteTraining = async (memberId) => {
 
     await axios.put(`http://localhost:5000/api/trainingapplication/${idToUpdate}`, updateData);
 
-    // Generate and download the certificate
+    // Generate the certificate
     const certificate = generateCertificate(member, training);
-    certificate.save(`Certificate_${training.title}_${member.name}.pdf`);
+    
+    // Convert PDF to base64 for email attachment
+    const pdfOutput = certificate.output('datauristring');
+    const pdfBase64 = pdfOutput.split(',')[1];
+    
+    // Prepare email data
+    const emailData = {
+      to: member.email,
+      subject: `Your Certificate for ${training.title}`,
+      text: `Dear ${member.name} ${member.lastName},\n\nCongratulations on completing the ${training.title} training!\n\nPlease find your certificate attached.\n\nBest regards,\nWellness Center`,
+      attachments: [{
+        filename: `Certificate_${training.title}_${member.name}.pdf`,
+        content: pdfBase64,
+        encoding: 'base64',
+        contentType: 'application/pdf'
+      }]
+    };
+
+    // Send email with certificate
+    await axios.post('http://localhost:5000/api/send-email', emailData);
 
     const updatedTA = await axios.get('http://localhost:5000/api/trainingapplication');
     const updatedMembers = updatedTA.data
@@ -163,10 +182,10 @@ const handleCompleteTraining = async (memberId) => {
       }));
     
     setMembers(updatedMembers);
-    alert('Statusi u përditësua me sukses dhe certifikata u shkarkua!');
+    // alert('Statusi u përditësua me sukses dhe certifikata u dërgua me email!');
   } catch (error) {
     console.error('Error updating status:', error);
-    alert('Gabim gjatë përditësimit të statusit: ' + (error.response?.data?.message || error.message));
+    // alert('Gabim gjatë përditësimit të statusit: ' + (error.response?.data?.message || error.message));
   }
 };
 

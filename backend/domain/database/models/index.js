@@ -21,6 +21,8 @@ const Log = require('./MySQL/log');
 const Group = require('./MySQL/Group');
 const UsersGroup = require('./MySQL/UsersGroup');
 
+const ScheduleTraining = require('./MySQL/ScheduleTraining');
+
 // Initialize models - try to handle different patterns safely
 function initializeModel(model, seq) {
   if (typeof model === 'function') {
@@ -60,6 +62,10 @@ const UserProgramsModel = initializeModel(UserPrograms, sequelize);
 const ListModel = initializeModel(List, sequelize);
 const GroupModel = initializeModel(Group, sequelize);
 const UsersGroupModel = initializeModel(UsersGroup, sequelize);
+const ScheduleTrainingModel = initializeModel(ScheduleTraining, sequelize);
+
+
+
 
 
 // Log relationships
@@ -128,6 +134,9 @@ TrainingApplicationModel.belongsTo(UserModel, { foreignKey: 'userId' });
 TrainingModel.hasMany(TrainingApplicationModel, { foreignKey: 'trainingId' });
 TrainingApplicationModel.belongsTo(TrainingModel, { foreignKey: 'trainingId' });
 
+TrainingModel.hasOne(ScheduleTrainingModel, { foreignKey: 'trainingId' });
+ScheduleTrainingModel.belongsTo(TrainingModel, { foreignKey: 'trainingId' });
+
 UserModel.hasMany(ListModel, { foreignKey: 'createdById' });
 ListModel.belongsTo(UserModel, { foreignKey: 'createdById' });
 
@@ -156,4 +165,5 @@ module.exports = {
   Log: LogModel,
   Group: GroupModel,
   UsersGroup: UsersGroupModel,
+  ScheduleTraining: ScheduleTrainingModel
 };

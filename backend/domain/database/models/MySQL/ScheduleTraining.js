@@ -1,14 +1,13 @@
 // models/Schedule.js
 const { DataTypes } = require('sequelize');
 const sequelize = require('../../../../config/database');
-const Training = require('./Training');
 
 const ScheduleTraining = sequelize.define('ScheduleTraining', {
     trainingId: {
     type: DataTypes.INTEGER,
     allowNull: false,
     references: {
-      model: Training,
+      model: 'Trainings',
       key: 'id',
     },
     unique: true
@@ -29,7 +28,6 @@ const ScheduleTraining = sequelize.define('ScheduleTraining', {
   timestamps: true
 });
 
-Training.hasOne(ScheduleTraining, { foreignKey: 'trainingId' });
-ScheduleTraining.belongsTo(Training, { foreignKey: 'trainingId' });
+
 
 module.exports = ScheduleTraining;

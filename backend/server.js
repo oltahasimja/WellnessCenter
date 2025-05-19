@@ -681,6 +681,36 @@ const createDefaultRolesAndOwner = async () => {
 createDefaultRolesAndOwner();
 
 
+const nodemailer = require('nodemailer');
+const transporter = nodemailer.createTransport({
+  service: 'gmail',
+  auth: {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS
+  }
+});
+
+// Email endpoint
+app.post('/api/send-email', async (req, res) => {
+  try {
+    const { to, subject, text, attachments } = req.body;
+    
+    const mailOptions = {
+      from: `Wellness Center <${process.env.EMAIL_USER}>`,
+      to,
+      subject,
+      text,
+      attachments
+    };
+
+    await transporter.sendMail(mailOptions);
+    res.status(200).json({ success: true, message: 'Email sent successfully' });
+  } catch (error) {
+    console.error('Error sending email:', error);
+    res.status(500).json({ success: false, message: 'Failed to send email' });
+  }
+});
+
 
 // const RoleMongo = require('./domain/database/models/Mongo/RoleMongo');
 

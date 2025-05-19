@@ -1,4 +1,6 @@
 
+const nodemailer = require('nodemailer');
+
 const TrainingApplicationRepository = require("../../domain/repository/TrainingApplicationRepository");
 const TrainingApplicationPort = require("../../application/ports/TrainingApplicationPort");
 const TrainingApplicationUseCase = require("../../application/use-cases/TrainingApplicationUseCase");
@@ -24,6 +26,10 @@ const getTrainingApplicationById = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
+
+
+
 const createTrainingApplication = async (req, res) => {
   try {
     const newResource = await UseCase.create(req.body);
@@ -32,6 +38,16 @@ const createTrainingApplication = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
+const transporter = nodemailer.createTransport({
+  service: 'gmail',
+  auth: {
+    user: process.env.EMAIL_USER,  // email address from which to send
+    pass: process.env.EMAIL_PASS   // password of the email
+  }
+});
+
+
 const updateTrainingApplication = async (req, res) => {
   try {
     const updatedResource = await UseCase.update(req.params.id, req.body);
