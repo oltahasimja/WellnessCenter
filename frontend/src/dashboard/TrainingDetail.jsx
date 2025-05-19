@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import DeleteConfirmation from "../components/DeleteConfirmation";
+import { generateCertificate } from './utils/certificateGenerator';
+
 
 const TrainingDetail = () => {
   const { id } = useParams();
@@ -86,6 +88,7 @@ const TrainingDetail = () => {
           _id: item.userId._id,
           mysqlId: item.userId.mysqlId,
           name: item.userId.name,
+          lastName: item.userId.lastName,
           email: item.userId.email,
           role: item.userId.roleId,
           status: item.status || 'në pritje'
@@ -106,57 +109,66 @@ const TrainingDetail = () => {
     }
   }, [id, currentUser]);
 
-  const handleCompleteTraining = async (memberId) => {
-    try {
-      const trainingApplicationRes = await axios.get('http://localhost:5000/api/trainingapplication');
-      
-      const taToUpdate = trainingApplicationRes.data.find(ta => 
-        (ta.userId._id === memberId || ta.userId.mysqlId == memberId) && 
-        (ta.trainingId._id === id || ta.trainingId.mysqlId == id)
-      );
-  
-      if (!taToUpdate) {
-        throw new Error('Training application not found');
-      }
-  
-      const idToUpdate = taToUpdate.mysqlId || taToUpdate._id;
-      
-      // Prepare the update data
-      const updateData = {
-        status: 'miratuar'
-      };
-  
-      // Only include userId if it exists and is valid
-      if (taToUpdate.userId && (taToUpdate.userId._id || taToUpdate.userId.mysqlId)) {
-        updateData.userId = taToUpdate.userId.mysqlId || taToUpdate.userId._id;
-      }
-  
-      // Only include trainingId if it exists and is valid
-      if (taToUpdate.trainingId && (taToUpdate.trainingId._id || taToUpdate.trainingId.mysqlId)) {
-        updateData.trainingId = taToUpdate.trainingId.mysqlId || taToUpdate.trainingId._id;
-      }
-  
-      await axios.put(`http://localhost:5000/api/trainingapplication/${idToUpdate}`, updateData);
-  
-      const updatedTA = await axios.get('http://localhost:5000/api/trainingapplication');
-      const updatedMembers = updatedTA.data
-        .filter(ta => ta.trainingId._id === id || ta.trainingId.mysqlId == id)
-        .map(ta => ({
-          _id: ta.userId._id,
-          mysqlId: ta.userId.mysqlId,
-          name: ta.userId.name,
-          email: ta.userId.email,
-          role: ta.userId.roleId,
-          status: ta.status
-        }));
-      
-      setMembers(updatedMembers);
-      alert('Statusi u përditësua me sukses!');
-    } catch (error) {
-      console.error('Error updating status:', error);
-      alert('Gabim gjatë përditësimit të statusit: ' + (error.response?.data?.message || error.message));
+const handleCompleteTraining = async (memberId) => {
+  try {
+    // First find the member details
+    const member = members.find(m => (m._id === memberId || m.mysqlId == memberId));
+    if (!member) {
+      throw new Error('Member not found');
     }
-  };
+
+    const trainingApplicationRes = await axios.get('http://localhost:5000/api/trainingapplication');
+    
+    const taToUpdate = trainingApplicationRes.data.find(ta => 
+      (ta.userId._id === memberId || ta.userId.mysqlId == memberId) && 
+      (ta.trainingId._id === id || ta.trainingId.mysqlId == id)
+    );
+
+    if (!taToUpdate) {
+      throw new Error('Training application not found');
+    }
+
+    const idToUpdate = taToUpdate.mysqlId || taToUpdate._id;
+    
+    // Prepare the update data
+    const updateData = {
+      status: 'miratuar'
+    };
+
+    if (taToUpdate.userId && (taToUpdate.userId._id || taToUpdate.userId.mysqlId)) {
+      updateData.userId = taToUpdate.userId.mysqlId || taToUpdate.userId._id;
+    }
+
+    if (taToUpdate.trainingId && (taToUpdate.trainingId._id || taToUpdate.trainingId.mysqlId)) {
+      updateData.trainingId = taToUpdate.trainingId.mysqlId || taToUpdate.trainingId._id;
+    }
+
+    await axios.put(`http://localhost:5000/api/trainingapplication/${idToUpdate}`, updateData);
+
+    // Generate and download the certificate
+    const certificate = generateCertificate(member, training);
+    certificate.save(`Certificate_${training.title}_${member.name}.pdf`);
+
+    const updatedTA = await axios.get('http://localhost:5000/api/trainingapplication');
+    const updatedMembers = updatedTA.data
+      .filter(ta => ta.trainingId._id === id || ta.trainingId.mysqlId == id)
+      .map(ta => ({
+        _id: ta.userId._id,
+        mysqlId: ta.userId.mysqlId,
+        name: ta.userId.name,
+        lastName: ta.userId.lastName,
+        email: ta.userId.email,
+        role: ta.userId.roleId,
+        status: ta.status
+      }));
+    
+    setMembers(updatedMembers);
+    alert('Statusi u përditësua me sukses dhe certifikata u shkarkua!');
+  } catch (error) {
+    console.error('Error updating status:', error);
+    alert('Gabim gjatë përditësimit të statusit: ' + (error.response?.data?.message || error.message));
+  }
+};
 
   const handleAddMember = async (e) => {
     e.preventDefault();
@@ -217,6 +229,7 @@ const TrainingDetail = () => {
         _id: item.userId._id,
         mysqlId: item.userId.mysqlId,
         name: item.userId.name || 'Unknown',
+        lastName: item.userId.lastName || 'Unknown',
         email: item.userId.email || 'No email',
         role: item.userId.roleId || 'member',
         status: item.status || 'në pritje'
@@ -264,6 +277,7 @@ const TrainingDetail = () => {
           _id: ta.userId._id,
           mysqlId: ta.userId.mysqlId,
           name: ta.userId.name,
+          lastName: ta.userId.lastName,
           email: ta.userId.email,
           role: ta.userId.roleId
         }));
@@ -290,7 +304,7 @@ const TrainingDetail = () => {
   };
 
   if (loading) return (
-    <div className="flex justify-center items-center min-h-screen bg-gray-50">
+    <div className="flex justify-center items-center min-h-screen bg-teal-400">
       <div className="text-center p-8 bg-white rounded-lg shadow-md">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500 mx-auto mb-4"></div>
         <p className="text-gray-700">Loading training details...</p>
@@ -299,7 +313,7 @@ const TrainingDetail = () => {
   );
 
   if (error) return (
-    <div className="flex justify-center items-center min-h-screen bg-gray-50">
+    <div className="flex justify-center items-center min-h-screen bg-teal-400">
       <div className="text-center p-8 bg-white rounded-lg shadow-md max-w-md">
         <div className="text-red-500 text-4xl mb-4">⚠️</div>
         <h2 className="text-xl font-bold text-gray-800 mb-2">Error</h2>
@@ -331,11 +345,11 @@ const TrainingDetail = () => {
   );
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-6xl mx-auto">
+    <div className="min-h-screen bg-teal-400 py-8 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-10xl mx-auto">
         <div className="bg-white rounded-xl shadow-md overflow-hidden">
           {/* Training Header */}
-          <div className="bg-gradient-to-r from-blue-600 to-blue-800 p-6 text-white">
+          <div className="bg-gradient-to-r from-teal-600 to-teal-800 p-6 text-white">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
               <div>
                 <h1 className="text-2xl md:text-3xl font-bold">{training.title}</h1>
@@ -421,7 +435,6 @@ const TrainingDetail = () => {
                         <tr>
                           <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
                           <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Role</th>
                           <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
                           <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                         </tr>
@@ -435,19 +448,19 @@ const TrainingDetail = () => {
                                   {member.name.charAt(0).toUpperCase()}
                                 </div>
                                 <div className="ml-4">
-                                  <div className="text-sm font-medium text-gray-900">{member.name}</div>
+                                  <div className="text-sm font-medium text-gray-900">{member.name} {member.lastName}</div>
                                 </div>
                               </div>
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{member.email}</td>
-                            <td className="px-6 py-4 whitespace-nowrap">
+                            {/* <td className="px-6 py-4 whitespace-nowrap">
                               <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
                                 ${member.role === 'admin' ? 'bg-purple-100 text-purple-800' : 
                                   member.role === 'trainer' ? 'bg-blue-100 text-blue-800' : 
                                   'bg-green-100 text-green-800'}`}>
                                 {member.role || 'Member'}
                               </span>
-                            </td>
+                            </td> */}
                             <td className="px-6 py-4 whitespace-nowrap">
                               <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
                                 ${member.status === 'miratuar' ? 'bg-green-100 text-green-800' : 
