@@ -17,10 +17,7 @@ const ProductGrid = ({ products, addToCart, clickedButtonId }) => {
         >
           <ProductCard 
             product={product}
-            addToCart={(e) => {
-              e.preventDefault(); // Prevent navigation when clicking add to cart
-              addToCart(product);
-            }}
+            addToCart={() => addToCart(product)}
             clickedButtonId={clickedButtonId}
           />
         </Link>

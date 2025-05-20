@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useState, useContext } from 'react';
 import { FiStar, FiShoppingCart } from 'react-icons/fi';
 import { motion } from 'framer-motion';
+import CartContext from '../../context/CartContext';
 
 function ProductDemoWellness() {
   // Wellness product data with working image URL
@@ -17,7 +18,7 @@ function ProductDemoWellness() {
     inStock: true
   };
 
-  const [cart, setCart] = useState([]);
+  const [cart, setCart] = useContext(CartContext);
 
   const addToCart = () => {
     setCart([...cart, { ...product, quantity: 1 }]);

@@ -1,10 +1,12 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useContext } from "react";
 import { useNavigate, Link, useLocation } from "react-router-dom";
 import { motion } from 'framer-motion';
 import { FaShoppingCart, FaSignInAlt, FaSignOutAlt, FaComment, FaUser, FaBars, FaTimes } from 'react-icons/fa';
 import axios from "axios";
+import CartContext from "../context/CartContext";
 
-const Header = ({ cart = [], showCart, setShowCart }) => {
+const Header = () => {
+   const { cart, showCart, setShowCart } = useContext(CartContext);
   const [scrolled, setScrolled] = useState(false);
   const [userData, setUserData] = useState(null);
   const [loading, setLoading] = useState(true);

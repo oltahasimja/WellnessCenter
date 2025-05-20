@@ -9,6 +9,7 @@ import Header from './Header';
 import "slick-carousel/slick/slick.css"; 
 import "slick-carousel/slick/slick-theme.css";
 import axios from 'axios';
+import ShoppingCart from './product/ShoppingCart';
 
 axios.defaults.withCredentials = true;
 
@@ -78,6 +79,22 @@ const WellnessCenter = () => {
   const [teamMembers, setTeamMembers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [cart, setCart] = useState([]);
+  const [showCart, setShowCart] = useState(false);
+  const [clickedButtonId, setClickedButtonId] = useState(null);
+
+   // Load cart from localStorage on first render
+  useEffect(() => {
+    const savedCart = localStorage.getItem('cart');
+    if (savedCart) {
+      setCart(JSON.parse(savedCart));
+    }
+  }, []);
+
+  // Save cart to localStorage whenever it changes
+  useEffect(() => {
+    localStorage.setItem('cart', JSON.stringify(cart));
+  }, [cart]);
 
   useEffect(() => {
     const fetchTeamMembers = async () => {
@@ -253,13 +270,36 @@ const WellnessCenter = () => {
       rating: 5
     }
   ];
+  const addToCart = (product) => {
+  setCart(prevCart => {
+    const existingItem = prevCart.find(item => item.id === product.id);
+    if (existingItem) {
+      return prevCart.map(item =>
+        item.id === product.id 
+          ? { ...item, quantity: item.quantity + 1 }
+          : item
+      );
+    } else {
+      return [...prevCart, { ...product, quantity: 1 }];
+    }
+  });
+
+  setClickedButtonId(product.id);
+  setTimeout(() => setClickedButtonId(null), 1000);
+};
 
  
 
   return (
     <div className="bg-gradient-to-b from-gray-50 to-white overflow-hidden">
 
-<Header />
+<Header
+  cart={cart} 
+  showCart={showCart} 
+  setShowCart={setShowCart} 
+
+
+/>
 
       {/* Hero Section with enhanced animations */}
       <motion.div 
@@ -1011,6 +1051,13 @@ const WellnessCenter = () => {
           </div>
         </div>
       </motion.div>
+      <ShoppingCart 
+  showCart={showCart}
+  setShowCart={setShowCart}
+  cart={cart}
+  setCart={setCart}
+/>
+
     </div>
   );
 };

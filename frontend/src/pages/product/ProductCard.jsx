@@ -6,7 +6,9 @@ import { FiStar, FiAward, FiShoppingCart } from 'react-icons/fi';
 const ProductCard = ({ product, addToCart, clickedButtonId }) => {
   const [isHovered, setIsHovered] = useState(false);
 
-  const handleAddToCart = () => {
+  const handleAddToCart = (e) => {
+    e.stopPropagation();  // This prevents the click from bubbling up to the Link
+    e.preventDefault();   // This stops the default behavior if necessary
     addToCart(product);
   };
 

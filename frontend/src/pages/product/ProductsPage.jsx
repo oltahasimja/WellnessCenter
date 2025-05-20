@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useContext } from 'react';
 import { motion } from 'framer-motion';
 import { AnimatePresence } from 'framer-motion';
 import { FiFilter, FiChevronDown, FiChevronUp } from 'react-icons/fi';
@@ -11,6 +11,7 @@ import ProductSearch from './ProductSearch';
 import ProductFilters from './ProductFilters';
 import ProductGrid from './ProductGrid';
 import Footer from '../Footer';
+import CartContext from '../../context/CartContext';
 
 // static products 
 const staticProducts = [
@@ -100,7 +101,7 @@ function ProductsPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [showSearch, setShowSearch] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
-  const [cart, setCart] = useState([]);
+  const {cart, setCart} = useContext(CartContext);
   const [showCart, setShowCart] = useState(false);
   const [clickedButtonId, setClickedButtonId] = useState(null);
 

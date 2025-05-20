@@ -31,6 +31,7 @@ import CreateAppointment from './pages/CreateAppointment';
 import MyAppointments from './pages/MyAppointments';
 import Profile from './pages/Profile';
 import Chat from './pages/Chat';
+import { CartProvider } from './context/CartContext';
 
 
 const AppRoutes = () => {
@@ -100,8 +101,10 @@ const AppRoutes = () => {
 
 const App = () => {
   return (
-    <ThemeProvider>
-      <AppRoutes />
+ <ThemeProvider>
+      <CartProvider>
+        <AppRoutes />
+      </CartProvider>
     </ThemeProvider>
   );
 };

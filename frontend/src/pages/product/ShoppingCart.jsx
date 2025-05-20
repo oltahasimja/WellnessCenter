@@ -1,8 +1,12 @@
 import { FiShoppingCart, FiX } from 'react-icons/fi';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useContext } from 'react';
+import CartContext from '../../context/CartContext';
 
-const ShoppingCart = ({ showCart, setShowCart, cart, setCart }) => {
+const ShoppingCart = () => {
+  const { cart, setCart, showCart, setShowCart } = useContext(CartContext);
+
   const removeFromCart = (productId) => {
     setCart(prevCart => prevCart.filter(item => item.id !== productId));
   };
