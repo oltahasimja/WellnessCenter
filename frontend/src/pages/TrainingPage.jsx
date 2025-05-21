@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { FiClock, FiCalendar, FiUser, FiStar, FiHeart, FiShare2, FiChevronDown, FiChevronUp } from 'react-icons/fi';
 import axios from 'axios';
@@ -124,9 +123,6 @@ const TrainingPage = () => {
   // Get unique categories from user's trainings
   const categories = ['all', ...new Set(userTrainings.map(training => training.category))];
   
-
-
-
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Hero Section */}
@@ -142,7 +138,6 @@ const TrainingPage = () => {
       
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-    
         
         {/* Tab Navigation */}
         <div className="flex flex-wrap border-b border-gray-200 mb-8">
@@ -327,6 +322,220 @@ const TrainingPage = () => {
         )}
       </div>
       
+      {/* Wellness Center Section */}
+      <div className="bg-white py-16">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl font-extrabold text-gray-900 sm:text-4xl">
+              Our Wellness Center
+            </h2>
+            <p className="mt-4 max-w-2xl text-xl text-gray-500 mx-auto">
+              Discover holistic approaches to health and wellbeing
+            </p>
+          </div>
+
+          {/* Wellness Services Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12 mb-16">
+            {/* Service 1 */}
+            <div className="bg-teal-50 rounded-lg overflow-hidden shadow-lg transition-all duration-300 hover:shadow-xl">
+              <div className="p-6">
+                <div className="flex items-center mb-4">
+                  <div className="bg-teal-100 p-3 rounded-full mr-4">
+                    <svg className="w-6 h-6 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                    </svg>
+                  </div>
+                  <h3 className="text-xl font-semibold text-gray-800">Energy Healing</h3>
+                </div>
+                <p className="text-gray-600 mb-4">
+                  Rebalance your body's energy systems with our certified practitioners using Reiki, Qi Gong, and other energy healing modalities.
+                </p>
+                <div className="flex justify-between items-center">
+                  <span className="text-teal-600 font-medium">60-90 min sessions</span>
+                  <button className="text-teal-600 hover:text-teal-800 font-medium">
+                    Learn more →
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Service 2 */}
+            <div className="bg-amber-50 rounded-lg overflow-hidden shadow-lg transition-all duration-300 hover:shadow-xl">
+              <div className="p-6">
+                <div className="flex items-center mb-4">
+                  <div className="bg-amber-100 p-3 rounded-full mr-4">
+                    <svg className="w-6 h-6 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </div>
+                  <h3 className="text-xl font-semibold text-gray-800">Meditation Programs</h3>
+                </div>
+                <p className="text-gray-600 mb-4">
+                  Guided meditation sessions tailored to reduce stress, improve focus, and promote emotional wellbeing. Suitable for all experience levels.
+                </p>
+                <div className="flex justify-between items-center">
+                  <span className="text-amber-600 font-medium">Daily sessions</span>
+                  <button className="text-amber-600 hover:text-amber-800 font-medium">
+                    Learn more →
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Service 3 */}
+            <div className="bg-rose-50 rounded-lg overflow-hidden shadow-lg transition-all duration-300 hover:shadow-xl">
+              <div className="p-6">
+                <div className="flex items-center mb-4">
+                  <div className="bg-rose-100 p-3 rounded-full mr-4">
+                    <svg className="w-6 h-6 text-rose-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                    </svg>
+                  </div>
+                  <h3 className="text-xl font-semibold text-gray-800">Holistic Nutrition</h3>
+                </div>
+                <p className="text-gray-600 mb-4">
+                  Personalized nutrition plans combining modern science with traditional wisdom to optimize your health and vitality.
+                </p>
+                <div className="flex justify-between items-center">
+                  <span className="text-rose-600 font-medium">Custom plans</span>
+                  <button className="text-rose-600 hover:text-rose-800 font-medium">
+                    Learn more →
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Wellness Features */}
+          <div className="bg-gray-50 rounded-2xl p-8 md:p-12 mb-16">
+            <div className="max-w-3xl mx-auto text-center">
+              <h3 className="text-2xl font-bold text-gray-900 mb-6">Why Choose Our Wellness Center?</h3>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div className="flex flex-col items-center">
+                  <div className="bg-teal-100 p-4 rounded-full mb-4">
+                    <FiUser className="text-teal-600 text-xl" />
+                  </div>
+                  <h4 className="font-medium text-gray-900 mb-2">Certified Practitioners</h4>
+                  <p className="text-gray-600 text-sm">All our staff are highly trained and certified in their specialties.</p>
+                </div>
+                <div className="flex flex-col items-center">
+                  <div className="bg-amber-100 p-4 rounded-full mb-4">
+                    <FiStar className="text-amber-600 text-xl" />
+                  </div>
+                  <h4 className="font-medium text-gray-900 mb-2">Personalized Approach</h4>
+                  <p className="text-gray-600 text-sm">Tailored programs designed for your unique needs and goals.</p>
+                </div>
+                <div className="flex flex-col items-center">
+                  <div className="bg-rose-100 p-4 rounded-full mb-4">
+                    <FiClock className="text-rose-600 text-xl" />
+                  </div>
+                  <h4 className="font-medium text-gray-900 mb-2">Flexible Scheduling</h4>
+                  <p className="text-gray-600 text-sm">Morning, afternoon and evening appointments available.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Testimonials */}
+          <div className="mb-16">
+            <h3 className="text-2xl font-bold text-center text-gray-900 mb-8">What Our Clients Say</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              <div className="bg-white p-6 rounded-xl shadow-md">
+                <div className="flex items-center mb-4">
+                  <img 
+                    src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80" 
+                    alt="Sarah Johnson" 
+                    className="w-12 h-12 rounded-full mr-4 object-cover"
+                  />
+                  <div>
+                    <h4 className="font-medium text-gray-900">Sarah Johnson</h4>
+                    <div className="flex items-center">
+                      {[...Array(5)].map((_, i) => (
+                        <FiStar key={i} className="text-yellow-400 fill-current" />
+                      ))}
+                    </div>
+                  </div>
+                </div>
+                <p className="text-gray-600 italic">
+                  "The meditation program completely transformed my ability to manage stress. I've never felt more centered and focused in my life."
+                </p>
+              </div>
+              <div className="bg-white p-6 rounded-xl shadow-md">
+                <div className="flex items-center mb-4">
+                  <img 
+                    src="https://images.unsplash.com/photo-1570295999919-56ceb5ecca61?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80" 
+                    alt="Michael Chen" 
+                    className="w-12 h-12 rounded-full mr-4 object-cover"
+                  />
+                  <div>
+                    <h4 className="font-medium text-gray-900">Michael Chen</h4>
+                    <div className="flex items-center">
+                      {[...Array(5)].map((_, i) => (
+                        <FiStar key={i} className="text-yellow-400 fill-current" />
+                      ))}
+                    </div>
+                  </div>
+                </div>
+                <p className="text-gray-600 italic">
+                  "After just three energy healing sessions, my chronic back pain improved dramatically. The practitioners are truly gifted."
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Wellness Gallery */}
+          <div className="mb-16">
+            <h3 className="text-2xl font-bold text-center text-gray-900 mb-8">Our Wellness Space</h3>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="rounded-lg overflow-hidden h-48">
+                <img 
+                  src="https://images.unsplash.com/photo-1545205597-3d9d02c29597?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=80" 
+                  alt="Meditation room" 
+                  className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+                />
+              </div>
+              <div className="rounded-lg overflow-hidden h-48">
+                <img 
+                  src="https://images.unsplash.com/photo-1552196563-55cd4e45efb3?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=80" 
+                  alt="Yoga class" 
+                  className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+                />
+              </div>
+              <div className="rounded-lg overflow-hidden h-48">
+                <img 
+                  src="https://images.unsplash.com/photo-1545389336-cf090694435e?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=80" 
+                  alt="Massage room" 
+                  className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+                />
+              </div>
+              <div className="rounded-lg overflow-hidden h-48">
+                <img 
+                  src="https://images.unsplash.com/photo-1518611012118-696072aa579a?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=80" 
+                  alt="Relaxation area" 
+                  className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* CTA Section */}
+          <div className="bg-gradient-to-r from-teal-500 to-teal-700 rounded-2xl p-8 md:p-12 text-center">
+            <h3 className="text-2xl md:text-3xl font-bold text-white mb-4">Ready to Begin Your Wellness Journey?</h3>
+            <p className="text-teal-100 mb-8 max-w-2xl mx-auto">
+              Book your first session today and receive 20% off your initial consultation.
+            </p>
+            <div className="flex flex-col sm:flex-row justify-center gap-4">
+              <button className="bg-white text-teal-600 hover:bg-gray-100 px-6 py-3 rounded-lg font-medium shadow-md transition-colors duration-300">
+                Book a Session
+              </button>
+              <button className="bg-transparent border-2 border-white text-white hover:bg-white hover:bg-opacity-10 px-6 py-3 rounded-lg font-medium transition-colors duration-300">
+                Learn More
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <Footer />
     </div>
   );
