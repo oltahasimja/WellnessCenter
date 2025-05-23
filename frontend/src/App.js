@@ -26,7 +26,7 @@ import Schedule from './pages/Schedule'
 import ProductsPage from './pages/product/ProductsPage';
 import MyPrograms from './pages/MyPrograms';
 import TrainingPage from './pages/TrainingPage'
-import ProductDemoWellness from './pages/product/ProductDemoWellness';
+import ProductDetailPage from './pages/product/ProductDetailPage';
 import CreateAppointment from './pages/CreateAppointment';
 import MyAppointments from './pages/MyAppointments';
 import Profile from './pages/Profile';
@@ -83,7 +83,8 @@ const AppRoutes = () => {
 
         <Route path="/product" element={<Product/>}/>
         <Route path="/productspage" element={<ProductsPage/>}/>
-        <Route path="/product/:productName" element={<ProductDemoWellness />} />
+        <Route path="/product/:productName" element={<ProductDetailPage />} />
+       
 
         <Route path="/category" element={<Category/>}/>
       
