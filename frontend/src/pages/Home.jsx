@@ -185,7 +185,7 @@ const WellnessCenter = () => {
     {
       id: 1,
       title: "Personal Training",
-      description: "Customized workout programs designed by certified trainers to help you achieve your fitness goals. Rinarda Vesa",
+      description: "Customized workout programs designed by certified trainers to help you achieve your fitness goals.",
       icon: <FaDumbbell className="text-4xl text-blue-500" />,
       bgColor: "bg-blue-50",
       borderColor: "border-blue-200",
@@ -215,7 +215,7 @@ const WellnessCenter = () => {
     {
       id: 3,
       title: "Psychology Services",
-      description: "Professional mental health support to help you achieve balance and wellbeing. dasdasdasfadsasdasdasd",
+      description: "Professional mental health support to help you achieve balance .Empowering you for more fulfilled life.",
       icon: <MdPsychology className="text-4xl text-purple-500" />,
       bgColor: "bg-purple-50",
       borderColor: "border-purple-200",
@@ -706,17 +706,17 @@ const WellnessCenter = () => {
               <div className="mt-10 space-y-6">
                 {[
                   {
-                    icon: <RiMentalHealthLine className="h-8 w-8 text-purple-500" />,
+                    icon: <RiMentalHealthLine className="h-20 w-8 text-purple-500" />,
                     title: "Mind-Body Connection",
                     text: "We emphasize the powerful connection between mental and physical health in all our programs."
                   },
                   {
-                    icon: <GiMuscleUp className="h-8 w-8 text-blue-500" />,
+                    icon: <GiMuscleUp className="h-20 w-8 text-blue-500" />,
                     title: "Evidence-Based Methods",
                     text: "All our therapies and training programs are based on the latest scientific research."
                   },
                   {
-                    icon: <FaBrain className="h-8 w-8 text-emerald-500" />,
+                    icon: <FaBrain className="h-20 w-8 text-emerald-500" />,
                     title: "Personalized Plans",
                     text: "Every client receives a customized program tailored to their unique needs and goals."
                   }
