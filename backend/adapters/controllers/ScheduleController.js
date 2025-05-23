@@ -13,6 +13,10 @@ const getAllSchedules = async (req, res) => {
   }
 };
 const getScheduleById = async (req, res) => {
+  if (!/^\d+$/.test(req.params.id)) {
+    return res.status(400).json({ message: "Invalid ID format" });
+  }
+
   try {
     const result = await UseCase.getById(req.params.id);
     if (result) {
@@ -24,8 +28,33 @@ const getScheduleById = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
 const createSchedule = async (req, res) => {
   try {
+    const { workDays, startTime, endTime, unavailableDates = [] } = req.body;
+
+    if (!Array.isArray(workDays) || workDays.length === 0) {
+      return res.status(400).json({ message: "workDays must be a non-empty array" });
+    }
+
+    const timeRegex = /^([01]\d|2[0-3]):([0-5]\d)$/;
+    if (!timeRegex.test(startTime)) {
+      return res.status(400).json({ message: "Invalid startTime format" });
+    }
+
+    if (!timeRegex.test(endTime)) {
+      return res.status(400).json({ message: "Invalid endTime format" });
+    }
+
+    // Add startTime/endTime comparison validation
+    if (startTime >= endTime) {
+      return res.status(400).json({ message: "startTime must be before endTime" });
+    }
+
+    if (Array.isArray(unavailableDates) && unavailableDates.length > 1000) {
+      return res.status(400).json({ message: "Too many unavailable dates" });
+    }
+
     const newResource = await UseCase.create(req.body);
     res.status(201).json(newResource);
   } catch (error) {
@@ -34,6 +63,30 @@ const createSchedule = async (req, res) => {
 };
 const updateSchedule = async (req, res) => {
   try {
+    const { workDays, startTime, endTime, unavailableDates = [] } = req.body;
+
+    if (!Array.isArray(workDays) || workDays.length === 0) {
+      return res.status(400).json({ message: "workDays must be a non-empty array" });
+    }
+
+    const timeRegex = /^([01]\d|2[0-3]):([0-5]\d)$/;
+    if (!timeRegex.test(startTime)) {
+      return res.status(400).json({ message: "Invalid startTime format" });
+    }
+
+    if (!timeRegex.test(endTime)) {
+      return res.status(400).json({ message: "Invalid endTime format" });
+    }
+
+    // 🔴 ADD THIS BLOCK
+    if (startTime >= endTime) {
+      return res.status(400).json({ message: "startTime must be before endTime" });
+    }
+
+    if (Array.isArray(unavailableDates) && unavailableDates.length > 1000) {
+      return res.status(400).json({ message: "Too many unavailable dates" });
+    }
+
     const updatedResource = await UseCase.update(req.params.id, req.body);
     if (updatedResource) {
       res.json(updatedResource);
@@ -44,7 +97,13 @@ const updateSchedule = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
+
 const deleteSchedule = async (req, res) => {
+  if (!/^\d+$/.test(req.params.id)) {
+    return res.status(400).json({ message: "Invalid ID format" });
+  }
+
   try {
     const deletedResource = await UseCase.delete(req.params.id);
     if (deletedResource) {
@@ -56,6 +115,7 @@ const deleteSchedule = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
 module.exports = { 
   getAllSchedules, 
   getScheduleById, 

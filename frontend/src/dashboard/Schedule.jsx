@@ -80,9 +80,83 @@ const Schedule = () => {
       setIsLoading(false);
     }
   };
+  const validateTimes = (startTime, endTime) => {
+  if (!startTime || !endTime) return true; // Allow empty during form filling
   
+  const [startHours, startMinutes] = startTime.split(':').map(Number);
+  const [endHours, endMinutes] = endTime.split(':').map(Number);
+  
+  // Convert times to total minutes for easier comparison
+  const startTotal = startHours * 60 + startMinutes;
+  const endTotal = endHours * 60 + endMinutes;
+  
+  return startTotal < endTotal;
+};
+const [validationErrors, setValidationErrors] = useState({
+  timeConflict: false,
+  breakTimeConflict: false
+});const validateBreakWithinWorkHours = (startTime, endTime, breakStart, breakEnd) => {
+  if (!breakStart || !breakEnd) return true;
+  
+  const convertToMinutes = (time) => {
+    const [hours, minutes] = time.split(':').map(Number);
+    return hours * 60 + minutes;
+  };
+  
+  const start = convertToMinutes(startTime);
+  const end = convertToMinutes(endTime);
+  const breakS = convertToMinutes(breakStart);
+  const breakE = convertToMinutes(breakEnd);
+  
+  return breakS >= start && breakE <= end && breakS < breakE;
+};
   const handleSubmit = async (e) => {
-    e.preventDefault();
+     e.preventDefault();
+  
+  // Validate times
+  if (!validateTimes(formData.startTime, formData.endTime)) {
+    setValidationErrors({
+      ...validationErrors,
+      timeConflict: true
+    });
+    return;
+  }
+  
+  // Validate break times if they exist
+  if (formData.breakStartTime && formData.breakEndTime) {
+    if (!validateTimes(formData.breakStartTime, formData.breakEndTime)) {
+      setValidationErrors({
+        ...validationErrors,
+        breakTimeConflict: true
+      });
+      return;
+    }
+    
+    // Also validate that break is within work hours
+    const isBreakValid = validateBreakWithinWorkHours(
+      formData.startTime, 
+      formData.endTime,
+      formData.breakStartTime,
+      formData.breakEndTime
+    );
+    
+    if (!isBreakValid) {
+      setValidationErrors({
+        ...validationErrors,
+        breakTimeConflict: true
+      });
+      return;
+    }
+  }
+  
+  // Reset validation errors if everything is valid
+  setValidationErrors({
+    timeConflict: false,
+    breakTimeConflict: false
+  });
+  
+  // Rest of your existing submit logic...
+ 
     setIsLoading(true);
     setError(null);
     
@@ -385,53 +459,83 @@ const Schedule = () => {
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className={`block font-medium mb-1 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>Start Time</label>
-              <input 
-                type="time"
-                value={formData.startTime || ''}
-                onChange={(e) => setFormData({ ...formData, startTime: e.target.value })}
-                className={`border p-3 rounded-md w-full ${theme === 'dark' ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'}`}
-                required
-                disabled={isLoading}
-              />
-            </div>
-            <div>
-              <label className={`block font-medium mb-1 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>End Time</label>
-              <input 
-                type="time"
-                value={formData.endTime || ''}
-                onChange={(e) => setFormData({ ...formData, endTime: e.target.value })}
-                className={`border p-3 rounded-md w-full ${theme === 'dark' ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'}`}
-                required
-                disabled={isLoading}
-              />
-            </div>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className={`block font-medium mb-1 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>Break Start Time</label>
-              <input 
-                type="time"
-                value={formData.breakStartTime || ''}
-                onChange={(e) => setFormData({ ...formData, breakStartTime: e.target.value })}
-                className={`border p-3 rounded-md w-full ${theme === 'dark' ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'}`}
-                disabled={isLoading}
-              />
-            </div>
-            <div>
-              <label className={`block font-medium mb-1 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>Break End Time</label>
-              <input 
-                type="time"
-                value={formData.breakEndTime || ''}
-                onChange={(e) => setFormData({ ...formData, breakEndTime: e.target.value })}
-                className={`border p-3 rounded-md w-full ${theme === 'dark' ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'}`}
-                disabled={isLoading}
-              />
-            </div>
-          </div>
-          
+          <div>
+  <label className={`block font-medium mb-1 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>Start Time</label>
+  <input 
+    type="time"
+    value={formData.startTime || ''}
+    onChange={(e) => {
+      setFormData({ ...formData, startTime: e.target.value });
+      setValidationErrors({...validationErrors, timeConflict: false});
+    }}
+    className={`border p-3 rounded-md w-full ${theme === 'dark' ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'} ${
+      validationErrors.timeConflict ? 'border-red-500' : ''
+    }`}
+    required
+    disabled={isLoading}
+  />
+</div>
+
+{/* End Time Input */}
+<div>
+  <label className={`block font-medium mb-1 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>End Time</label>
+  <input 
+    type="time"
+    value={formData.endTime || ''}
+    onChange={(e) => {
+      setFormData({ ...formData, endTime: e.target.value });
+      setValidationErrors({...validationErrors, timeConflict: false});
+    }}
+    className={`border p-3 rounded-md w-full ${theme === 'dark' ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'} ${
+      validationErrors.timeConflict ? 'border-red-500' : ''
+    }`}
+    required
+    disabled={isLoading}
+  />
+  {validationErrors.timeConflict && (
+    <p className="text-red-500 text-sm mt-1">End time must be after start time</p>
+  )}
+</div>
+
+{/* Break Start Time Input */}
+<div>
+  <label className={`block font-medium mb-1 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>Break Start Time</label>
+  <input 
+    type="time"
+    value={formData.breakStartTime || ''}
+    onChange={(e) => {
+      setFormData({ ...formData, breakStartTime: e.target.value });
+      setValidationErrors({...validationErrors, breakTimeConflict: false});
+    }}
+    className={`border p-3 rounded-md w-full ${theme === 'dark' ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'} ${
+      validationErrors.breakTimeConflict ? 'border-red-500' : ''
+    }`}
+    disabled={isLoading}
+  />
+</div>
+
+{/* Break End Time Input */}
+<div>
+  <label className={`block font-medium mb-1 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>Break End Time</label>
+  <input 
+    type="time"
+    value={formData.breakEndTime || ''}
+    onChange={(e) => {
+      setFormData({ ...formData, breakEndTime: e.target.value });
+      setValidationErrors({...validationErrors, breakTimeConflict: false});
+    }}
+    className={`border p-3 rounded-md w-full ${theme === 'dark' ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'} ${
+      validationErrors.breakTimeConflict ? 'border-red-500' : ''
+    }`}
+    disabled={isLoading}
+  />
+  {validationErrors.breakTimeConflict && (
+    <p className="text-red-500 text-sm mt-1">
+      Break times must be within work hours and end time must be after start time
+    </p>
+  )}
+</div>
+</div>       
           <button 
             type="submit" 
             className={`w-full py-2 rounded-md transition duration-200 ${theme === 'dark' ? 'bg-blue-600 hover:bg-blue-700' : 'bg-blue-500 hover:bg-blue-600'} text-white`}
