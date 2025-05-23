@@ -54,7 +54,10 @@ const TrainingDetail = () => {
         
         const trainingApplicationRes = await axios.get('http://localhost:5000/api/trainingapplication');
         
-        const isTrainingMember = trainingApplicationRes.data.some(ta => {
+        // Filter out applications with null userId first
+        const validApplications = trainingApplicationRes.data.filter(ta => ta.userId !== null);
+        
+        const isTrainingMember = validApplications.some(ta => {
           const trainingMatch = ta.trainingId._id === id || 
                                ta.trainingId.mysqlId === id || 
                                ta.trainingId.mysqlId === String(id);
@@ -72,15 +75,16 @@ const TrainingDetail = () => {
         }
     
         setIsMember(true);
-
+    
         const trainingRes = await axios.get(`http://localhost:5000/api/training/${id}`);
         if (!trainingRes.data) {
           setError("Training not found");
           return;
         }
         setTraining(trainingRes.data);
-
-        const trainingMembers = trainingApplicationRes.data.filter(ta => 
+    
+        // Filter again for members list
+        const trainingMembers = validApplications.filter(ta => 
           ta.trainingId._id === id || ta.trainingId.mysqlId === id
         );
         
@@ -95,7 +99,7 @@ const TrainingDetail = () => {
         }));
         
         setMembers(membersList);
-
+    
       } catch (error) {
         console.error("Error fetching training data:", error);
         setError(error.response?.data?.message || "Failed to load training");
@@ -109,85 +113,90 @@ const TrainingDetail = () => {
     }
   }, [id, currentUser]);
 
-const handleCompleteTraining = async (memberId) => {
-  try {
-    // First find the member details
-    const member = members.find(m => (m._id === memberId || m.mysqlId == memberId));
-    if (!member) {
-      throw new Error('Member not found');
+  const handleCompleteTraining = async (memberId) => {
+    try {
+      // First find the member details
+      const member = members.find(m => (m._id === memberId || m.mysqlId == memberId));
+      if (!member) {
+        throw new Error('Member not found');
+      }
+  
+      const trainingApplicationRes = await axios.get('http://localhost:5000/api/trainingapplication');
+      
+      // Filter out applications with null userId first
+      const validApplications = trainingApplicationRes.data.filter(ta => ta.userId !== null);
+      
+      const taToUpdate = validApplications.find(ta => 
+        (ta.userId._id === memberId || ta.userId.mysqlId == memberId) && 
+        (ta.trainingId._id === id || ta.trainingId.mysqlId == id)
+      );
+  
+      if (!taToUpdate) {
+        throw new Error('Training application not found');
+      }
+  
+      const idToUpdate = taToUpdate.mysqlId || taToUpdate._id;
+      
+      // Prepare the update data
+      const updateData = {
+        status: 'miratuar'
+      };
+  
+      if (taToUpdate.userId && (taToUpdate.userId._id || taToUpdate.userId.mysqlId)) {
+        updateData.userId = taToUpdate.userId.mysqlId || taToUpdate.userId._id;
+      }
+  
+      if (taToUpdate.trainingId && (taToUpdate.trainingId._id || taToUpdate.trainingId.mysqlId)) {
+        updateData.trainingId = taToUpdate.trainingId.mysqlId || taToUpdate.trainingId._id;
+      }
+  
+      await axios.put(`http://localhost:5000/api/trainingapplication/${idToUpdate}`, updateData);
+  
+      // Generate the certificate
+      const certificate = generateCertificate(member, training);
+      
+      // Convert PDF to base64 for email attachment
+      const pdfOutput = certificate.output('datauristring');
+      const pdfBase64 = pdfOutput.split(',')[1];
+      
+      // Prepare email data
+      const emailData = {
+        to: member.email,
+        subject: `Your Certificate for ${training.title}`,
+        text: `Dear ${member.name} ${member.lastName},\n\nCongratulations on completing the ${training.title} training!\n\nPlease find your certificate attached.\n\nBest regards,\nWellness Center`,
+        attachments: [{
+          filename: `Certificate_${training.title}_${member.name}.pdf`,
+          content: pdfBase64,
+          encoding: 'base64',
+          contentType: 'application/pdf'
+        }]
+      };
+  
+      // Send email with certificate
+      await axios.post('http://localhost:5000/api/send-email', emailData);
+  
+      // Refresh members list
+      const updatedTA = await axios.get('http://localhost:5000/api/trainingapplication');
+      const updatedMembers = updatedTA.data
+        .filter(ta => ta.userId !== null && (ta.trainingId._id === id || ta.trainingId.mysqlId == id))
+        .map(ta => ({
+          _id: ta.userId._id,
+          mysqlId: ta.userId.mysqlId,
+          name: ta.userId.name,
+          lastName: ta.userId.lastName,
+          email: ta.userId.email,
+          role: ta.userId.roleId,
+          status: ta.status
+        }));
+      
+      setMembers(updatedMembers);
+      
+    } catch (error) {
+      console.error('Error updating status:', error);
+      // You might want to show this error to the user in a more user-friendly way
+      alert('Error: ' + (error.response?.data?.message || error.message));
     }
-
-    const trainingApplicationRes = await axios.get('http://localhost:5000/api/trainingapplication');
-    
-    const taToUpdate = trainingApplicationRes.data.find(ta => 
-      (ta.userId._id === memberId || ta.userId.mysqlId == memberId) && 
-      (ta.trainingId._id === id || ta.trainingId.mysqlId == id)
-    );
-
-    if (!taToUpdate) {
-      throw new Error('Training application not found');
-    }
-
-    const idToUpdate = taToUpdate.mysqlId || taToUpdate._id;
-    
-    // Prepare the update data
-    const updateData = {
-      status: 'miratuar'
-    };
-
-    if (taToUpdate.userId && (taToUpdate.userId._id || taToUpdate.userId.mysqlId)) {
-      updateData.userId = taToUpdate.userId.mysqlId || taToUpdate.userId._id;
-    }
-
-    if (taToUpdate.trainingId && (taToUpdate.trainingId._id || taToUpdate.trainingId.mysqlId)) {
-      updateData.trainingId = taToUpdate.trainingId.mysqlId || taToUpdate.trainingId._id;
-    }
-
-    await axios.put(`http://localhost:5000/api/trainingapplication/${idToUpdate}`, updateData);
-
-    // Generate the certificate
-    const certificate = generateCertificate(member, training);
-    
-    // Convert PDF to base64 for email attachment
-    const pdfOutput = certificate.output('datauristring');
-    const pdfBase64 = pdfOutput.split(',')[1];
-    
-    // Prepare email data
-    const emailData = {
-      to: member.email,
-      subject: `Your Certificate for ${training.title}`,
-      text: `Dear ${member.name} ${member.lastName},\n\nCongratulations on completing the ${training.title} training!\n\nPlease find your certificate attached.\n\nBest regards,\nWellness Center`,
-      attachments: [{
-        filename: `Certificate_${training.title}_${member.name}.pdf`,
-        content: pdfBase64,
-        encoding: 'base64',
-        contentType: 'application/pdf'
-      }]
-    };
-
-    // Send email with certificate
-    await axios.post('http://localhost:5000/api/send-email', emailData);
-
-    const updatedTA = await axios.get('http://localhost:5000/api/trainingapplication');
-    const updatedMembers = updatedTA.data
-      .filter(ta => ta.trainingId._id === id || ta.trainingId.mysqlId == id)
-      .map(ta => ({
-        _id: ta.userId._id,
-        mysqlId: ta.userId.mysqlId,
-        name: ta.userId.name,
-        lastName: ta.userId.lastName,
-        email: ta.userId.email,
-        role: ta.userId.roleId,
-        status: ta.status
-      }));
-    
-    setMembers(updatedMembers);
-    // alert('Statusi u përditësua me sukses dhe certifikata u dërgua me email!');
-  } catch (error) {
-    console.error('Error updating status:', error);
-    // alert('Gabim gjatë përditësimit të statusit: ' + (error.response?.data?.message || error.message));
-  }
-};
+  };
 
   const handleAddMember = async (e) => {
     e.preventDefault();

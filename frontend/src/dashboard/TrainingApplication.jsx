@@ -11,13 +11,28 @@ const TrainingApplication = () => {
   const [loggedInUser, setLoggedInUser] = useState(null);
   const [trainingCapacity, setTrainingCapacity] = useState({});
   const [selectedTrainingSchedule, setSelectedTrainingSchedule] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
   
   axios.defaults.withCredentials = true;
 
   useEffect(() => {
-    fetchLoggedInUser();
-    fetchTrainingApplications();
-    fetchTrainings();
+    const fetchData = async () => {
+      try {
+        setIsLoading(true);
+        await fetchLoggedInUser();
+        await Promise.all([
+          fetchTrainingApplications(),
+          fetchTrainings()
+        ]);
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    fetchData();
   }, []);
 
   const fetchLoggedInUser = async () => {
@@ -26,20 +41,28 @@ const TrainingApplication = () => {
       setLoggedInUser(response.data.user);
       setFormData(prev => ({ 
         ...prev, 
-        userId: response.data.user.id
+        userId: response.data.user?.id || null
       }));
     } catch (error) {
       console.error("Error fetching logged in user:", error);
+      setError('Failed to fetch user data');
     }
   };
 
   const fetchTrainingApplications = async () => {
     try {
       const response = await axios.get('http://localhost:5000/api/trainingapplication');
-      setTrainingApplicationList(response.data);
-      calculateTrainingCapacity(response.data);
+      // Ensure each item has proper user and training data
+      const processedData = response.data.map(item => ({
+        ...item,
+        userId: item.userId || { name: 'Unknown', lastName: '' },
+        trainingId: item.trainingId || { title: 'Unknown Training', duration: '' }
+      }));
+      setTrainingApplicationList(processedData);
+      calculateTrainingCapacity(processedData);
     } catch (error) {
       console.error("Error fetching applications:", error);
+      setError('Failed to fetch training applications');
     }
   };
 
@@ -49,15 +72,14 @@ const TrainingApplication = () => {
       setTrainingList(response.data);
     } catch (error) {
       console.error("Error fetching trainings:", error);
+      setError('Failed to fetch trainings list');
     }
   };
 
   const fetchTrainingSchedule = async (trainingId) => {
     try {
       const response = await axios.get(`http://localhost:5000/api/scheduleTraining`);
-      // Filtrojmë oraret duke krahasuar ID e trajnimit
       const filteredSchedules = response.data.filter(schedule => {
-        // Kontrollojmë nëse trainingId është objekt ose string
         const scheduleTrainingId = schedule.trainingId?.mysqlId || schedule.trainingId;
         return scheduleTrainingId === trainingId;
       });
@@ -119,7 +141,7 @@ const TrainingApplication = () => {
         await axios.post('http://localhost:5000/api/trainingapplication', payload);
       }
       
-      fetchTrainingApplications();
+      await fetchTrainingApplications();
       setFormData({ 
         trainingId: '', 
         userId: loggedInUser.id 
@@ -135,7 +157,7 @@ const TrainingApplication = () => {
     setFormData({
       id: item.mysqlId || item.id,
       trainingId: item.trainingId?.mysqlId || item.trainingId,
-      userId: loggedInUser.id
+      userId: loggedInUser?.id || null
     });
     fetchTrainingSchedule(item.trainingId?.mysqlId || item.trainingId);
   };
@@ -144,7 +166,7 @@ const TrainingApplication = () => {
     if (window.confirm('Jeni i sigurtë që dëshironi të fshini këtë aplikim?')) {
       try {
         await axios.delete(`http://localhost:5000/api/trainingapplication/${id}`);
-        fetchTrainingApplications();
+        await fetchTrainingApplications();
       } catch (error) {
         console.error("Error deleting application:", error);
       }
@@ -154,6 +176,34 @@ const TrainingApplication = () => {
   const isTrainingFull = (trainingId) => {
     return trainingCapacity[trainingId] >= 5;
   };
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center min-h-screen bg-gray-100">
+        <div className="bg-white shadow-lg rounded-lg p-6 w-full max-w-3xl text-center">
+          <h1 className="text-3xl font-bold mb-4">Duke u ngarkuar...</h1>
+          <p className="text-gray-600">Ju lutem prisni ndërsa ngarkohen të dhënat</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex justify-center items-center min-h-screen bg-gray-100">
+        <div className="bg-white shadow-lg rounded-lg p-6 w-full max-w-3xl text-center">
+          <h1 className="text-3xl font-bold mb-4 text-red-500">Gabim</h1>
+          <p className="text-gray-600">{error}</p>
+          <button 
+            onClick={() => window.location.reload()} 
+            className="mt-4 bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded-md"
+          >
+            Provoni përsëri
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex justify-center items-center min-h-screen bg-gray-100">
@@ -171,7 +221,7 @@ const TrainingApplication = () => {
                 <label className="block text-sm font-medium text-gray-700 mb-1">Përdoruesi</label>
                 <input 
                   type="text" 
-                  value={`${loggedInUser.name} ${loggedInUser.lastName}`} 
+                  value={`${loggedInUser.name || ''} ${loggedInUser.lastName || ''}`} 
                   readOnly 
                   className="border p-3 rounded-md w-full bg-gray-100" 
                 />
@@ -221,9 +271,9 @@ const TrainingApplication = () => {
                 <h2 className="text-xl font-semibold mb-4">Orari i Trajnimit të Selektuar</h2>
                 {selectedTrainingSchedule.map((schedule, index) => (
                   <div key={index} className="mb-4">
-                    <p><strong>Ditët:</strong> {schedule.workDays.join(', ')}</p>
-                    <p><strong>Koha e fillimit:</strong> {schedule.startTime}</p>
-                    <p><strong>Koha e përfundimit:</strong> {schedule.endTime}</p>
+                    <p><strong>Ditët:</strong> {schedule.workDays?.join(', ') || 'N/A'}</p>
+                    <p><strong>Koha e fillimit:</strong> {schedule.startTime || 'N/A'}</p>
+                    <p><strong>Koha e përfundimit:</strong> {schedule.endTime || 'N/A'}</p>
                   </div>
                 ))}
               </div>
@@ -246,14 +296,14 @@ const TrainingApplication = () => {
               {trainingapplicationList.length > 0 ? (
                 trainingapplicationList.map((item) => (
                   <tr key={item.mysqlId || item.id} className="border-b border-gray-200 hover:bg-gray-100">
-                    <td className="py-3 px-6 text-left">{item.trainingId?.duration}</td>
+                    <td className="py-3 px-6 text-left">{item.trainingId?.duration || 'N/A'}</td>
                     <td className="py-3 px-6 text-left">
-                      {new Date(item.applicationDate).toLocaleDateString()}
+                      {item.applicationDate ? new Date(item.applicationDate).toLocaleDateString() : 'N/A'}
                     </td>
                     <td className="py-3 px-6 text-left">
-                      {item.userId?.name || loggedInUser.name} {item.userId?.lastName || loggedInUser.lastName}
+                      {item.userId?.name || 'Unknown'} {item.userId?.lastName || ''}
                     </td>
-                    <td className="py-3 px-6 text-left">{item.trainingId?.title || ''}</td>
+                    <td className="py-3 px-6 text-left">{item.trainingId?.title || 'Unknown Training'}</td>
                     <td className="py-3 px-6 flex justify-center space-x-2">
                       <button 
                         onClick={() => handleEdit(item)} 
