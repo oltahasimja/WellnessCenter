@@ -65,7 +65,7 @@ const Order = () => {
                       <ul>
                         {order.cart?.map((item, index) => (
                           <li key={index}>
-                            {item.productId}  {item.quantity} x €{item.price}
+                            {item.quantity}x €{item.price} (Product ID: {item.productId})
                           </li>
                         ))}
                       </ul>
