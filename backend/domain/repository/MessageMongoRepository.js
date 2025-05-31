@@ -1,4 +1,6 @@
 const MessageMongo = require("../database/models/Mongo/MessageMongo");
+const mongoose = require('mongoose');
+const { isValidObjectId, Types } = mongoose;
 
 class MessageMongoRepository {
   async findAll() {
@@ -14,8 +16,11 @@ class MessageMongoRepository {
       .lean();
   }
   
- async findByGroupId(groupId) {
-  return MessageMongo.find({ groupId })
+async findByGroupId(groupId) {
+const filter = isValidObjectId(groupId)
+  ? { groupId: new Types.ObjectId(groupId) } 
+  : { 'groupId.mysqlId': groupId };
+  return MessageMongo.find(filter)
     .populate({
       path: 'userId',
       select: 'name lastName mysqlId profileImageId',

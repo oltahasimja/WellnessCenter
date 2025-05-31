@@ -3,11 +3,14 @@ const mongoose = require('mongoose');
 const MessageSchema = new mongoose.Schema({
   mysqlId: { type: String },
   text: { type: String, required: true },
-  userId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'UserMongo',
-    required: true
-  },
+userId: {
+  type: mongoose.Schema.Types.ObjectId,
+  ref: 'UserMongo',
+  required: function () {
+    return !this.systemMessage; 
+  }
+},
+
   groupId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'GroupMongo',

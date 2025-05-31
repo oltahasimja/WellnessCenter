@@ -70,6 +70,26 @@ const [userCheckError, setUserCheckError] = useState(null);
     
     fetchUser();
   }, []);
+
+  useEffect(() => {
+  if (!socket || !user) return;
+
+  socket.on('onlineUsersList', (usersList) => {
+    const newOnlineUsers = {};
+    usersList.forEach(user => {
+      if (user && user.userId) {
+        newOnlineUsers[user.userId.toString()] = true;
+      }
+    });
+    console.log("MORRA onlineUsersList:", newOnlineUsers); 
+    setOnlineUsers(newOnlineUsers);
+  });
+
+  return () => {
+    socket.off('onlineUsersList');
+  };
+}, [socket, user]);
+
   
   // Set up socket event listeners
   useEffect(() => {
@@ -130,17 +150,17 @@ const [userCheckError, setUserCheckError] = useState(null);
   });
   
   // Get initial list of online users
-  socket.on('onlineUsersList', (usersList) => {
-    if (usersList && Array.isArray(usersList)) {
-      const newOnlineUsers = {};
-      usersList.forEach(user => {
-        if (user && user.userId) {
-          newOnlineUsers[user.userId] = true;
-        }
-      });
-      setOnlineUsers(newOnlineUsers);
-    }
-  });
+// socket.on('onlineUsersList', (usersList) => {
+//   const newOnlineUsers = {};
+//   usersList.forEach(user => {
+//     if (user && user.userId) {
+//       newOnlineUsers[user.userId.toString()] = true;
+//     }
+//   });
+//   setOnlineUsers(newOnlineUsers);
+// });
+
+
     
     // Listen for typing events
     socket.on('userTyping', ({ userId, userName, groupId }) => {
@@ -224,46 +244,92 @@ const [userCheckError, setUserCheckError] = useState(null);
     };
   }, [newMessage, socket, user, selectedGroup]);
 
-  useEffect(() => {
-  if (!socket || !user || !selectedGroup) return;
-  
-  // Mark messages as read when they come into view
-  messages.forEach(message => {
-    // Avoid marking your own messages as read or already seen messages
-    if (!isUserMessage(message) && 
-        (!messageSeenStatus[message._id] || 
-         !messageSeenStatus[message._id].some(seen => 
-           seen.userId._id === user.id || seen.userId.mysqlId === user.id.toString()
-         ))) {
-      socket.emit('messageRead', {
-        messageId: message._id,
-        userId: user.id,
-        groupId: selectedGroup.id
-      });
-    }
+ useEffect(() => {
+  if (!socket || !user || !selectedGroup || messages.length === 0) return;
+
+  const unseenMessages = messages.filter(msg => {
+    if (isUserMessage(msg)) return false;
+
+    const seenArray = messageSeenStatus[msg._id] || [];
+    return !seenArray.some(
+      seen =>
+        seen.userId._id === user.id || seen.userId.mysqlId === user.id.toString()
+    );
+  });
+
+  unseenMessages.forEach((msg) => {
+    socket.emit('messageRead', {
+      messageId: msg._id,
+      userId: user.id,
+      groupId: selectedGroup.id
+    });
   });
 }, [messages, selectedGroup, user, socket, messageSeenStatus]);
 
+useEffect(() => {
+  if (!socket) return;
+
+  socket.on('removedFromGroup', ({ groupId, message }) => {
+    // Nëse je në atë grup aktualisht
+    if (selectedGroup && selectedGroup.id === groupId) {
+      // alert(message); 
+       navigate('/');  
+    }
+  });
+
+  return () => {
+    socket.off('removedFromGroup');
+  };
+}, [socket, selectedGroup]);
+
+
+
+const getLastSeenOwnMessageId = () => {
+  for (let i = messages.length - 1; i >= 0; i--) {
+    const msg = messages[i];
+
+    if (!isUserMessage(msg)) continue;
+
+    const seenArray = messageSeenStatus[msg._id] || [];
+
+    // Hiq vetën nga lista e parëse
+    const otherSeen = seenArray.filter(seen =>
+      seen.userId._id !== user.id && seen.userId.mysqlId !== user.id.toString()
+    );
+
+    if (otherSeen.length > 0) return msg._id;
+  }
+  return null;
+};
+
 const renderMessageSeenBy = (message) => {
-  const seenUsers = messageSeenStatus[message._id] || [];
-  
-  // Remove duplicates by converting to a Set of unique user IDs
+  const lastSeenOwnMessageId = getLastSeenOwnMessageId();
+
+  if (message._id !== lastSeenOwnMessageId) return null;
+
+  const seenUsers = (messageSeenStatus[message._id] || []).filter(
+    seen => seen.userId._id !== user.id && seen.userId.mysqlId !== user.id.toString()
+  );
+
+  if (seenUsers.length === 0) return null;
+
+  // Unifikimi i përdoruesve për të mos u përsëritur
   const uniqueSeenUsers = Array.from(
     new Set(seenUsers.map(seen => seen.userId._id))
-  ).map(userId => 
+  ).map(userId =>
     seenUsers.find(seen => seen.userId._id === userId)
   );
-  
-  if (uniqueSeenUsers.length === 0) return null;
-  
+
   return (
     <div className="text-xs text-red-600 text-right mt-1 opacity-70">
-      Seen by: {uniqueSeenUsers.map(seen => 
+      Seen by: {uniqueSeenUsers.map(seen =>
         `${seen.userId.name} ${seen.userId.lastName}`
       ).join(', ')}
     </div>
   );
 };
+
+
   
   // Fetch user's groups
   const fetchGroups = async () => {
@@ -378,6 +444,11 @@ const renderMessageSeenBy = (message) => {
     // Clear the input
     setNewMessage('');
   };
+
+  useEffect(() => {
+  console.log('Online Users:', onlineUsers);
+}, [onlineUsers]);
+
   
   // Auto-scroll to bottom of messages
   useEffect(() => {
@@ -423,26 +494,26 @@ const renderMessageSeenBy = (message) => {
   // Kontrollo nëse një përdorues është online
 const isUserOnline = (userId) => {
   if (!userId || !onlineUsers) return false;
-  
-  // Convert ID to string for consistent comparison
+
   let stringUserId = typeof userId === 'string' ? userId : null;
   let mysqlId = null;
   let mongoId = null;
-  
+
   if (typeof userId === 'object') {
     mysqlId = userId.mysqlId?.toString();
     mongoId = userId._id?.toString();
   } else {
     stringUserId = userId.toString();
   }
-  
-  // Check all possible ID formats
+
   return Boolean(
     (stringUserId && onlineUsers[stringUserId]) || 
     (mysqlId && onlineUsers[mysqlId]) || 
     (mongoId && onlineUsers[mongoId])
   );
 };
+
+
 
   
   // Render typing indicators
@@ -695,6 +766,9 @@ const closeAddMembersModal = () => {
   setShowAddMembersModal(false);
   setSelectedUsersToAdd([]);
 };
+const isGroupCreator = () =>
+  selectedGroup?.createdById?.toString() === user?._id?.toString();
+
 
 
 
@@ -998,9 +1072,17 @@ return (
                         className="px-4 py-2 text-sm text-teal-800 hover:bg-teal-50 flex items-center justify-between border-b border-teal-50 last:border-b-0"
                       >
                         <div className="flex items-center gap-2">
-                          <div className="w-8 h-8 rounded-full bg-teal-100 flex items-center justify-center font-medium text-teal-700">
-                            {member.name?.charAt(0) || '?'}
-                          </div>
+
+                       <div className="relative">
+                <div className="w-8 h-8 rounded-full bg-teal-100 flex items-center justify-center font-medium text-teal-700">
+                  {member.name?.charAt(0) || '?'}
+                </div>
+                {isUserOnline(member.mysqlId?.toString()) && (
+  <span className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white rounded-full" />
+)}
+              </div>
+
+
                           <div>
                             <p>{member.name} {member.lastName}</p>
                             {selectedGroup.createdBy === (member._id || member.mysqlId) && (
@@ -1014,32 +1096,32 @@ return (
                           </div>
                         </div>
                         
-                        <div className="flex items-center gap-2">
-                          {isUserOnline(member._id || member.mysqlId) && (
-                            <span className="inline-flex items-center">
-                              <span className="w-2 h-2 bg-green-500 rounded-full mr-1"></span>
-                              <span className="text-xs text-green-600">online</span>
-                            </span>
-                          )}
-                          
-                          {(selectedGroup.createdById === user.id || 
-                            selectedGroup.createdById === user._id || 
-                            selectedGroup.createdById === user.id.toString()) && 
-                           selectedGroup.createdById !== (member._id || member.mysqlId) && (
-                            <button 
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleRemoveMember(member);
-                              }}
-                              className="text-xs text-red-500 hover:text-red-700 p-1 hover:bg-red-50 rounded-full"
-                              title="Remove member"
-                            >
-                              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                              </svg>
-                            </button>
-                          )}
-                        </div>
+                <div className="flex items-center gap-2">
+  {isUserOnline(member._id || member.mysqlId) && (
+    <span className="inline-flex items-center">
+      <span className="w-2 h-2 bg-green-500 rounded-full mr-1"></span>
+      <span className="text-xs text-green-600">online</span>
+    </span>
+  )}
+
+{isGroupCreator() &&
+  member._id?.toString() !== selectedGroup.createdById?.toString() &&
+  member.mysqlId?.toString() !== selectedGroup.createdById?.toString() && (
+      <button 
+        onClick={(e) => {
+          e.stopPropagation();
+          handleRemoveMember(member);
+        }}
+        className="text-xs text-red-500 hover:text-red-700 p-1 hover:bg-red-50 rounded-full"
+        title="Remove member"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </button>
+  )}
+</div>
+
                       </div>
                     ))}
                   </div>
@@ -1073,6 +1155,13 @@ return (
             )}
             
             {messages.map((message, index) => {
+              if (message.systemMessage) {
+    return (
+      <div key={message._id || index} className="text-center text-sm text-red-600 italic my-4">
+        {message.text}
+      </div>
+    );
+  }
               const isCurrentUser = 
                 (typeof message.userId === 'string' && message.userId === user.id) ||
                 (typeof message.userId === 'object' && (
@@ -1096,9 +1185,11 @@ return (
                   {!isCurrentUser && (
                     <div className="relative">
                       {getUserProfileImage(messageUser)}
-                      {userIsOnline && (
-                        <span className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white rounded-full"></span>
-                      )}
+                {messageUser && isUserOnline(messageUser._id || messageUser.mysqlId || messageUser.id) && (
+  <span className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white rounded-full" />
+)}
+
+                      
                     </div>
                   )}
                   
