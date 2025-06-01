@@ -20,6 +20,7 @@ const List = require('./MySQL/List');
 const Log = require('./MySQL/log');
 const Group = require('./MySQL/Group');
 const UsersGroup = require('./MySQL/UsersGroup');
+const CartItem = require('./MySQL/CartItem');
 
 const ScheduleTraining = require('./MySQL/ScheduleTraining');
 
@@ -63,6 +64,7 @@ const ListModel = initializeModel(List, sequelize);
 const GroupModel = initializeModel(Group, sequelize);
 const UsersGroupModel = initializeModel(UsersGroup, sequelize);
 const ScheduleTrainingModel = initializeModel(ScheduleTraining, sequelize);
+const CartItemModel = initializeModel(CartItem, sequelize);
 
 
 
@@ -106,6 +108,9 @@ GroupModel.belongsTo(UserModel, { foreignKey: 'createdById' });
 
 UserModel.belongsToMany(Group, { through: UsersGroup, foreignKey: 'userId' });
 Group.belongsToMany(UserModel, { through: UsersGroup, foreignKey: 'groupId' });
+
+UserModel.hasMany(CartItemModel, { foreignKey: 'userId', as: 'cartItems' });
+CartItemModel.belongsTo(UserModel, { foreignKey: 'userId' });
 
 UserModel.belongsToMany(ProgramModel, { through: UserProgramsModel, foreignKey: 'userId' });
 ProgramModel.belongsToMany(UserModel, { through: UserProgramsModel, foreignKey: 'programId' });
@@ -165,5 +170,6 @@ module.exports = {
   Log: LogModel,
   Group: GroupModel,
   UsersGroup: UsersGroupModel,
-  ScheduleTraining: ScheduleTrainingModel
+  ScheduleTraining: ScheduleTrainingModel,
+  CartItem: CartItemModel
 };

@@ -38,6 +38,8 @@ const Login = () => {
 
       setMessage('Login ishte i suksesshëm.');
       localStorage.setItem('isLoggedIn', true); 
+      localStorage.setItem('currentUser', JSON.stringify(response.data.user));
+      setUsername('');
       const redirectPath = localStorage.getItem('redirectAfterLogin') || '/';
       localStorage.removeItem('redirectAfterLogin'); 
       navigate(redirectPath);

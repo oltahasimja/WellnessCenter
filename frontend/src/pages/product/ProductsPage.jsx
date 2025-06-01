@@ -179,22 +179,44 @@ function ProductsPage() {
     setFilteredProducts(result);
   }, [products, selectedCategory, searchTerm, priceRange, ratingFilter]);
 
-  const addToCart = (product) => {
-    setCart(prevCart => {
-      const existingItem = prevCart.find(item => item.id === product.id);
-      if (existingItem) {
-        return prevCart.map(item =>
-          item.id === product.id 
-            ? { ...item, quantity: item.quantity + 1 }
-            : item
-        );
-      } else {
-        return [...prevCart, { ...product, quantity: 1 }];
-      }
+ const addToCart = async (product) => {
+  try {
+    const user = JSON.parse(localStorage.getItem('currentUser'));
+    if (!user || !user.id) {
+      console.error('User not logged in');
+      return;
+    }
+
+    const payload = {
+      userId: user.id, // per MySQL
+      usersId: user.id, // per Mongo reference
+      productId: product.id || product._id,
+      name: product.name,
+      image: product.image,
+      price: product.price,
+      quantity: 1,
+    };
+
+    const response = await fetch("http://localhost:5000/api/cartitem", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload),
     });
+
+    if (!response.ok) throw new Error("Failed to add to cart");
+
+    const savedItem = await response.json();
+
+    // opsionalisht mund të përditësosh gjendjen
+    setCart(prevCart => [...prevCart, savedItem]);
     setClickedButtonId(product.id);
     setTimeout(() => setClickedButtonId(null), 1000);
-  };
+  } catch (err) {
+    console.error("Error adding to cart:", err);
+  }
+};
 
   const refreshProducts = async () => {
     try {

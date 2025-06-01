@@ -1,14 +1,24 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom'; // ✅ importo këtë
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { FiStar, FiAward, FiShoppingCart } from 'react-icons/fi';
 
 const ProductCard = ({ product, addToCart, clickedButtonId }) => {
   const [isHovered, setIsHovered] = useState(false);
+  const navigate = useNavigate(); 
 
   const handleAddToCart = (e) => {
-    e.stopPropagation();  // This prevents the click from bubbling up to the Link
-    e.preventDefault();   // This stops the default behavior if necessary
+    e.stopPropagation();
+    e.preventDefault();
+
+    const user = JSON.parse(localStorage.getItem("currentUser"));
+
+    if (!user || !user.id) {
+      alert("Duhet te kyçeni per te shtuar ne shport E ndreqni qeto mire mu dok ");
+      return navigate("/login");
+    }
+
     addToCart(product);
   };
 
@@ -87,10 +97,7 @@ const ProductCard = ({ product, addToCart, clickedButtonId }) => {
                 className="flex items-center gap-2"
               >
                 <motion.div
-                  animate={{ 
-                    y: [0, -5, 0],
-                    rotate: [0, 10, -10, 0]
-                  }}
+                  animate={{ y: [0, -5, 0], rotate: [0, 10, -10, 0] }}
                   transition={{ duration: 0.6 }}
                 >
                   <FiShoppingCart size={16} />

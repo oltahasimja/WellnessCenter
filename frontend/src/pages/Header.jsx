@@ -70,6 +70,9 @@ const Header = () => {
       const res = await axios.post('http://localhost:5000/logout', {}, { withCredentials: true });
       if (res.status === 200) {
         localStorage.removeItem('redirectAfterLogin');
+        //  localStorage.removeItem('cart');
+         localStorage.removeItem('currentUser');
+         window.location.reload();
         navigate('/login');
       }
     } catch (err) {

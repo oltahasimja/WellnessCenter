@@ -33,6 +33,7 @@
   import Chat from './pages/Chat';
   import { CartProvider } from './context/CartContext';
   import ClientOrderForm from './dashboard/ClientOrderForm';
+  import CartItem from './dashboard/CartItem';
 
   const AppRoutes = () => {
     const { darkMode } = useTheme();
@@ -62,6 +63,7 @@
 
           <Route path="/trainingpage" element={<TrainingPage />} />
           <Route path="/chat" element={<Chat />} />
+          <Route path="/cartitem" element={<CartItem />} />
 
 
 

@@ -18,6 +18,8 @@ const useAuthCheck = () => {
         if (response.data.user) {
           setIsAuthenticated(true);
           setUser(response.data.user);
+          localStorage.setItem("currentUser", JSON.stringify(response.data.user));
+
           
           const redirectPath = localStorage.getItem('redirectAfterLogin');
           if (redirectPath) {

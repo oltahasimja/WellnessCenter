@@ -196,8 +196,19 @@ const googleAuth = async (req, res) => {
 
         });
   
-        res.status(200).json({ message: 'Login i suksesshëm', accessToken, refreshToken });
-      });
+        res.status(200).json({ 
+        message: 'Login i suksesshëm', 
+        accessToken, 
+        refreshToken,
+        user: {
+            id: user.id,
+            name: user.name,
+            email: user.email,
+            username: user.username,
+            role: user.role
+        }
+});     
+ });
     })(req, res, next);
   };
   

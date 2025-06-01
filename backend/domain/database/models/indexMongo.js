@@ -23,6 +23,7 @@ const AttachmentMongo = require('./Mongo/AttachmentMongo');
 const GroupMongo = require('./Mongo/GroupMongo');
 const UsersGroupMongo = require('./Mongo/UsersGroupMongo');
 const MessageMongo = require('./Mongo/MessageMongo');
+const CartItemMongo = require('./Mongo/CartItemMongo'); // Uncomment if needed
 
 
 
@@ -51,6 +52,7 @@ module.exports = {
   AttachmentMongo,
   GroupMongo,
   UsersGroupMongo,
-  MessageMongo
+  MessageMongo,
+  CartItemMongo
 
 };
