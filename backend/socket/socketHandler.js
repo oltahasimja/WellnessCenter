@@ -168,7 +168,7 @@ io.on('connection', (socket) => {
 
 
   // Handle new message
- socket.on('sendMessage', async (data) => {
+socket.on('sendMessage', async (data) => {
   try {
     const { groupId, text, userId } = data;
 
@@ -183,7 +183,6 @@ io.on('connection', (socket) => {
       return;
     }
 
-    // ✅ Konverto groupId vetëm nëse është ObjectId valid
     const groupIdForMongo = mongoose.Types.ObjectId.isValid(groupId)
       ? new mongoose.Types.ObjectId(groupId)
       : null;
@@ -196,7 +195,7 @@ io.on('connection', (socket) => {
     const newMessage = new MessageMongo({
       text,
       userId: user._id,
-      groupId: groupIdForMongo, // ✅ përdor ObjectId këtu
+      groupId: groupIdForMongo,
       createdAt: new Date()
     });
 
@@ -206,13 +205,87 @@ io.on('connection', (socket) => {
       .populate('userId', 'name lastName mysqlId')
       .exec();
 
+    // Dërgo mesazhin në grup
     io.to(groupId).emit('newMessage', populatedMessage);
+
+    // 🆕 PJESA E RE: Gjej të gjithë anëtarët e grupit dhe numëro mesazhet e palexuara
+    const groupMembers = await UsersGroupMongo.find({ groupId: groupIdForMongo })
+      .populate('userId', 'mysqlId')
+      .exec();
+
+    // Për çdo anëtar të grupit (përveç dërguesit)
+    for (const member of groupMembers) {
+      if (member.userId.mysqlId !== userId) {
+        // Numëro mesazhet e palexuara për këtë user
+        const unreadCount = await MessageMongo.countDocuments({
+          groupId: groupIdForMongo,
+          'seenBy.userId': { $ne: member.userId._id },
+          systemMessage: { $ne: true }, // Mos numëro mesazhet sistemore
+          userId: { $ne: member.userId._id } // Mos numëro mesazhet e veta
+        });
+
+        // Dërgo tek user-i specifik numrin e mesazheve të palexuara
+        const userSockets = global.onlineUsers[member.userId.mysqlId?.toString()];
+        if (userSockets && userSockets.length > 0) {
+          userSockets.forEach(({ socketId }) => {
+            io.to(socketId).emit('unreadMessagesUpdate', {
+              groupId: groupId,
+              unreadCount: unreadCount
+            });
+          });
+        }
+      }
+    }
+
     console.log(`Message sent to group ${groupId} by user ${userId}`);
   } catch (error) {
     console.error('Error sending message:', error);
     socket.emit('error', 'Failed to send message');
   }
 });
+
+socket.on('getTotalUnreadCount', async (data) => {
+  try {
+    const { userId } = data;
+    
+    if (!userId) {
+      socket.emit('error', 'Missing userId');
+      return;
+    }
+
+    const user = await UserMongo.findOne({ mysqlId: userId });
+    if (!user) {
+      socket.emit('error', 'User not found');
+      return;
+    }
+
+    // Gjej të gjitha grupet ku është anëtar user-i
+    const userGroups = await UsersGroupMongo.find({ userId: user._id })
+      .populate('groupId')
+      .exec();
+
+    let totalUnreadCount = 0;
+
+    // Për çdo grup, numëro mesazhet e palexuara
+    for (const userGroup of userGroups) {
+      const unreadCount = await MessageMongo.countDocuments({
+        groupId: userGroup.groupId._id,
+        'seenBy.userId': { $ne: user._id },
+        systemMessage: { $ne: true },
+        userId: { $ne: user._id }
+      });
+      totalUnreadCount += unreadCount;
+    }
+
+    // Dërgo numrin total tek user-i
+    socket.emit('totalUnreadCount', { totalUnreadCount });
+
+  } catch (error) {
+    console.error('Error getting total unread count:', error);
+    socket.emit('error', 'Failed to get unread count');
+  }
+});
+
 
   // Add this event handler in the existing socket.io connection handler
 socket.on('messageRead', async (data) => {
@@ -224,7 +297,6 @@ socket.on('messageRead', async (data) => {
       return;
     }
     
-    // Find the user in MongoDB
     const user = await UserMongo.findOne({ mysqlId: userId });
     
     if (!user) {
@@ -232,7 +304,6 @@ socket.on('messageRead', async (data) => {
       return;
     }
     
-    // Update the message to add the user to seenBy array
     const updatedMessage = await MessageMongo.findByIdAndUpdate(
       messageId, 
       {
@@ -251,12 +322,31 @@ socket.on('messageRead', async (data) => {
       return;
     }
     
-    // Broadcast the updated message with seen status to all users in the group
     io.to(groupId).emit('messageSeenUpdate', {
       messageId,
       groupId,
       seenBy: updatedMessage.seenBy
     });
+
+    // 🆕 Numëro mesazhet e palexuara pas leximit
+    const groupIdForMongo = mongoose.Types.ObjectId.isValid(groupId)
+      ? new mongoose.Types.ObjectId(groupId)
+      : await GroupMongo.findOne({ mysqlId: groupId }).then(g => g?._id);
+
+    if (groupIdForMongo) {
+      const unreadCount = await MessageMongo.countDocuments({
+        groupId: groupIdForMongo,
+        'seenBy.userId': { $ne: user._id },
+        systemMessage: { $ne: true },
+        userId: { $ne: user._id }
+      });
+
+      // Dërgo numrin e përditësuar të mesazheve të palexuara
+      socket.emit('unreadMessagesUpdate', {
+        groupId: groupId,
+        unreadCount: unreadCount
+      });
+    }
     
   } catch (error) {
     console.error('Error processing message read:', error);

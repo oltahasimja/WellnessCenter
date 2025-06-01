@@ -1,18 +1,103 @@
-import React, { useEffect, useState, useContext } from "react";
+import React, { useEffect, useState, useContext, useRef } from "react";
 import { useNavigate, Link, useLocation } from "react-router-dom";
 import { motion } from 'framer-motion';
-import { FaShoppingCart, FaSignInAlt, FaSignOutAlt, FaComment, FaUser, FaBars, FaTimes } from 'react-icons/fa';
+import { FaShoppingCart, FaSignInAlt, FaSignOutAlt, FaComment, FaUser, FaBars, FaTimes, FaVolumeUp, FaVolumeMute } from 'react-icons/fa';
 import axios from "axios";
 import CartContext from "../context/CartContext";
+import io from 'socket.io-client';
 
 const Header = () => {
-   const { cart, showCart, setShowCart } = useContext(CartContext);
+  const { cart, showCart, setShowCart } = useContext(CartContext);
   const [scrolled, setScrolled] = useState(false);
   const [userData, setUserData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  const [unreadMessagesCount, setUnreadMessagesCount] = useState(0);
+  const [socket, setSocket] = useState(null);
+
+  const [soundEnabled, setSoundEnabled] = useState(true);
+  const [audioInitialized, setAudioInitialized] = useState(false);
+  const audioRef = useRef(null);
+
   const navigate = useNavigate();
   const location = useLocation();
+
+  // 🔊 Setup audio file
+  useEffect(() => {
+    audioRef.current = new Audio('/sound/livechat-129007.mp3');
+    audioRef.current.preload = 'auto';
+    audioRef.current.volume = 0.3;
+
+    return () => {
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current = null;
+      }
+    };
+  }, []);
+
+  // ⛔ Enable audio only after user interaction
+  useEffect(() => {
+    const handleUserInteraction = async () => {
+      try {
+        if (audioRef.current && !audioInitialized) {
+          await audioRef.current.play().catch(() => {});
+          audioRef.current.pause();
+          audioRef.current.currentTime = 0;
+          setAudioInitialized(true);
+        }
+      } catch (err) {
+        console.log("Audio interaction error:", err);
+      }
+
+      document.removeEventListener('click', handleUserInteraction);
+      document.removeEventListener('keydown', handleUserInteraction);
+      document.removeEventListener('touchstart', handleUserInteraction);
+    };
+
+    document.addEventListener('click', handleUserInteraction);
+    document.addEventListener('keydown', handleUserInteraction);
+    document.addEventListener('touchstart', handleUserInteraction);
+
+    return () => {
+      document.removeEventListener('click', handleUserInteraction);
+      document.removeEventListener('keydown', handleUserInteraction);
+      document.removeEventListener('touchstart', handleUserInteraction);
+    };
+  }, [audioInitialized]);
+
+  // 🔔 Play notification sound
+  const playNotificationSound = async () => {
+    if (!soundEnabled || !audioRef.current || !audioInitialized) return;
+
+    try {
+      audioRef.current.currentTime = 0;
+      await audioRef.current.play();
+    } catch (error) {
+      console.log('Audio play failed:', error);
+    }
+  };
+
+  // 🔁 Toggle sound
+  const toggleSound = () => {
+    setSoundEnabled(!soundEnabled);
+    localStorage.setItem('notificationSoundEnabled', (!soundEnabled).toString());
+
+    if (!soundEnabled) {
+      setTimeout(() => {
+        playNotificationSound();
+      }, 100);
+    }
+  };
+
+  // 🔃 Load sound preference
+  useEffect(() => {
+    const savedSoundPreference = localStorage.getItem('notificationSoundEnabled');
+    if (savedSoundPreference !== null) {
+      setSoundEnabled(savedSoundPreference === 'true');
+    }
+  }, []);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -43,6 +128,71 @@ const Header = () => {
     fetchUserData();
   }, []);
 
+  useEffect(() => {
+    if (userData) {
+      const socketConnection = io('http://localhost:5000', {
+        auth: {
+          userId: userData.id
+        }
+      });
+
+      setSocket(socketConnection);
+      socketConnection.emit('userConnected', { userId: userData.id });
+      socketConnection.emit('getTotalUnreadCount', { userId: userData.id });
+
+      socketConnection.on('totalUnreadCount', (data) => {
+        const previousCount = unreadMessagesCount;
+        setUnreadMessagesCount(data.totalUnreadCount);
+
+        if (data.totalUnreadCount > previousCount && location.pathname !== '/chat') {
+          console.log("Rritje e unreadMessages: duke luajtur tingullin...");
+          playNotificationSound();
+        }
+      });
+
+      socketConnection.on('unreadMessagesUpdate', () => {
+        socketConnection.emit('getTotalUnreadCount', { userId: userData.id });
+      });
+
+      socketConnection.on('newMessage', (message) => {
+        if (message.userId.mysqlId !== userData.id && location.pathname !== '/chat' && audioInitialized) {
+          playNotificationSound();
+
+          if ('Notification' in window && Notification.permission === 'granted') {
+            new Notification('Mesazh i ri', {
+              body: `${message.userId.name}: ${message.text.substring(0, 50)}...`,
+              icon: '/images/logo.PNG'
+            });
+          }
+        }
+
+        if (message.userId.mysqlId !== userData.id) {
+          socketConnection.emit('getTotalUnreadCount', { userId: userData.id });
+        }
+      });
+
+      return () => {
+        socketConnection.disconnect();
+      };
+    }
+  }, [userData, location.pathname, unreadMessagesCount, audioInitialized]);
+
+  useEffect(() => {
+    if ('Notification' in window && Notification.permission === 'default') {
+      Notification.requestPermission();
+    }
+  }, []);
+
+  useEffect(() => {
+    if (location.pathname === '/chat' && socket && userData) {
+      const timer = setTimeout(() => {
+        socket.emit('getTotalUnreadCount', { userId: userData.id });
+      }, 1000);
+
+      return () => clearTimeout(timer);
+    }
+  }, [location.pathname, socket, userData]);
+
   const initials = userData
     ? `${userData.name?.charAt(0) || ''}${userData.lastName?.charAt(0) || ''}`
     : '';
@@ -70,9 +220,13 @@ const Header = () => {
       const res = await axios.post('http://localhost:5000/logout', {}, { withCredentials: true });
       if (res.status === 200) {
         localStorage.removeItem('redirectAfterLogin');
-        //  localStorage.removeItem('cart');
-         localStorage.removeItem('currentUser');
-         window.location.reload();
+        localStorage.removeItem('currentUser');
+
+        if (socket) {
+          socket.disconnect();
+        }
+
+        window.location.reload();
         navigate('/login');
       }
     } catch (err) {
@@ -142,13 +296,42 @@ const Header = () => {
 
         {/* Right: Icons */}
         <div className="hidden md:flex space-x-5 items-center">
-          {/* Chat */}
+          {/* Sound Toggle Button */}
+          {userData && (
+            <button 
+              onClick={toggleSound}
+              className={`p-2.5 rounded-full transition-all duration-300 group focus:outline-none focus:ring-2 focus:ring-emerald-300/50 ${
+                soundEnabled 
+                  ? 'bg-emerald-700/40 hover:bg-emerald-600/50 text-emerald-100 hover:text-white' 
+                  : 'bg-gray-700/40 hover:bg-gray-600/50 text-gray-300 hover:text-white'
+              }`}
+              title={soundEnabled ? 'Çaktivizo zërat' : 'Aktivizo zërat'}
+            >
+              {soundEnabled ? (
+                <FaVolumeUp className="text-lg transition-colors" />
+              ) : (
+                <FaVolumeMute className="text-lg transition-colors" />
+              )}
+              {/* Indicator për audio initialization */}
+              {!audioInitialized && soundEnabled && (
+                <span className="absolute -top-1 -right-1 w-2 h-2 bg-yellow-400 rounded-full"></span>
+              )}
+            </button>
+          )}
+
+          {/* Chat with unread count */}
           <button 
             onClick={handleChatClick} 
             className="relative p-2.5 rounded-full bg-emerald-700/40 hover:bg-emerald-600/50 transition-all duration-300 group
                        focus:outline-none focus:ring-2 focus:ring-emerald-300/50"
           >
             <FaComment className="text-emerald-100 text-lg group-hover:text-white transition-colors" />
+            {/* Badge për mesazhet e palexuara */}
+            {unreadMessagesCount > 0 && (
+              <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold min-w-[20px] h-5 rounded-full flex items-center justify-center border-2 border-emerald-800 animate-pulse">
+                {unreadMessagesCount > 99 ? '99+' : unreadMessagesCount}
+              </span>
+            )}
             <span className="absolute inset-0 rounded-full border border-emerald-300/30 opacity-0 group-hover:opacity-100 animate-ping duration-1000"></span>
           </button>
 
@@ -271,15 +454,43 @@ const Header = () => {
             ))}
 
             <div className="pt-4 border-t border-emerald-700 flex flex-col space-y-4">
+              {/* Sound toggle në mobile menu */}
+              {userData && (
+                <button 
+                  onClick={toggleSound}
+                  className={`flex items-center px-3 py-2 rounded-md text-lg font-medium transition-colors ${
+                    soundEnabled 
+                      ? 'text-emerald-100 hover:bg-emerald-700 hover:text-white' 
+                      : 'text-gray-300 hover:bg-gray-700 hover:text-white'
+                  }`}
+                >
+                  {soundEnabled ? (
+                    <FaVolumeUp className="mr-3" />
+                  ) : (
+                    <FaVolumeMute className="mr-3" />
+                  )}
+                  {soundEnabled ? 'Çaktivizo zërat' : 'Aktivizo zërat'}
+                  {!audioInitialized && soundEnabled && (
+                    <span className="ml-auto w-2 h-2 bg-yellow-400 rounded-full"></span>
+                  )}
+                </button>
+              )}
+
               <button 
                 onClick={() => {
                   handleChatClick();
                   setMobileMenuOpen(false);
                 }}
-                className="flex items-center px-3 py-2 rounded-md text-lg font-medium text-emerald-100 hover:bg-emerald-700 hover:text-white"
+                className="flex items-center px-3 py-2 rounded-md text-lg font-medium text-emerald-100 hover:bg-emerald-700 hover:text-white relative"
               >
                 <FaComment className="mr-3" />
                 Chat
+                {/* Badge për mobile menu */}
+                {unreadMessagesCount > 0 && (
+                  <span className="ml-auto bg-red-500 text-white text-xs font-bold min-w-[20px] h-5 rounded-full flex items-center justify-center">
+                    {unreadMessagesCount > 99 ? '99+' : unreadMessagesCount}
+                  </span>
+                )}
               </button>
 
               <button
@@ -310,7 +521,7 @@ const Header = () => {
               </button>
 
               {userData && (["Owner", "Fizioterapeut", "Nutricionist", "Trajner", "Psikolog"].includes(userData.role) || 
-                (userData.role === "Client" && ["Owner", "Admin", "Manager"].includes(userData.dashboardRole)) && (
+                (userData.role === "Client" && ["Owner", "Admin", "Manager"].includes(userData.dashboardRole))) && (
                 <Link
                   to="/dashboard"
                   onClick={() => setMobileMenuOpen(false)}
@@ -319,8 +530,7 @@ const Header = () => {
                   <FaUser className="mr-3" />
                   Dashboard
                 </Link>
-))}
-
+              )}
 
               {userData ? (
                 <button 

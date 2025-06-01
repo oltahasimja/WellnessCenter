@@ -29,32 +29,61 @@ const navigate = useNavigate();
 };
 
 
-  const updateQuantity = async (productId, newQuantity) => {
-    if (newQuantity < 1) return;
+const updateQuantity = async (productId, newQuantity) => {
+  if (newQuantity < 1) return;
 
-    const user = JSON.parse(localStorage.getItem("currentUser"));
-    if (!user || !user.id) return;
+  const user = JSON.parse(localStorage.getItem("currentUser"));
+  if (!user || !user.id) {
+    console.error("No user found in localStorage");
+    return;
+  }
 
-    try {
-      const res = await fetch(`http://localhost:5000/api/cartitem/${user.id}/${productId}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ quantity: newQuantity }),
-      });
+  // Optimistically update the UI first
+  setCart(prev =>
+    prev.map(item =>
+      item.productId === productId
+        ? { ...item, quantity: newQuantity }
+        : item
+    )
+  );
 
-      if (!res.ok) throw new Error("Failed to update quantity");
+  try {
+    console.log(`Updating quantity - User: ${user.id}, Product: ${productId}, Quantity: ${newQuantity}`);
+    
+    const res = await fetch(`http://localhost:5000/api/cartitem/${user.id}/${productId}`, {
+      method: "PATCH",
+      headers: { 
+        "Content-Type": "application/json",
+        "Accept": "application/json"
+      },
+      body: JSON.stringify({ quantity: newQuantity }),
+    });
 
-      setCart(prev =>
-        prev.map(item =>
-          item.productId === productId
-            ? { ...item, quantity: newQuantity }
-            : item
-        )
-      );
-    } catch (err) {
-      console.error("Error updating quantity", err);
+    if (!res.ok) {
+      const errData = await res.json().catch(() => ({ message: `HTTP ${res.status}` }));
+      throw new Error(errData.message || "Failed to update quantity");
     }
-  };
+
+    const updatedItem = await res.json();
+    console.log("Successfully updated:", updatedItem);
+
+  } catch (err) {
+    console.error("Error updating quantity", err);
+    
+    // Revert the optimistic update on error
+    setCart(prev =>
+      prev.map(item =>
+        item.productId === productId
+          ? { ...item, quantity: item.quantity } // This will revert to previous state
+          : item
+      )
+    );
+
+    // Show user-friendly error message
+    // alert(`Failed to update quantity: ${err.message}`);
+  }
+};
+
 
   const cartTotal = cart.reduce((total, item) => total + (item.price * item.quantity), 0);
 
