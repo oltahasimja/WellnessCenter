@@ -30,10 +30,11 @@
   import CreateAppointment from './pages/CreateAppointment';
   import MyAppointments from './pages/MyAppointments';
   import Profile from './pages/Profile';
-  import Chat from './pages/Chat';
+  import Chat from './pages/chat/Chat.jsx';
   import { CartProvider } from './context/CartContext';
   import ClientOrderForm from './dashboard/ClientOrderForm';
   import CartItem from './dashboard/CartItem';
+  import { NotificationSoundProvider } from './context/NotificationSoundContext.jsx';
 
   const AppRoutes = () => {
     const { darkMode } = useTheme();
@@ -107,7 +108,10 @@
     return (
   <ThemeProvider>
         <CartProvider>
+          <NotificationSoundProvider>
+
           <AppRoutes />
+          </NotificationSoundProvider>
         </CartProvider>
       </ThemeProvider>
     );

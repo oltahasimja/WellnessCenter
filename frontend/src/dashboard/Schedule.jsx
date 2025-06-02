@@ -5,7 +5,7 @@ import DeleteConfirmation from '../components/DeleteConfirmation';
 
 const Schedule = () => {
   const { theme } = useTheme();
-  const [formData, setFormData] = useState({ workDays: [] });
+  const [formData, setFormData] = useState({ workDays: [], price: '' });
   const [scheduleList, setScheduleList] = useState([]);
   const [userList, setUserList] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -535,6 +535,21 @@ const [validationErrors, setValidationErrors] = useState({
     </p>
   )}
 </div>
+<div>
+  <label className={`block font-medium mb-1 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
+    Price (€)
+  </label>
+  <input 
+    type="number"
+    value={formData.price || ''}
+    onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+    className={`border p-3 rounded-md w-full ${theme === 'dark' ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'}`}
+    placeholder="Enter price in euros"
+    min={0}
+    required
+  />
+</div>
+
 </div>       
           <button 
             type="submit" 
@@ -563,6 +578,8 @@ const [validationErrors, setValidationErrors] = useState({
                     <th className="py-3 px-6">End Time</th>
                     <th className="py-3 px-6">Break Start</th>
                     <th className="py-3 px-6">Break End</th>
+                     <th className="py-3 px-6">Price</th>
+
                     <th className="py-3 px-6">Actions</th>
                   </tr>
                 </thead>
@@ -602,6 +619,7 @@ const [validationErrors, setValidationErrors] = useState({
                       <td className="py-3 px-6">{item.endTime}</td>
                       <td className="py-3 px-6">{item.breakStartTime || '-'}</td>
                       <td className="py-3 px-6">{item.breakEndTime || '-'}</td>
+                      <td className="py-3 px-6">{item.price ? item.price.toFixed(2) : '0.00'} €</td>
                       <td className="py-3 px-6 flex space-x-2">
                         <button 
                           onClick={() => handleEdit(item)}

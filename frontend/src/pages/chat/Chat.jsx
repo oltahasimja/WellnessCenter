@@ -81,7 +81,7 @@ const [userCheckError, setUserCheckError] = useState(null);
         newOnlineUsers[user.userId.toString()] = true;
       }
     });
-    console.log("MORRA onlineUsersList:", newOnlineUsers); 
+    // console.log("MORRA onlineUsersList:", newOnlineUsers); 
     setOnlineUsers(newOnlineUsers);
   });
 
@@ -446,7 +446,7 @@ const renderMessageSeenBy = (message) => {
   };
 
   useEffect(() => {
-  console.log('Online Users:', onlineUsers);
+  // console.log('Online Users:', onlineUsers);
 }, [onlineUsers]);
 
   
@@ -639,12 +639,12 @@ const handleLeaveGroup = async () => {
 const handleRemoveMember = (memberToRemove) => {
   if (!socket || !selectedGroup || !user) return;
 
-  console.log('Current User:', user);
-  console.log('Selected Group Created By:', selectedGroup.createdBy);
-  console.log('Current User ID:', user.id);
-  console.log('Current User _id:', user._id);
-  console.log('Selected Group Created By Type:', typeof selectedGroup.createdBy);
-  console.log('Current User ID Type:', typeof user.id);
+  // console.log('Current User:', user);
+  // console.log('Selected Group Created By:', selectedGroup.createdBy);
+  // console.log('Current User ID:', user.id);
+  // console.log('Current User _id:', user._id);
+  // console.log('Selected Group Created By Type:', typeof selectedGroup.createdBy);
+  // console.log('Current User ID Type:', typeof user.id);
 
   // More flexible creator check
 const isCreator = 
@@ -654,7 +654,7 @@ const isCreator =
   selectedGroup.createdById === user.mongoId?.toString();
 
 
-  console.log('Is Creator:', isCreator);
+  // console.log('Is Creator:', isCreator);
 
   if (!isCreator) {
     setError('Only the group creator can remove members');
@@ -860,7 +860,7 @@ const handleAddMemberByUsername = async () => {
     }
     
     const userToAdd = await userResponse.json();
-    console.log('User data received:', userToAdd); // Debug log
+    // console.log('User data received:', userToAdd); // Debug log
     
     if (!userToAdd.id && !userToAdd.mysqlId && !userToAdd._id) {
       throw new Error('User data is missing ID field');
@@ -887,7 +887,7 @@ const handleAddMemberByUsername = async () => {
     else if (userToAdd.mysqlId) requestBody.userId = userToAdd.mysqlId;
     else if (userToAdd._id) requestBody.userId = userToAdd._id;
     
-    console.log('Creating UsersGroup with:', requestBody); // Debug log
+    // console.log('Creating UsersGroup with:', requestBody); // Debug log
     
     // 5. Add user to group
     const addResponse = await fetch(`${API_BASE_URL}/usersgroup`, {

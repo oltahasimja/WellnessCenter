@@ -37,6 +37,10 @@ const scheduleSchema = new Schema({
     type: String, // "13:00"
     default: null
   },
+   price: {
+    type: Number, // 50.00
+    required: true
+  },
   unavailableDates: {
     type: [String], // ['2025-04-10', '2025-04-15']
     default: []

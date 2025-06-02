@@ -33,6 +33,11 @@ const Schedule = sequelize.define('Schedule', {
     type: DataTypes.TIME, // ora e përfundimit të pushimit
     allowNull: true,
   },
+   price: {
+    type: DataTypes.FLOAT, 
+    allowNull: false,
+  
+  },
   unavailableDates: {
     type: DataTypes.JSON, // ['2025-04-10', '2025-04-15']
     allowNull: true,

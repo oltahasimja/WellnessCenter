@@ -232,6 +232,18 @@ const Appointments = () => {
                                 Notes: {appt.notes}
                               </p>
                             )}
+                           {appt.paymentMethod === 'online' && (
+                    <p className="text-green-600 font-semibold">
+                      Payment: Online - Done
+                    </p>
+                  )}
+
+                  {appt.paymentMethod === 'cash' && (
+                    <p className="text-gray-600">
+                      Payment: cash - To be paid
+                    </p>
+                  )}
+
                           </div>
 
                           <div className="mt-4 md:mt-0 flex flex-col md:items-end space-y-2">

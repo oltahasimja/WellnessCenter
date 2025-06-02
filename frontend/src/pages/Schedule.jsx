@@ -199,6 +199,15 @@ function Schedule() {
                           <p className="text-sm">
                             Break: {specialist.breakStartTime} - {specialist.breakEndTime}
                           </p>
+                            <p className="text-sm">
+                            Price: 
+                            €{parseFloat(specialist.price).toFixed(2)}
+
+
+                           
+
+
+                          </p>
                         </div>
                       </div>
                     </div>

@@ -35,6 +35,10 @@ const appointmentSchema = new Schema({
     type: String,
     required: false,
   },
+  paymentMethod: {
+    type: String,
+    required: false,
+  },
 }, { timestamps: true });
 
 const AppointmentMongo = mongoose.model('AppointmentMongo', appointmentSchema);

@@ -96,7 +96,9 @@ class AppointmentRepository {
       const createdAppointment = await Appointment.create({
         ...appointmentData,
         specialistId: parseInt(specialist.mysqlId, 10),
-        status: 'pending' // Default status
+        status: 'pending', // Default status
+        paymentMethod: appointmentData.paymentType, 
+
       });
 
       // Create in MongoDB
@@ -107,7 +109,9 @@ class AppointmentRepository {
         appointmentDate: appointmentData.appointmentDate,
         status: 'pending',
         type: appointmentData.type,
-        notes: appointmentData.notes
+        notes: appointmentData.notes,
+        paymentMethod: appointmentData.paymentType, 
+
       });
 
       return createdAppointment;

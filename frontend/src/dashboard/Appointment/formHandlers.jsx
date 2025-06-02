@@ -60,7 +60,9 @@ export const handleAppointmentSubmit = async (
   setErrorMessage,
   onAppointmentCreated
 ) => {
-  e.preventDefault();
+  // e.preventDefault();
+  if (e?.preventDefault) e.preventDefault();
+
   setErrorMessage('');
   setSuccessMessage('');
   

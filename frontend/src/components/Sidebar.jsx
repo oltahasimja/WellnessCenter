@@ -87,7 +87,14 @@ const Sidebar = () => {
     <div className={`${isOpen ? 'w-72' : 'w-20'} bg-white dark:bg-gray-900 dark:text-white border-r h-screen overflow-auto transition-all duration-300 shadow-md flex flex-col justify-between`} style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
       <div>
         <div className="px-4 py-4 border-b flex items-center justify-between">
-          {isOpen && <span className="text-xl font-semibold">Wellness</span>}
+          {isOpen && (
+            <span
+              onClick={() => navigate('/')}
+              className="text-xl font-semibold cursor-pointer hover:text-blue-600 transition"
+            >
+              Wellness
+            </span>
+          )}
           <button onClick={toggleSidebar} className="hover:bg-gray-100 dark:hover:bg-gray-700 p-2 rounded-md">
             <Menu className="w-6 h-6" />
           </button>

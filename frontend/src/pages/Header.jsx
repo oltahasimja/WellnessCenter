@@ -5,6 +5,7 @@ import { FaShoppingCart, FaSignInAlt, FaSignOutAlt, FaComment, FaUser, FaBars, F
 import axios from "axios";
 import CartContext from "../context/CartContext";
 import io from 'socket.io-client';
+import { useNotificationSound } from "../context/NotificationSoundContext";
 
 const Header = () => {
   const { cart, showCart, setShowCart } = useContext(CartContext);
@@ -16,88 +17,13 @@ const Header = () => {
   const [unreadMessagesCount, setUnreadMessagesCount] = useState(0);
   const [socket, setSocket] = useState(null);
 
-  const [soundEnabled, setSoundEnabled] = useState(true);
-  const [audioInitialized, setAudioInitialized] = useState(false);
-  const audioRef = useRef(null);
+const { soundEnabled, toggleSound, audioInitialized, playNotificationSound } = useNotificationSound();
+
 
   const navigate = useNavigate();
   const location = useLocation();
 
-  // 🔊 Setup audio file
-  useEffect(() => {
-    audioRef.current = new Audio('/sound/livechat-129007.mp3');
-    audioRef.current.preload = 'auto';
-    audioRef.current.volume = 0.3;
 
-    return () => {
-      if (audioRef.current) {
-        audioRef.current.pause();
-        audioRef.current = null;
-      }
-    };
-  }, []);
-
-  // ⛔ Enable audio only after user interaction
-  useEffect(() => {
-    const handleUserInteraction = async () => {
-      try {
-        if (audioRef.current && !audioInitialized) {
-          await audioRef.current.play().catch(() => {});
-          audioRef.current.pause();
-          audioRef.current.currentTime = 0;
-          setAudioInitialized(true);
-        }
-      } catch (err) {
-        console.log("Audio interaction error:", err);
-      }
-
-      document.removeEventListener('click', handleUserInteraction);
-      document.removeEventListener('keydown', handleUserInteraction);
-      document.removeEventListener('touchstart', handleUserInteraction);
-    };
-
-    document.addEventListener('click', handleUserInteraction);
-    document.addEventListener('keydown', handleUserInteraction);
-    document.addEventListener('touchstart', handleUserInteraction);
-
-    return () => {
-      document.removeEventListener('click', handleUserInteraction);
-      document.removeEventListener('keydown', handleUserInteraction);
-      document.removeEventListener('touchstart', handleUserInteraction);
-    };
-  }, [audioInitialized]);
-
-  // 🔔 Play notification sound
-  const playNotificationSound = async () => {
-    if (!soundEnabled || !audioRef.current || !audioInitialized) return;
-
-    try {
-      audioRef.current.currentTime = 0;
-      await audioRef.current.play();
-    } catch (error) {
-      console.log('Audio play failed:', error);
-    }
-  };
-
-  // 🔁 Toggle sound
-  const toggleSound = () => {
-    setSoundEnabled(!soundEnabled);
-    localStorage.setItem('notificationSoundEnabled', (!soundEnabled).toString());
-
-    if (!soundEnabled) {
-      setTimeout(() => {
-        playNotificationSound();
-      }, 100);
-    }
-  };
-
-  // 🔃 Load sound preference
-  useEffect(() => {
-    const savedSoundPreference = localStorage.getItem('notificationSoundEnabled');
-    if (savedSoundPreference !== null) {
-      setSoundEnabled(savedSoundPreference === 'true');
-    }
-  }, []);
 
   useEffect(() => {
     const handleScroll = () => {
