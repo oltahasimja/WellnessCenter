@@ -26,17 +26,23 @@ class ScheduleRepository {
       }
   
       const schedules = await ScheduleMongo.find(query)
-        .populate({
-          path: 'specialistId',
-          select: 'name lastName profileImageId mysqlId',
-          model: 'UserMongo',
-          populate: { 
-            path: 'roleId', 
-            model: 'RoleMongo',
-            select: 'name' 
-          }
-        })
-        .lean();
+  .populate({
+    path: 'specialistId',
+    select: 'name lastName profileImageId mysqlId',
+    model: 'UserMongo',
+    populate: [
+      {
+        path: 'roleId',
+        model: 'RoleMongo',
+        select: 'name'
+      },
+      {
+        path: 'profileImageId',
+        select: 'name', 
+      }
+    ]
+  })
+  .lean();
   
       return schedules.map(schedule => ({
         ...schedule,
@@ -44,7 +50,9 @@ class ScheduleRepository {
         specialistName: schedule.specialistId 
           ? `${schedule.specialistId.name} ${schedule.specialistId.lastName}`
           : 'Unknown Specialist',
-        specialistRole: schedule.specialistId?.roleId?.name || 'No Role' // Shto rolin e specialistit
+        specialistRole: schedule.specialistId?.roleId?.name || 'No Role', // Shto rolin e specialistit
+          profileImage: schedule.specialistId?.profileImageId?.name || null, // kthen emrin e fotos
+
       }));
     } catch (error) {
       console.error("Error finding schedules:", error);
