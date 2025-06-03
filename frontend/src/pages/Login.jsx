@@ -72,6 +72,8 @@ const Login = () => {
         { withCredentials: true }
       );
       localStorage.setItem('isLoggedIn', true);
+      localStorage.setItem('currentUser', JSON.stringify(response.data.user));
+
       navigate('/');
     } catch (error) {
       console.error('Google login error:', error);

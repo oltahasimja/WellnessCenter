@@ -378,11 +378,7 @@ const Sidebar = () => {
 
         
 
-           <MenuItem 
-            icon={MessageCircle} 
-            label="Chat" 
-            componentName="chat"
-          />
+          
 
 <div className="mb-1">
           <MenuItem 

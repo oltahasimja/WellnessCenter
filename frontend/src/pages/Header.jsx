@@ -191,7 +191,7 @@ const { soundEnabled, toggleSound, audioInitialized, playNotificationSound } = u
         </div>
 
         {/* Mobile Menu Button */}
-        <div className="md:hidden flex items-center">
+        <div className="md:hidden flex items-center bg-teal-600">
           <button 
             onClick={toggleMobileMenu}
             className="p-2 text-emerald-100 hover:text-white focus:outline-none"
@@ -361,7 +361,7 @@ const { soundEnabled, toggleSound, audioInitialized, playNotificationSound } = u
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3 }}
-          className="md:hidden bg-emerald-800 shadow-lg"
+          className="md:hidden bg-teal-600 shadow-lg"
         >
           <div className="px-4 py-2 space-y-4">
             {navItems.map((item) => (
