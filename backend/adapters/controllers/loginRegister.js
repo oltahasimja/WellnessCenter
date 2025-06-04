@@ -24,133 +24,120 @@ const { User, Country, City, ProfileImage, Role } = require('../../domain/databa
 const googleAuth = async (req, res) => {
   const { token } = req.body;
   let mysqlTransaction;
-  
+  let committed = false;
+
   try {
-      // Verify Google token
-      const ticket = await client.verifyIdToken({
-          idToken: token,
-          audience: process.env.GOOGLE_CLIENT_ID,
+    // 1. Verifiko token-in nga Google
+    const ticket = await client.verifyIdToken({
+      idToken: token,
+      audience: process.env.GOOGLE_CLIENT_ID,
+    });
+
+    const payload = ticket.getPayload();
+    const { email, given_name, family_name, sub } = payload;
+
+    mysqlTransaction = await sequelize.transaction();
+
+    let mysqlUser = await User.findOne({
+      where: { email },
+      transaction: mysqlTransaction
+    });
+
+    if (!mysqlUser) {
+      const userRole = await Role.findOne({
+        where: { name: 'Client' },
+        transaction: mysqlTransaction
       });
-      
-      const payload = ticket.getPayload();
-      const { email, given_name, family_name, sub, picture } = payload;
 
-      // Start transaction
-      mysqlTransaction = await sequelize.transaction();
-
-      try {
-          // Check if user exists
-          let mysqlUser = await User.findOne({ 
-              where: { email },
-              transaction: mysqlTransaction
-          });
-          
-          if (!mysqlUser) {
-              const userRole = await Role.findOne({ 
-                  where: { name: 'Client' },
-                  transaction: mysqlTransaction
-              });
-
-              if (!userRole) {
-                  await mysqlTransaction.rollback();
-                  return res.status(500).json({ error: 'User role not found' });
-              }
-
-              // Create user in MySQL
-              mysqlUser = await User.create({
-                  name: given_name,
-                  lastName: family_name || '',
-                  email,
-                  number: '12345',
-                  username: email.split('@')[0],
-                  password: sub,
-                  roleId: userRole.id,
-                  isGoogleAuth: true,
-                
-              }, { transaction: mysqlTransaction });
-
-              // Create user in MongoDB
-              try {
-                  const mongoRole = await RoleMongo.findOne({ name: 'Client' });
-                  if (!mongoRole) {
-                      await mysqlTransaction.rollback();
-                      return res.status(500).json({ error: 'MongoDB role not found' });
-                  }
-
-                  const mongoUser = new UserMongo({
-                      mysqlId: mysqlUser.id.toString(),
-                      name: given_name,
-                      lastName: family_name || '',
-                      email,
-                      number: '12345',
-                      username: email.split('@')[0],
-                      password: sub,
-                      roleId: mongoRole._id,
-                      isGoogleAuth: true,
-                      // avatar: picture
-                  });
-
-                  await mongoUser.save();
-              } catch (mongoError) {
-                  await mysqlTransaction.rollback();
-                  console.error('MongoDB error:', mongoError);
-                  return res.status(500).json({ error: 'Failed to create MongoDB user' });
-              }
-          }
-
-          // Commit transaction if everything succeeded
-          await mysqlTransaction.commit();
-
-          // Generate tokens
-          const accessToken = jwt.sign(
-              { id: mysqlUser.id, username: mysqlUser.username, role: mysqlUser.role },
-              process.env.JWT_SECRET,
-              { expiresIn: '1d' }
-          );
-
-          const refreshToken = jwt.sign(
-              { id: mysqlUser.id },
-              process.env.REFRESH_SECRET,
-              { expiresIn: '7d' }
-          );
-
-          // Set cookies
-          res.cookie('refreshToken', refreshToken, {
-              httpOnly: true,
-              secure: process.env.NODE_ENV === 'production',
-              sameSite: 'Strict',
-              maxAge: 7 * 24 * 60 * 60 * 1000,
-          });
-
-          res.cookie('ubtsecured', accessToken, {
-              httpOnly: true,
-              secure: process.env.NODE_ENV === 'production',
-              sameSite: 'Strict',
-            //   maxAge: 15 * 60 * 1000,
-            maxAge: 24 * 60 * 60 * 1000 // 24 
-
-          });
-
-          return res.status(200).json({ 
-              message: 'Google authentication successful', 
-              user: {
-                  id: mysqlUser.id,
-                  name: mysqlUser.name,
-                  email: mysqlUser.email
-              },
-              accessToken,
-              refreshToken
-          });
-
-      } catch (dbError) {
-          if (mysqlTransaction) await mysqlTransaction.rollback();
-          console.error('Database error:', dbError);
-          return res.status(500).json({ error: 'Database operation failed' });
+      if (!userRole) {
+        await mysqlTransaction.rollback();
+        return res.status(500).json({ error: 'Roli Client nuk u gjet.' });
       }
 
+      mysqlUser = await User.create({
+        name: given_name,
+        lastName: family_name || '',
+        email,
+        number: '12345',
+        username: email.split('@')[0],
+        password: sub, 
+        roleId: userRole.id,
+        isGoogleAuth: true
+      }, { transaction: mysqlTransaction });
+
+      const mongoRole = await RoleMongo.findOne({ name: 'Client' });
+      if (!mongoRole) {
+        await mysqlTransaction.rollback();
+        return res.status(500).json({ error: 'Roli Mongo Client nuk u gjet.' });
+      }
+
+      const mongoUser = new UserMongo({
+        mysqlId: mysqlUser.id.toString(),
+        name: given_name,
+        lastName: family_name || '',
+        email,
+        number: '12345',
+        username: email.split('@')[0],
+        password: sub,
+        roleId: mongoRole._id,
+        isGoogleAuth: true
+      });
+
+      await mongoUser.save();
+    }
+
+    await mysqlTransaction.commit();
+    committed = true;
+
+    const accessToken = jwt.sign(
+      { id: mysqlUser.id, username: mysqlUser.username, role: 'Client' },
+      process.env.JWT_SECRET,
+      { expiresIn: '1d' }
+    );
+
+    const refreshToken = jwt.sign(
+      { id: mysqlUser.id },
+      process.env.REFRESH_SECRET,
+      { expiresIn: '7d' }
+    );
+
+    // 7. Vendos cookies
+    res.cookie('refreshToken', refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'Strict',
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
+
+    res.cookie('ubtsecured', accessToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'Strict',
+      maxAge: 24 * 60 * 60 * 1000,
+    });
+
+    return res.status(200).json({
+      message: 'Google auth sukses.',
+      user: {
+            id: mysqlUser.id,
+            name: mysqlUser.name,
+            email: mysqlUser.email,
+            username: mysqlUser.username,
+            },
+      accessToken,
+      refreshToken
+    });
+
   } catch (error) {
-      console.error('Google auth error:', error);
-      return res.status(500).json({ error: 'Google authentication failed' });
+    if (!committed && mysqlTransaction) {
+      try {
+        await mysqlTransaction.rollback();
+      } catch (rollbackErr) {
+        console.error('Rollback failed:', rollbackErr);
+      }
+    }
+    console.error('Google auth error:', error);
+    return res.status(500).json({ error: 'Autentifikimi me Google dështoi.' });
   }
 };
 
@@ -168,13 +155,13 @@ const googleAuth = async (req, res) => {
         if (err) return next(err);
   
         const accessToken = jwt.sign(
-          { id: user.id, username: user.username, role: user.role },
+                { id: user.id, username: user.username, role: user.Role?.name || 'Client' },
           process.env.JWT_SECRET,
           { expiresIn: '1d' } 
         );
   
         const refreshToken = jwt.sign(
-          { id: user.id },
+          { id: user.id, username: user.username, role: user.role },
           process.env.REFRESH_SECRET,
           { expiresIn: '7d' } 
         );

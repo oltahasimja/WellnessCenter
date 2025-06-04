@@ -16,10 +16,13 @@ const fs = require('fs');
 const path = require('path');
 const sequelize = require('./config/database');
 const isAuthenticated = require('./middlewares/authMiddleware').isAuthenticated;
+const apiKeyCheck = require("./middlewares/apiKeyCheck");
+const checkOrigin = require("./middlewares/checkOrigin");
 
 const mongoose = require('mongoose')
 const { User, Country, City, ProfileImage, Role, DashboardRole, UsersGroup, Group } = require('./domain/database/models/index');
 const { UserMongo, MessageMongo, CountryMongo, CityMongo, ProfileImageMongo, RoleMongo, DashboardRoleMongo, UsersGroupMongo, GroupMongo } = require('./domain/database/models/indexMongo');
+const router = express.Router();
 
 
 
@@ -41,12 +44,13 @@ socketHandler(io);
 
 
 
-
-
 // Middleware setup
 app.use(cookieParser());
+
+// app.use(checkOrigin);
+
 app.use(cors({
-  origin: ["http://localhost:3000", " http://192.168.0.114:3000"],
+  origin: ["http://localhost:3000", "http://192.168.0.114:3000"],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   allowedHeaders: ['Content-Type', 'Authorization']
@@ -54,8 +58,13 @@ app.use(cors({
 
 
 
+
+
 // const csrfProtection = csrf({ cookie: true });
 // app.use(csrfProtection);
+
+
+
 
 app.options('*', cors());
 
@@ -123,7 +132,6 @@ passport.deserializeUser(async (id, done) => {
 app.use(passport.initialize());
 app.use(passport.session());
 
-// const { RoleMongo, DashboardRoleMongo } = require('./domain/database/models')
 
 
 
@@ -190,188 +198,6 @@ app.get('/user', isAuthenticated, async (req, res) => {
 
 
 
-const createDefaultRolesAndOwner = async () => {
-  try {
-    await sequelize.sync();
-
-    // 1. Krijo rolet
-    const roles = ['Client', 'Fizioterapeut', 'Nutricionist', 'Trajner', 'Psikolog'];
-    for (let roleName of roles) {
-      const [role, created] = await Role.findOrCreate({ 
-        where: { name: roleName } 
-      });
-      if (created) {
-        await RoleMongo.create({ mysqlId: role.id.toString(), name: roleName });
-        console.log(`Roli '${roleName}' u krijua në MySQL & MongoDB.`);
-      }
-    }
-
-    const clientRole = await Role.findOne({ where: { name: 'Client' } });
-    if (!clientRole) {
-      throw new Error('Client role nuk ekziston në MySQL!');
-    }
-
-    const clientRoleMongo = await RoleMongo.findOne({ name: 'Client' });
-    if (!clientRoleMongo) {
-      throw new Error('Client role nuk ekziston në MongoDB!');
-    }
-
-    // 2. Krijo rolet e Dashboard
-    const dashboardRoles = ['Owner'];
-    for (let roleName of dashboardRoles) {
-      const [dashboardRole, created] = await DashboardRole.findOrCreate({ 
-        where: { name: roleName } 
-      });
-      if (created) {
-        await DashboardRoleMongo.create({ 
-          mysqlId: dashboardRole.id.toString(), 
-          name: roleName 
-        });
-        console.log(`Roli i Dashboard '${roleName}' u krijua në MySQL & MongoDB.`);
-      }
-    }
-
-    const ownerDashboardRole = await DashboardRole.findOne({ 
-      where: { name: 'Owner' } 
-    });
-    if (!ownerDashboardRole) {
-      throw new Error('Owner role nuk ekziston!');
-    }
-
-    // 3. Krijo përdoruesin Owner
-    const existingOwner = await User.findOne({ 
-      where: { email: 'owner@gmail.com' } 
-    });
-
-    if (!existingOwner) {
-      const randomPassword = 'owner';
-      const hashedPassword = await bcrypt.hash(randomPassword, 10);
-
-      const newOwner = await User.create({
-        username: 'owner',
-        email: 'owner@gmail.com',
-        password: hashedPassword,
-        dashboardRoleId: ownerDashboardRole.id,
-        name: 'owner',
-        lastName: 'Account',
-        roleId: clientRole.id,
-        number: '123456789'
-      });
-
-      await UserMongo.create({
-        mysqlId: newOwner.id.toString(),
-        username: 'owner',
-        email: 'owner@gmail.com',
-        dashboardRole: 'Owner',
-        name: 'Owner',
-        password: hashedPassword,
-        lastName: 'Account',
-        number: '123456789',
-        roleId: clientRoleMongo._id
-      });
-
-      console.log('Owner user u krijua me sukses në të dyja databazat!');
-    } else {
-      console.log('Owner user ekziston tashmë në MySQL.');
-
-      const existingOwnerMongo = await UserMongo.findOne({ 
-        mysqlId: existingOwner.id.toString() 
-      });
-      if (!existingOwnerMongo) {
-        await UserMongo.create({
-          mysqlId: existingOwner.id.toString(),
-          username: 'owner',
-          email: 'owner@gmail.com',
-          dashboardRole: 'Owner',
-          name: 'Owner',
-          lastName: 'Account'
-        });
-        console.log('Owner user u shtua në MongoDB (ekzistonte vetëm në MySQL).');
-      }
-    }
-  } catch (err) {
-    console.error("Gabim gjatë krijimit të owner user:", err);
-  }
-};
-
-
-createDefaultRolesAndOwner();
-
-
-const nodemailer = require('nodemailer');
-const transporter = nodemailer.createTransport({
-  service: 'gmail',
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS
-  }
-});
-
-// Email endpoint
-app.post('/api/send-email', async (req, res) => {
-  try {
-    const { to, subject, text, attachments } = req.body;
-    
-    const mailOptions = {
-      from: `Wellness Center <${process.env.EMAIL_USER}>`,
-      to,
-      subject,
-      text,
-      attachments
-    };
-
-    await transporter.sendMail(mailOptions);
-    res.status(200).json({ success: true, message: 'Email sent successfully' });
-  } catch (error) {
-    console.error('Error sending email:', error);
-    res.status(500).json({ success: false, message: 'Failed to send email' });
-  }
-});
-
-
-// const RoleMongo = require('./domain/database/models/Mongo/RoleMongo');
-
-// app.get('/user', isAuthenticated, async (req, res) => {
-//   try {
-//     const user = await UserMongo.findOne({ mysqlId: req.user.id })
-//       .populate('roleId', 'name') 
-//       .populate('countryId', 'name') 
-//       .populate('cityId', 'name') 
-//       .populate({
-//         path: 'profileImageId',
-//         select: 'name data', 
-//       });
-
-//     if (!user) {
-//       return res.status(404).json({ error: 'User not found' });
-//     }
-
-//     res.json({
-//       user: {
-//         id: user.mysqlId, 
-//         name: user.name,
-//         lastName: user.lastName,
-//         email: user.email,
-//         number: user.number,
-//         username: user.username,
-//         role: user.roleId ? user.roleId.name : 'User',
-//         profileImage: user.profileImageId ? user.profileImageId.name : null,
-//         profileImageId: user.profileImageId ? user.profileImageId.id : null,
-//         country: user.countryId ? user.countryId.name : null,
-//         city: user.cityId ? user.cityId.name : null,
-//         countryId: user.countryId?._id || null,
-//         cityId: user.cityId?._id || null,
-//         gender: user.gender,
-//         birthday: user.birthday,
-//       },
-//     });
-//   } catch (error) {
-//     res.status(500).json({ error: error.message });
-//   }
-// });
-
-
-
 app.get('/', (req, res) => {
   res.json('user');
 });
@@ -432,6 +258,37 @@ app.use(passport.session());
 
 // 
 
+
+
+const nodemailer = require('nodemailer');
+const transporter = nodemailer.createTransport({
+  service: 'gmail',
+  auth: {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS
+  }
+});
+
+// Email endpoint
+app.post('/api/send-email', async (req, res) => {
+  try {
+    const { to, subject, text, attachments } = req.body;
+    
+    const mailOptions = {
+      from: `Wellness Center <${process.env.EMAIL_USER}>`,
+      to,
+      subject,
+      text,
+      attachments
+    };
+
+    await transporter.sendMail(mailOptions);
+    res.status(200).json({ success: true, message: 'Email sent successfully' });
+  } catch (error) {
+    console.error('Error sending email:', error);
+    res.status(500).json({ success: false, message: 'Failed to send email' });
+  }
+});
 
 
 
