@@ -931,7 +931,7 @@ const handleDeleteListClick = (listId, listName) => {
         </div>
       </div>
       <button
-        onClick={() => navigate('/programs')}
+        onClick={() => navigate('/myprograms')}
         className={`${programTheme?.buttonClass || 'bg-teal-600'} text-white hover:bg-opacity-90 px-4 py-2 rounded-md font-medium flex items-center`}
       >
         <svg className="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
@@ -1645,6 +1645,11 @@ const handleDeleteListClick = (listId, listName) => {
         onConfirm={handleDeleteConfirm}
         itemName={deleteModal.memberName}
       />
+          {/* Footer */}
+      <footer className="mt-10 py-4 border-t text-center text-sm text-gray-500">
+        <p>© {new Date().getFullYear()} 
+          WellnessCenter. All rights reserved.</p>
+      </footer>
   </ThemeBackground>
   );
 };

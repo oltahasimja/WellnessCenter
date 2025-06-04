@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FaDumbbell, FaAppleAlt, FaArrowRight, FaStar } from 'react-icons/fa';
 import { GiMuscleUp } from 'react-icons/gi';
+import Header from './Header';
 // Add this role mapping at the top of your MyPrograms file
 // Role-based image mapping
 const roleImageMapping = {
@@ -140,6 +141,7 @@ function MyPrograms() {
     if (loading) {
         return (
             <div className="flex items-center justify-center min-h-screen bg-gradient-to-b from-gray-50 to-white">
+            
                 <motion.div
                     animate={{
                         rotate: 360,
@@ -159,6 +161,10 @@ function MyPrograms() {
     return (
         <div className="bg-gradient-to-b from-gray-50 to-white min-h-screen pb-16">
             {/* Hero Section */}
+                <Header
+         
+                
+                />
             <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}

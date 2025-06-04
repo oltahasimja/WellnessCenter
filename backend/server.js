@@ -47,7 +47,7 @@ socketHandler(io);
 // Middleware setup
 app.use(cookieParser());
 
-// app.use(checkOrigin);
+ app.use(checkOrigin);
 
 app.use(cors({
   origin: ["http://localhost:3000", "http://192.168.0.114:3000"],
