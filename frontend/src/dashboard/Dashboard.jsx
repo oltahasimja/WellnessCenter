@@ -31,7 +31,7 @@ import ScheduleTraining from './ScheduleTraining'
 import Delivery from './Delivery';
 import Group from './Group';
 import UsersGroup from './UsersGroup';
-
+import Log from './log';
 function Dashboard() {
   axios.defaults.withCredentials = true;
   const { isChecking, isAuthenticated, user } = useAuthCheck();
@@ -70,6 +70,7 @@ function Dashboard() {
     program: { component: <Program />, access: isSpecialist || isOwner },
     userprograms: { component: <UserPrograms />, access: isSpecialist || isOwner },
     cardmember:{component:<CardMember/>,access:isSpecialist || isOwner },
+        log:{component:<Log/>,access:isSpecialist || isOwner },
     list: { component: <List />, access: isSpecialist || isOwner },
     training: { component: <Training />, access: isSpecialist || isOwner },
     trainingapplication: { component: <TrainingApplication />, access: isSpecialist || isOwner },

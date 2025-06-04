@@ -41,7 +41,8 @@ class ProgramRepository {
       await Log.create({
         userId: data.createdById, // assuming createdById is the user who created this
         action: 'CREATE_PROGRAM',
-        details: `Created program with ID ${mysqlResource.id}`
+        details: `Created program with ID ${mysqlResource.id}`,
+        programId: mysqlResource.id
       });
   
       // Prepare data for MongoDB, remove _id to let MongoDB generate it automatically
@@ -79,11 +80,7 @@ class ProgramRepository {
   }
   async update(id, data) {
     try {
-      await Log.create({
-        userId: data.updatedById || data.createdById || null, // whoever is performing the update
-        action: 'UPDATE_PROGRAM_START',
-        details: `Attempting to update program ${id}`
-      });
+
 
       // Update in MySQL
       const [updatedCount] = await Program.update(
@@ -97,7 +94,8 @@ class ProgramRepository {
       await Log.create({
         userId: data.updatedById || data.createdById || null,
         action: 'UPDATE_PROGRAM_SUCCESS',
-        details: `Updated program with ID ${id}`
+        details: `Updated program with ID ${id}`,
+        programId: id
       });
       // Prepare update data for MongoDB
       const mongoUpdateData = { ...data };
@@ -129,7 +127,8 @@ class ProgramRepository {
       await Log.create({
         userId: data.updatedById || data.createdById || null,
         action: 'UPDATE_PROGRAM_ERROR',
-        details: `Error updating program ${id}: ${error.message}`
+        details: `Error updating program ${id}: ${error.message}`,
+        programId: id
       });
       console.error("Error updating User:", error);
       throw error;
@@ -143,7 +142,8 @@ class ProgramRepository {
         await Log.create({
             userId: userId || null,
             action: 'DELETE_PROGRAM_START',
-            details: `Attempting to delete program ${id}`
+            details: `Attempting to delete program ${id}`,
+            programId: id
         });
 
         // Delete from MySQL
@@ -153,7 +153,8 @@ class ProgramRepository {
             await Log.create({
                 userId: userId || null,
                 action: 'DELETE_PROGRAM_FAILED',
-                details: `Program with ID ${id} not found in MySQL`
+                details: `Program with ID ${id} not found in MySQL`,
+                programId: id
             });
             throw new Error("Program not found in MySQL");
         }
@@ -168,7 +169,8 @@ class ProgramRepository {
         await Log.create({
             userId: userId || null,
             action: 'DELETE_PROGRAM_SUCCESS',
-            details: `Successfully deleted program with ID ${id}`
+            details: `Successfully deleted program with ID ${id}`,
+            programId: id
         });
 
         return deletedMySQL;
@@ -176,7 +178,8 @@ class ProgramRepository {
         await Log.create({
             userId: userId || null,
             action: 'DELETE_PROGRAM_ERROR',
-            details: `Error deleting program ${id}: ${error.message}`
+            details: `Error deleting program ${id}: ${error.message}`,
+            programId: id
         });
         console.error("Error deleting Program:", error);
         throw error;

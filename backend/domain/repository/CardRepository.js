@@ -63,12 +63,16 @@ class CardRepository {
   }
   
   // Write operations - Write to both MongoDB and MySQL
-  async create(data) {
+async create(data) {
     try {
       console.log("Creating Card:", data);
   
       const mysqlResource = await Card.create(data);
-  
+      const list = await List.findOne({ where: { id: data.listId } });
+      if (!list) {
+        throw new Error("List not found");
+      }
+
       // Handle attachments - initialize as empty array if not provided
       const attachmentsToProcess = data.attachments || [];
       const savedAttachments = await Promise.all(
@@ -107,13 +111,20 @@ class CardRepository {
       }
   
       // Handle createdById similarly
+      let user = null;
       if (data.createdById) {
-        const user = await UserMongo.findOne({ mysqlId: data.createdById.toString() });
+        user = await UserMongo.findOne({ mysqlId: data.createdById.toString() });
         if (user) {
           mongoData.createdById = user._id;
         } else {
           console.warn(`User with MySQL ID ${data.createdById} not found in MongoDB`);
         }
+      }
+
+      // Get MySQL user details for logging
+      let mysqlUser = null;
+      if (data.createdById) {
+        mysqlUser = await User.findByPk(data.createdById);
       }
   
       // Create in MongoDB
@@ -124,24 +135,35 @@ class CardRepository {
         { _id: { $in: savedAttachments.map(att => att._id) } },
         { cardId: mongoResource._id }
       );
+      
       await Log.create({
         userId: data.createdById || null,
+        programId: list.programId, // Add programId from the list
         action: 'CREATE_CARD_SUCCESS',
-        details: `Created card with ID ${mysqlResource.id} (${data.title})`
+        details: `User ${mysqlUser ? mysqlUser.username + ' (ID: ' + data.createdById + ')' : 'ID: ' + data.createdById} created card with ID ${mysqlResource.id} (${data.title}) in program ${list.programId}`
       });
       return mysqlResource;
     } catch (error) {
+      const list = data.listId ? await List.findOne({ where: { id: data.listId } }) : null;
+      
+      // Get MySQL user details for error logging
+      let mysqlUser = null;
+      if (data.createdById) {
+        mysqlUser = await User.findByPk(data.createdById);
+      }
+
       await Log.create({
         userId: data.createdById || null,
+        programId: list?.programId || null,
         action: 'CREATE_CARD_ERROR',
-        details: `Error creating card: ${error.message}`
+        details: `User ${mysqlUser ? mysqlUser.username + ' (ID: ' + data.createdById + ')' : 'ID: ' + data.createdById} encountered error creating card: ${error.message}`
       });
       console.error("Error creating Card:", error);
       throw new Error('Error creating Card: ' + error.message);
     }
   }
   
-  async update(id, data) {
+async update(id, data) {
     try {
       // First, validate the card exists in MySQL
       const mysqlCard = await Card.findOne({ where: { id } });
@@ -150,22 +172,21 @@ class CardRepository {
       }
   
       // Ensure we have a userId for logging, either from data or from the card itself
+      const list = await List.findOne({ 
+        where: { id: data.listId || mysqlCard.listId } 
+      });
+      
+      // Ensure we have a userId for logging, either from data or from the card itself
       const userId = mysqlCard.createdById;
       
-      // Log update start
+      // Get user details for logging
+      let user = null;
       if (userId) {
-        await Log.create({
-          userId: userId,
-          action: 'UPDATE_CARD_START',
-          details: `Attempting to update card ${id}`
-        });
-      } else {
-        // Still log the action but without a user ID
-        await Log.create({
-          action: 'UPDATE_CARD_START',
-          details: `Attempting to update card ${id} (no user ID provided)`
-        });
+        user = await User.findByPk(userId);
       }
+      
+     
+
   
       // Prepare the MySQL update data
       const mysqlUpdateData = {
@@ -262,13 +283,13 @@ class CardRepository {
         });
       }
   
-      // Log success
-      if (userId) {
-        await Log.create({
-          userId: userId,
-          action: 'UPDATE_CARD_SUCCESS',
-          details: `Updated card with ID ${id}`
-        });
+       if (userId) {
+          await Log.create({
+        userId: userId || null,
+        programId: list?.programId || null,
+        action: 'UPDATE_CARD_SUCCESS',
+        details: `User ${user ? user.username + ' (ID: ' + userId + ')' : 'ID: ' + userId} updated card with ID ${id} in program ${list?.programId || 'unknown'}`
+      });
       } else {
         await Log.create({
           action: 'UPDATE_CARD_SUCCESS',
@@ -280,12 +301,19 @@ class CardRepository {
     } catch (error) {
       console.error("Error updating Card:", error);
       
+      // Get user details for error logging
+      const userId = data.userId || data.createdById;
+      let user = null;
+      if (userId) {
+        user = await User.findByPk(userId);
+      }
+      
       // Still log the error but don't require userId
       try {
         await Log.create({
-          userId: data.userId || data.createdById || null,
+          userId: userId || null,
           action: 'UPDATE_CARD_ERROR',
-          details: `Error updating card ${id}: ${error.message}`
+          details: `User ${user ? user.username + ' (ID: ' + userId + ')' : 'ID: ' + userId} encountered error updating card ${id}: ${error.message}`
         });
       } catch (logError) {
         console.error("Error logging card update failure:", logError);
@@ -304,8 +332,10 @@ class CardRepository {
       if (!mysqlCard) {
         throw new Error("Card not found in MySQL");
       }
-      const userId = mysqlCard.createdById;
+   
 
+  const list = await List.findOne({ where: { id: mysqlCard.listId } });
+      const userId = mysqlCard.createdById;
 
       // Delete from MySQL
       const deletedMySQL = await Card.destroy({ where: { id } });
@@ -317,8 +347,11 @@ class CardRepository {
 
         await Log.create({
                 userId: userId,
+             
+        programId: list?.programId || null,
+
                 action: 'DELETE_CARD_SUCCESS',
-                details: `Successfully deleted list with ID ${id}`
+                details: `Successfully deleted card with ID ${id}`
             });
       
       return deletedMySQL;

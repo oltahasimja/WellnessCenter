@@ -5,7 +5,9 @@ import axios from 'axios';
 import DeleteConfirmation from "../components/DeleteConfirmation";
 import { getProgramTheme } from './roleThemes';
 import ThemeBackground from './ThemeBackground'
-import ThemeImage from './ThemeImage';;
+import ThemeImage from './ThemeImage';
+import LogDisplay from "./LogDisplay"; // Adjust the path based on your folder structure
+
 const ProgramDetail = () => {
   const [programTheme, setProgramTheme] = useState(null);
 
@@ -49,6 +51,7 @@ const ProgramDetail = () => {
   const [removedAttachments, setRemovedAttachments] = useState([]);
   // const [setRoles] = useState([]);
   const [roles, setRoles] = useState([]);
+const [logs, setLogs] = useState([]);
 
 
   // Add this to your useEffect that fetches data
@@ -130,6 +133,14 @@ useEffect(() => {
         }
 
         setIsMember(true);
+const fetchProgramLogs = async () => {
+  try {
+    const response = await axios.get(`http://localhost:5000/api/log/program/${id}`);
+    setLogs(response.data);
+  } catch (err) {
+    console.error("Error fetching logs:", err);
+  }
+};
 
         const programRes = await axios.get(`http://localhost:5000/api/program/${id}`);
         if (!programRes.data || programRes.data.message === "Program not found") {
@@ -169,8 +180,8 @@ useEffect(() => {
             role: currentUser.role
           });
         }
-
-        setMembers(membersList);
+setMembers(membersList);
+await fetchProgramLogs();
 
         const [listsRes, cardsRes] = await Promise.all([
           axios.get('http://localhost:5000/api/list'),
@@ -1614,7 +1625,7 @@ const handleDeleteListClick = (listId, listName) => {
             </div>
           </div>
         </div>
-      )}
+      )}       
       <DeleteConfirmation
   isOpen={deleteListModal.isOpen}
   onClose={() => setDeleteListModal({
@@ -1625,6 +1636,7 @@ const handleDeleteListClick = (listId, listName) => {
   onConfirm={() => handleDeleteList(deleteListModal.listId)}
   itemName={deleteListModal.listName}
 />
+       <LogDisplay logs={logs} />
 
       {/* Delete Confirmation Modal */}
       <DeleteConfirmation

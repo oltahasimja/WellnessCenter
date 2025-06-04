@@ -1,6 +1,7 @@
 const { DataTypes } = require('sequelize');
 const sequelize = require('../../../../config/database');
 const Users = require('./User');
+const Programs = require('./Program');
 
 const Log = sequelize.define('Log', {
     userId: {
@@ -20,7 +21,16 @@ const Log = sequelize.define('Log', {
   details: {
     type: DataTypes.TEXT,
     allowNull: false,
-  },
+  },    programId: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+        references: {
+          model: 'Programs',
+          key: 'id',
+        },
+        onDelete: 'CASCADE',
+        onUpdate: 'CASCADE',
+      },
 }, {
   tableName: 'logs',
   timestamps: true,        

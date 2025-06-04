@@ -2,8 +2,7 @@
 module.exports = function (req, res, next) {
   const allowedOrigins = [
     'http://localhost:3000',
-    'http://192.168.0.114:3000', 
-    'https://shabanbuja.info'
+    'http://192.168.0.114:3000'
   ];
 
   const origin = req.get('origin') || req.get('referer') || '';
