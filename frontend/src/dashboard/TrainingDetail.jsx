@@ -54,13 +54,18 @@ const TrainingDetail = () => {
         
         const trainingApplicationRes = await axios.get('http://localhost:5000/api/trainingapplication');
         
-        // Filter out applications with null userId first
-        const validApplications = trainingApplicationRes.data.filter(ta => ta.userId !== null);
+        // Filter out applications with null userId or null trainingId first
+        const validApplications = trainingApplicationRes.data.filter(ta => 
+          ta.userId !== null && ta.trainingId !== null
+        );
         
         const isTrainingMember = validApplications.some(ta => {
+          // First check if trainingId exists
+          if (!ta.trainingId) return false;
+          
           const trainingMatch = ta.trainingId._id === id || 
-                               ta.trainingId.mysqlId === id || 
-                               ta.trainingId.mysqlId === String(id);
+                             ta.trainingId.mysqlId === id || 
+                             ta.trainingId.mysqlId === String(id);
           const userMatch = ta.userId._id === currentUser._id || 
                            String(ta.userId.mysqlId) === String(currentUser.id) ||
                            ta.userId.mysqlId === currentUser.id;
@@ -85,18 +90,22 @@ const TrainingDetail = () => {
     
         // Filter again for members list
         const trainingMembers = validApplications.filter(ta => 
-          ta.trainingId._id === id || ta.trainingId.mysqlId === id
+          ta.trainingId && (ta.trainingId._id === id || ta.trainingId.mysqlId == id)
         );
         
+        // KODI I RI DUHET TË VENDOSET KËTU - fillon
         const membersList = trainingMembers.map(item => ({
-          _id: item.userId._id,
-          mysqlId: item.userId.mysqlId,
-          name: item.userId.name,
-          lastName: item.userId.lastName,
-          email: item.userId.email,
-          role: item.userId.roleId,
-          status: item.status || 'në pritje'
+          _id: item.userId?._id,
+          mysqlId: item.userId?.mysqlId,
+          name: item.userId?.name,
+          lastName: item.userId?.lastName,
+          email: item.userId?.email,
+          role: item.userId?.roleId,
+          status: item.status || 'në pritje',
+          isCreator: trainingRes.data?.createdById?._id === item.userId?._id || 
+                     trainingRes.data?.createdById?.mysqlId === item.userId?.mysqlId
         }));
+        // KODI I RI DUHET TË VENDOSET KËTU - mbaron
         
         setMembers(membersList);
     
@@ -107,7 +116,7 @@ const TrainingDetail = () => {
         setLoading(false);
       }
     };
-
+  
     if (currentUser) {
       fetchTrainingData();
     }
@@ -115,86 +124,110 @@ const TrainingDetail = () => {
 
   const handleCompleteTraining = async (memberId) => {
     try {
-      // First find the member details
-      const member = members.find(m => (m._id === memberId || m.mysqlId == memberId));
-      if (!member) {
-        throw new Error('Member not found');
+      // Kontrollo nëse ka të dhëna të mjaftueshme
+      if (!memberId || !training || !currentUser) {
+        throw new Error('Missing required data');
       }
   
-      const trainingApplicationRes = await axios.get('http://localhost:5000/api/trainingapplication');
-      
-      // Filter out applications with null userId first
-      const validApplications = trainingApplicationRes.data.filter(ta => ta.userId !== null);
-      
-      const taToUpdate = validApplications.find(ta => 
-        (ta.userId._id === memberId || ta.userId.mysqlId == memberId) && 
+      // Kontrollo nëse përdoruesi aktual është krijuesi i trajnimit
+      const isCreator = (
+        currentUser._id === training.createdById?._id || 
+        currentUser.mysqlId == training.createdById?.mysqlId
+      );
+  
+      if (!isCreator) {
+        alert('Vetëm krijuesi i trajnimit mund ta kompletojë atë!');
+        return;
+      }
+  
+      // Gjej anëtarin në listë
+      const member = members.find(m => 
+        m && (m._id === memberId || m.mysqlId == memberId)
+      );
+  
+      if (!member) {
+        throw new Error('Anëtari nuk u gjet!');
+      }
+  
+      // Kontrollo nëse po përpiqet të kompletojë veten
+      if (
+        member._id === currentUser._id ||
+        member.mysqlId == currentUser.mysqlId
+      ) {
+        alert('Nuk mund ta kompletoni trajnimin për veten tuaj!');
+        return;
+      }
+  
+      // Gjej aplikimin e trajnimit
+      const response = await axios.get('http://localhost:5000/api/trainingapplication');
+      const validApplications = response.data.filter(ta => 
+        ta?.userId && ta?.trainingId
+      );
+  
+      const application = validApplications.find(ta => 
+        (ta.userId._id === memberId || ta.userId.mysqlId == memberId) &&
         (ta.trainingId._id === id || ta.trainingId.mysqlId == id)
       );
   
-      if (!taToUpdate) {
-        throw new Error('Training application not found');
+      if (!application) {
+        throw new Error('Aplikimi i trajnimit nuk u gjet!');
       }
   
-      const idToUpdate = taToUpdate.mysqlId || taToUpdate._id;
-      
-      // Prepare the update data
+      // Përditëso statusin në backend
       const updateData = {
-        status: 'miratuar'
+        status: 'miratuar',
+        userId: application.userId.mysqlId || application.userId._id,
+        trainingId: application.trainingId.mysqlId || application.trainingId._id
       };
   
-      if (taToUpdate.userId && (taToUpdate.userId._id || taToUpdate.userId.mysqlId)) {
-        updateData.userId = taToUpdate.userId.mysqlId || taToUpdate.userId._id;
-      }
+      const appId = application.mysqlId || application._id;
+      await axios.put(`http://localhost:5000/api/trainingapplication/${appId}`, updateData);
   
-      if (taToUpdate.trainingId && (taToUpdate.trainingId._id || taToUpdate.trainingId.mysqlId)) {
-        updateData.trainingId = taToUpdate.trainingId.mysqlId || taToUpdate.trainingId._id;
-      }
-  
-      await axios.put(`http://localhost:5000/api/trainingapplication/${idToUpdate}`, updateData);
-  
-      // Generate the certificate
+      // Krijo certifikatën
       const certificate = generateCertificate(member, training);
-      
-      // Convert PDF to base64 for email attachment
       const pdfOutput = certificate.output('datauristring');
       const pdfBase64 = pdfOutput.split(',')[1];
-      
-      // Prepare email data
+  
+      // Dërgo email me certifikatën
       const emailData = {
         to: member.email,
-        subject: `Your Certificate for ${training.title}`,
-        text: `Dear ${member.name} ${member.lastName},\n\nCongratulations on completing the ${training.title} training!\n\nPlease find your certificate attached.\n\nBest regards,\nWellness Center`,
+        subject: `Certifikata për trajnimin ${training.title}`,
+        text: `I nderuar ${member.name} ${member.lastName},\n\nJu lumt që keni përfunduar trajnimin "${training.title}".\n\nCertifikata juaj është bashkangjitur.\n\nPërshëndetje,\nEkipi i Wellness Center`,
         attachments: [{
-          filename: `Certificate_${training.title}_${member.name}.pdf`,
+          filename: `Certifikata_${training.title}_${member.name}_${member.lastName}.pdf`,
           content: pdfBase64,
           encoding: 'base64',
           contentType: 'application/pdf'
         }]
       };
   
-      // Send email with certificate
       await axios.post('http://localhost:5000/api/send-email', emailData);
   
-      // Refresh members list
-      const updatedTA = await axios.get('http://localhost:5000/api/trainingapplication');
-      const updatedMembers = updatedTA.data
-        .filter(ta => ta.userId !== null && (ta.trainingId._id === id || ta.trainingId.mysqlId == id))
+      // Rifresko listën e anëtarëve
+      const updatedResponse = await axios.get('http://localhost:5000/api/trainingapplication');
+      const updatedMembers = updatedResponse.data
+        .filter(ta => 
+          ta?.userId && 
+          ta?.trainingId && 
+          (ta.trainingId._id === id || ta.trainingId.mysqlId == id)
+        )
         .map(ta => ({
           _id: ta.userId._id,
           mysqlId: ta.userId.mysqlId,
           name: ta.userId.name,
           lastName: ta.userId.lastName,
           email: ta.userId.email,
-          role: ta.userId.roleId,
-          status: ta.status
+          status: ta.status,
+          isCreator: training.createdById._id === ta.userId._id || 
+                   training.createdById.mysqlId === ta.userId.mysqlId
         }));
-      
+  
       setMembers(updatedMembers);
-      
+      alert('Trajnimi u kompletua me sukses! Certifikata u dërgua me email.');
+  
     } catch (error) {
-      console.error('Error updating status:', error);
-      // You might want to show this error to the user in a more user-friendly way
-      alert('Error: ' + (error.response?.data?.message || error.message));
+      console.error('Gabim në kompletimin e trajnimit:', error);
+      alert('Gabim: ' + (error.response?.data?.message || error.message || 'Diçka shkoi keq!'));
     }
   };
 
@@ -215,7 +248,7 @@ const TrainingDetail = () => {
       // 2. Find user by email (case insensitive)
       const usersRes = await axios.get('http://localhost:5000/api/user');
       const userToAdd = usersRes.data.find(user => 
-        user.email && user.email.toLowerCase() === newMemberEmail.toLowerCase()
+        user?.email && user.email.toLowerCase() === newMemberEmail.toLowerCase()
       );
       
       if (!userToAdd) {
@@ -224,7 +257,7 @@ const TrainingDetail = () => {
   
       // 3. Check if user is already a member
       const isAlreadyMember = members.some(member => 
-        member.email && member.email.toLowerCase() === newMemberEmail.toLowerCase()
+        member?.email && member.email.toLowerCase() === newMemberEmail.toLowerCase()
       );
       
       if (isAlreadyMember) {
@@ -233,34 +266,35 @@ const TrainingDetail = () => {
   
       // 4. Prepare the data for the API call
       const postData = {
-        userId: userToAdd.mysqlId || userToAdd._id,
-        trainingId: training.mysqlId || training._id,
+        userId: userToAdd?.mysqlId || userToAdd?._id,
+        trainingId: training?.mysqlId || training?._id,
         status: 'në pritje'
       };
   
       // Add invitedById only if currentUser exists
       if (currentUser) {
-        postData.invitedById = currentUser.mysqlId || currentUser._id;
+        postData.invitedById = currentUser?.mysqlId || currentUser?._id;
       }
   
       // 5. Make the API call to add the member
       await axios.post('http://localhost:5000/api/trainingapplication', postData);
   
-      // 6. Refresh the members list
+      // 6. Refresh the members list with proper null checks
       const trainingApplicationRes = await axios.get('http://localhost:5000/api/trainingapplication');
-      const trainingMembers = trainingApplicationRes.data.filter(ta => 
-        (ta.trainingId._id === id || ta.trainingId.mysqlId == id) &&
-        (ta.userId && (ta.userId._id || ta.userId.mysqlId))
-      );
+      const trainingMembers = trainingApplicationRes.data
+        .filter(ta => 
+          ta?.trainingId && (ta.trainingId._id === id || ta.trainingId.mysqlId == id) &&
+          ta?.userId && (ta.userId._id || ta.userId.mysqlId)
+        );
       
       const updatedMembers = trainingMembers.map(item => ({
-        _id: item.userId._id,
-        mysqlId: item.userId.mysqlId,
-        name: item.userId.name || 'Unknown',
-        lastName: item.userId.lastName || 'Unknown',
-        email: item.userId.email || 'No email',
-        role: item.userId.roleId || 'member',
-        status: item.status || 'në pritje'
+        _id: item.userId?._id,
+        mysqlId: item.userId?.mysqlId,
+        name: item.userId?.name || 'Unknown',
+        lastName: item.userId?.lastName || 'Unknown',
+        email: item.userId?.email || 'No email',
+        role: item.userId?.roleId || 'member',
+        status: item?.status || 'në pritje'
       }));
       
       setMembers(updatedMembers);
@@ -271,6 +305,7 @@ const TrainingDetail = () => {
       alert('Gabim: ' + (error.response?.data?.message || error.message));
     }
   };
+  
 
   const handleRemoveClick = (memberId, memberName) => {
     setDeleteModal({
@@ -286,28 +321,40 @@ const TrainingDetail = () => {
     try {
       const trainingApplicationRes = await axios.get('http://localhost:5000/api/trainingapplication');
       
-      const taToDelete = trainingApplicationRes.data.find(ta => 
-        (ta.userId._id === deleteModal.memberId || ta.userId.mysqlId === deleteModal.memberId) && 
-        (ta.trainingId._id === id || ta.trainingId.mysqlId === id)
+      // Filter out null userId or trainingId first
+      const validApplications = trainingApplicationRes.data.filter(ta => 
+        ta?.userId !== null && ta?.trainingId !== null
+      );
+      
+      // Find the application to delete with proper null checks
+      const taToDelete = validApplications.find(ta => 
+        ta?.userId && (ta.userId._id === deleteModal.memberId || ta.userId.mysqlId == deleteModal.memberId) && 
+        ta?.trainingId && (ta.trainingId._id === id || ta.trainingId.mysqlId == id)
       );
   
       if (!taToDelete) {
         throw new Error('Training application not found');
       }
   
-      const idToDelete = taToDelete.mysqlId || taToDelete._id;
+      const idToDelete = taToDelete?.mysqlId || taToDelete?._id;
       await axios.delete(`http://localhost:5000/api/trainingapplication/${idToDelete}`);
       
+      // Refresh members list with proper null checks
       const updatedTA = await axios.get('http://localhost:5000/api/trainingapplication');
       const updatedMembers = updatedTA.data
-        .filter(ta => ta.trainingId._id === id || ta.trainingId.mysqlId === id)
+        .filter(ta => 
+          ta?.userId !== null && 
+          ta?.trainingId !== null && 
+          (ta.trainingId._id === id || ta.trainingId.mysqlId == id)
+        )
         .map(ta => ({
-          _id: ta.userId._id,
-          mysqlId: ta.userId.mysqlId,
-          name: ta.userId.name,
-          lastName: ta.userId.lastName,
-          email: ta.userId.email,
-          role: ta.userId.roleId
+          _id: ta.userId?._id,
+          mysqlId: ta.userId?.mysqlId,
+          name: ta.userId?.name || 'Unknown',
+          lastName: ta.userId?.lastName || 'Unknown',
+          email: ta.userId?.email || 'No email',
+          role: ta.userId?.roleId || 'member',
+          status: ta?.status || 'në pritje'
         }));
       
       setMembers(updatedMembers);
@@ -496,30 +543,41 @@ const TrainingDetail = () => {
                                 {member.status || 'në pritje'}
                               </span>
                             </td>
-                            <td className="px-6 py-4 whitespace-nowrap space-x-2">
-                              <button 
-                                onClick={() => handleCompleteTraining(member._id || member.mysqlId)}
-                                className={`inline-flex items-center px-3 py-1 rounded-md text-sm font-medium 
-                                  ${member.status === 'miratuar' ? 
-                                    'bg-gray-200 text-gray-600 cursor-not-allowed' : 
-                                    'bg-green-600 hover:bg-green-700 text-white'}`}
-                                disabled={member.status === 'miratuar'}
-                              >
-                                <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                                </svg>
-                                {member.status === 'miratuar' ? 'Completed' : 'Complete'}
-                              </button>
-                              <button 
-                                onClick={() => handleRemoveClick(member._id || member.mysqlId, member.name)}
-                                className="inline-flex items-center px-3 py-1 bg-red-600 hover:bg-red-700 text-white rounded-md text-sm font-medium"
-                              >
-                                <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                </svg>
-                                Remove
-                              </button>
-                            </td>
+                           {/* Në pjesën e tabelës ku shfaqen veprimet për secilin anëtar */}
+                           <td className="px-6 py-4 whitespace-nowrap space-x-2">
+  {/* SHOW COMPLETE BUTTON ONLY IF: */}
+  {/* 1. Current user is the creator */}
+  {/* 2. Member is NOT the creator */}
+  {(
+    (currentUser._id === training?.createdById?._id) ||
+    (currentUser.mysqlId == training?.createdById?.mysqlId)
+  ) && !member.isCreator && (
+    <button 
+      onClick={() => handleCompleteTraining(member._id || member.mysqlId)}
+      className={`inline-flex items-center px-3 py-1 rounded-md text-sm font-medium 
+        ${member.status === 'miratuar' ? 
+          'bg-gray-200 text-gray-600 cursor-not-allowed' : 
+          'bg-green-600 hover:bg-green-700 text-white'}`}
+      disabled={member.status === 'miratuar'}
+    >
+      <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+      </svg>
+      {member.status === 'miratuar' ? 'Completed' : 'Complete'}
+    </button>
+  )}
+  
+  {/* Butoni "Remove" */}
+  <button 
+    onClick={() => handleRemoveClick(member._id || member.mysqlId, member.name)}
+    className="inline-flex items-center px-3 py-1 bg-red-600 hover:bg-red-700 text-white rounded-md text-sm font-medium"
+  >
+    <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+    </svg>
+    Remove
+  </button>
+</td>
                           </tr>
                         ))}
                       </tbody>
