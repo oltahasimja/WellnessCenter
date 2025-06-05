@@ -202,16 +202,29 @@ socket.on('sendMessage', async (data) => {
     await newMessage.save();
 
     const populatedMessage = await MessageMongo.findById(newMessage._id)
-      .populate('userId', 'name lastName mysqlId')
-      .exec();
+        .populate({
+          path: 'userId',
+          select: 'name lastName mysqlId profileImageId',
+          populate: {
+            path: 'profileImageId',
+            select: 'name data'
+          }
+        })
+        .exec()
 
     // Dërgo mesazhin në grup
     io.to(groupId).emit('newMessage', populatedMessage);
 
     // 🆕 PJESA E RE: Gjej të gjithë anëtarët e grupit dhe numëro mesazhet e palexuara
     const groupMembers = await UsersGroupMongo.find({ groupId: groupIdForMongo })
-      .populate('userId', 'mysqlId')
-      .exec();
+   .populate({
+  path: 'userId',
+  select: 'name lastName mysqlId profileImageId',
+  populate: {
+    path: 'profileImageId',
+    select: 'name'
+  }
+})
 
     // Për çdo anëtar të grupit (përveç dërguesit)
     for (const member of groupMembers) {
@@ -291,44 +304,51 @@ socket.on('getTotalUnreadCount', async (data) => {
 socket.on('messageRead', async (data) => {
   try {
     const { messageId, userId, groupId } = data;
-    
+
     if (!messageId || !userId || !groupId) {
       socket.emit('error', 'Missing required fields for message read');
       return;
     }
-    
+
     const user = await UserMongo.findOne({ mysqlId: userId });
-    
+
     if (!user) {
       socket.emit('error', 'User not found');
       return;
     }
-    
-    const updatedMessage = await MessageMongo.findByIdAndUpdate(
-      messageId, 
-      {
-        $addToSet: {
-          seenBy: {
-            userId: user._id,
-            seenAt: new Date()
-          }
-        }
-      }, 
-      { new: true }
-    ).populate('seenBy.userId', 'name lastName mysqlId');
-    
-    if (!updatedMessage) {
+
+    const message = await MessageMongo.findById(messageId);
+
+    if (!message) {
       socket.emit('error', 'Message not found');
       return;
     }
-    
+
+    // Kontrollo nëse useri e ka parë tashmë mesazhin
+    const alreadySeen = message.seenBy.some(
+      (entry) => entry.userId.toString() === user._id.toString()
+    );
+
+    if (!alreadySeen) {
+      message.seenBy.push({
+        userId: user._id,
+        seenAt: new Date()
+      });
+
+      await message.save();
+    }
+
+    // Popullo të dhënat për dërgim te klienti
+    const populatedMessage = await MessageMongo.findById(messageId)
+      .populate('seenBy.userId', 'name lastName mysqlId');
+
     io.to(groupId).emit('messageSeenUpdate', {
       messageId,
       groupId,
-      seenBy: updatedMessage.seenBy
+      seenBy: populatedMessage.seenBy
     });
 
-    // 🆕 Numëro mesazhet e palexuara pas leximit
+    // Rifresko unread count për përdoruesin që pa mesazhin
     const groupIdForMongo = mongoose.Types.ObjectId.isValid(groupId)
       ? new mongoose.Types.ObjectId(groupId)
       : await GroupMongo.findOne({ mysqlId: groupId }).then(g => g?._id);
@@ -341,18 +361,19 @@ socket.on('messageRead', async (data) => {
         userId: { $ne: user._id }
       });
 
-      // Dërgo numrin e përditësuar të mesazheve të palexuara
       socket.emit('unreadMessagesUpdate', {
         groupId: groupId,
         unreadCount: unreadCount
       });
     }
-    
+
   } catch (error) {
     console.error('Error processing message read:', error);
     socket.emit('error', 'Failed to process message read');
   }
 });
+
+
 
 // Add this event handler in the existing socket.io connection handler
 socket.on('removeMemberFromGroup', async (data) => {

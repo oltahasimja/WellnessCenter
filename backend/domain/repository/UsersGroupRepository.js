@@ -7,20 +7,28 @@ const { UserMongo, GroupMongo, UsersGroupMongo } = require("../database/models/i
 class UsersGroupRepository {
   // Read operations - Get from MongoDB with fallback to MySQL
 
-  async findAll() {
-    try {
-      // Get all from MongoDB with populated relationships
-      return await UsersGroupMongo.find().populate([
-        { path: 'userId', model: 'UserMongo' }, 
-        { path: 'groupId', model: 'GroupMongo' }
-      ]).lean();
-    } catch (error) {
-      // Fallback to MySQL if MongoDB fails
-      console.error("MongoDB findAll failed, falling back to MySQL:", error);
-      // return await UsersGroup.findAll({ include: [{ model: User }, { model: Group }] });
-      throw new Error("Failed to retrieve UsersGroup data: " + error.message);
-    }
+ async findAll() {
+  try {
+    return await UsersGroupMongo.find()
+      .populate({
+        path: 'userId',
+        model: 'UserMongo',
+        populate: {
+          path: 'profileImageId',
+          select: 'name'
+        }
+      })
+      .populate({
+        path: 'groupId',
+        model: 'GroupMongo'
+      })
+      .lean();
+  } catch (error) {
+    console.error("MongoDB findAll failed, falling back to MySQL:", error);
+    throw new Error("Failed to retrieve UsersGroup data: " + error.message);
   }
+}
+
   
   async findByGroupId(groupId) {
     try {
@@ -40,11 +48,21 @@ class UsersGroupRepository {
       }
       
       // Find all UsersGroups with the given groupId, populated with user data
-      return await UsersGroupMongo.find({ groupId: mongoGroupId })
-        .populate([
-          { path: 'userId', model: 'UserMongo' }, 
-          { path: 'groupId', model: 'GroupMongo' }
-        ]).lean();
+     return await UsersGroupMongo.find({ groupId: mongoGroupId })
+  .populate({
+    path: 'userId',
+    model: 'UserMongo',
+    populate: {
+      path: 'profileImageId',
+      select: 'name'
+    }
+  })
+  .populate({
+    path: 'groupId',
+    model: 'GroupMongo'
+  })
+  .lean();
+
     } catch (error) {
       console.error("MongoDB findByGroupId failed:", error);
       throw new Error("Failed to retrieve UsersGroup data for group: " + error.message);
