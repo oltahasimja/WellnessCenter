@@ -26,6 +26,7 @@
   import ProductsPage from './pages/product/ProductsPage';
   import MyPrograms from './pages/MyPrograms';
   import TrainingPage from './pages/TrainingPage'
+  import TrainingApplicationn from './pages/TrainingApplicationn.jsx';
   import ProductDetailPage from './pages/product/ProductDetailPage';
   import CreateAppointment from './pages/CreateAppointment';
   import MyAppointments from './pages/MyAppointments';
@@ -63,6 +64,7 @@
           <Route path="/Profile" element={<Profile />} />
 
           <Route path="/trainingpage" element={<TrainingPage />} />
+          <Route path="/trainingapplicationn" element={<TrainingApplicationn />} />
           <Route path="/chat" element={<Chat />} />
           <Route path="/cartitem" element={<CartItem />} />
 

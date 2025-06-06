@@ -138,6 +138,15 @@ const TrainingPage = () => {
       
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        {/* New Button Added Here */}
+        <div className="mb-8 flex justify-end">
+          <Link 
+            to="/trainingapplicationn" // Replace this with your desired path
+            className="bg-teal-500 hover:bg-teal-600 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-300"
+          >
+            Shiko dhe Apliko për Trajnimet që Ne Ofrojmë 
+          </Link>
+        </div>
         
         {/* Tab Navigation */}
         <div className="flex flex-wrap border-b border-gray-200 mb-8">
