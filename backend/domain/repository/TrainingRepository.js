@@ -31,15 +31,28 @@ class TrainingRepository {
   }
   
   async findById(id) {
-    try {
-      // Get from MongoDB with populated relationships
-      return await TrainingMongo.findOne({ mysqlId: id }).lean();
-    } catch (error) {
-      // Fallback to MySQL if MongoDB fails
-      console.error("MongoDB findById failed, falling back to MySQL:", error);
-      // return await Training.findByPk(id, {  });
-    }
+  try {
+    const training = await TrainingMongo.findOne({ mysqlId: id })
+      .populate({
+        path: 'createdById',
+        select: 'name lastName email mysqlId',
+        model: 'UserMongo'
+      })
+      .lean();
+
+    if (!training) return null;
+
+    return {
+      ...training,
+      creatorDisplayName: training.createdById
+        ? `${training.createdById.name} ${training.createdById.lastName || ''}`.trim()
+        : 'Unknown'
+    };
+  } catch (error) {
+    console.error("MongoDB findById failed, falling back to MySQL:", error);
   }
+}
+
   
   // Write operations - Write to both MongoDB and MySQL
   async create(data) {
