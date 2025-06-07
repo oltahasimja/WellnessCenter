@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import Header from './Header';
 
 const TrainingApplicationn = () => {
   const [formData, setFormData] = useState({ 
@@ -180,10 +181,11 @@ const TrainingApplicationn = () => {
 
   if (isLoading) {
     return (
-      <div className="flex justify-center items-center min-h-screen bg-gray-100">
-        <div className="bg-white shadow-lg rounded-lg p-6 w-full max-w-3xl text-center">
-          <h1 className="text-3xl font-bold mb-4">Duke u ngarkuar...</h1>
-          <p className="text-gray-600">Ju lutem prisni ndërsa ngarkohen të dhënat</p>
+      <div className="flex justify-center items-center min-h-screen bg-gradient-to-br from-teal-50 via-teal-100 to-emerald-100">
+        <div className="bg-white shadow-2xl rounded-3xl p-8 w-full max-w-3xl text-center backdrop-blur-sm bg-opacity-95">
+          <div className="animate-spin w-16 h-16 border-4 border-teal-500 border-t-transparent rounded-full mx-auto mb-6"></div>
+          <h1 className="text-3xl font-bold mb-4 text-teal-800">Duke u ngarkuar...</h1>
+          <p className="text-teal-600">Ju lutem prisni ndërsa ngarkohen të dhënat</p>
         </div>
       </div>
     );
@@ -191,13 +193,18 @@ const TrainingApplicationn = () => {
 
   if (error) {
     return (
-      <div className="flex justify-center items-center min-h-screen bg-gray-100">
-        <div className="bg-white shadow-lg rounded-lg p-6 w-full max-w-3xl text-center">
+      <div className="flex justify-center items-center min-h-screen bg-gradient-to-br from-teal-50 via-teal-100 to-emerald-100">
+        <div className="bg-white shadow-2xl rounded-3xl p-8 w-full max-w-3xl text-center backdrop-blur-sm bg-opacity-95">
+          <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
+            <svg className="w-8 h-8 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
           <h1 className="text-3xl font-bold mb-4 text-red-500">Gabim</h1>
-          <p className="text-gray-600">{error}</p>
+          <p className="text-gray-600 mb-6">{error}</p>
           <button 
             onClick={() => window.location.reload()} 
-            className="mt-4 bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded-md"
+            className="bg-teal-500 hover:bg-teal-600 text-white py-3 px-6 rounded-xl font-semibold transition-all duration-300 transform hover:scale-105 shadow-lg"
           >
             Provoni përsëri
           </button>
@@ -207,23 +214,35 @@ const TrainingApplicationn = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-8 px-4 sm:px-6">
+     <><Header />
+     <div className="min-h-screen bg-gradient-to-br from-teal-50 via-teal-100 to-emerald-100 py-8 px-4 sm:px-6">
       <div className="max-w-7xl mx-auto">
+
         {/* Header */}
-        <div className="text-center mb-10">
-          <h1 className="text-4xl font-extrabold text-gray-900 sm:text-5xl sm:tracking-tight lg:text-6xl">
+        <div className="text-center mb-12 mt-[5rem]">
+          <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-r from-teal-500 to-emerald-500 rounded-2xl mb-6 shadow-xl">
+            <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+            </svg>
+          </div>
+          <h1 className="text-5xl font-extrabold bg-gradient-to-r from-teal-600 to-emerald-600 bg-clip-text text-transparent sm:text-6xl lg:text-7xl">
             {isAdmin ? 'Menaxhimi i Aplikimeve për Trajnime' : 'Aplikoni për Trajnime'}
           </h1>
-          <p className="mt-3 max-w-2xl mx-auto text-xl text-gray-500 sm:mt-4">
+          <p className="mt-4 max-w-2xl mx-auto text-xl text-teal-700 sm:mt-6">
             {isAdmin ? 'Menaxhoni aplikimet për trajnime' : 'Zgjidhni dhe aplikoni për trajnimet e disponueshme'}
           </p>
         </div>
 
         {!loggedInUser ? (
-          <div className="max-w-md mx-auto bg-white rounded-xl shadow-md overflow-hidden md:max-w-2xl p-6 text-center">
-            <div className="p-4 bg-red-50 rounded-lg border border-red-200">
-              <h3 className="text-lg font-medium text-red-800">Kërkohet Kyçja në Sistem</h3>
-              <p className="mt-2 text-red-600">
+          <div className="max-w-md mx-auto bg-white rounded-3xl shadow-2xl overflow-hidden md:max-w-2xl p-8 text-center backdrop-blur-sm bg-opacity-95">
+            <div className="p-6 bg-gradient-to-r from-red-50 to-pink-50 rounded-2xl border-2 border-red-200">
+              <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg className="w-8 h-8 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                </svg>
+              </div>
+              <h3 className="text-xl font-bold text-red-800 mb-2">Kërkohet Kyçja në Sistem</h3>
+              <p className="text-red-600">
                 Duhet të jeni i kyçur për të aplikuar për trajnime. Ju lutem kyçuni në llogarinë tuaj.
               </p>
             </div>
@@ -232,36 +251,36 @@ const TrainingApplicationn = () => {
           <>
             {/* Application Form - Only shown if admin or if user has no applications */}
             {(isAdmin || trainingApplications.filter(app => app.userId?.id === loggedInUser.id).length === 0) && (
-              <div className="bg-white rounded-2xl shadow-xl overflow-hidden mb-10">
-                <div className="p-8">
-                  <h2 className="text-2xl font-bold text-gray-900 mb-6">
-                    {formData.id ? 'Përditëso Aplikimin' : 'Apliko për Trajnim'}
+              <div className="bg-white rounded-3xl shadow-2xl overflow-hidden mb-12 backdrop-blur-sm bg-opacity-95">
+                <div className="bg-gradient-to-r from-teal-500 to-emerald-500 px-8 py-6">
+                  <h2 className="text-2xl font-bold text-white">
+                    {formData.id ? '✏️ Përditëso Aplikimin' : '🎯 Apliko për Trajnim'}
                   </h2>
-                  
-                  <form onSubmit={handleSubmit} className="space-y-6">
-                    <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                </div>
+                <div className="p-8">
+                  <form onSubmit={handleSubmit} className="space-y-8">
+                    <div className="grid grid-cols-1 gap-8 sm:grid-cols-2">
                       <div>
-                        <label htmlFor="user" className="block text-sm font-medium text-gray-700 mb-1">
-                          Përdoruesi
+                        <label htmlFor="user" className="block text-sm font-semibold text-teal-800 mb-2">
+                          👤 Përdoruesi
                         </label>
                         <input
                           id="user"
                           type="text"
                           value={`${loggedInUser.name || ''} ${loggedInUser.lastName || ''}`}
                           readOnly
-                          className="block w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-gray-50"
-                        />
+                          className="block w-full px-4 py-3 rounded-xl border-2 border-teal-200 focus:ring-4 focus:ring-teal-200 focus:border-teal-500 bg-teal-50 text-teal-800 font-medium transition-all duration-300" />
                       </div>
 
                       <div>
-                        <label htmlFor="training" className="block text-sm font-medium text-gray-700 mb-1">
-                          Trajnimi
+                        <label htmlFor="training" className="block text-sm font-semibold text-teal-800 mb-2">
+                          📚 Trajnimi
                         </label>
                         <select
                           id="training"
                           value={formData.trainingId || ''}
                           onChange={handleTrainingSelect}
-                          className="block w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                          className="block w-full px-4 py-3 rounded-xl border-2 border-teal-200 focus:ring-4 focus:ring-teal-200 focus:border-teal-500 transition-all duration-300"
                           required
                         >
                           <option value="" disabled>Zgjidhni Trajnimin</option>
@@ -269,8 +288,8 @@ const TrainingApplicationn = () => {
                             const trainingId = item.mysqlId || item.id;
                             const isFull = isTrainingFull(trainingId);
                             return (
-                              <option 
-                                key={trainingId} 
+                              <option
+                                key={trainingId}
                                 value={trainingId}
                                 disabled={isFull}
                                 className={isFull ? 'text-gray-400' : ''}
@@ -281,22 +300,29 @@ const TrainingApplicationn = () => {
                           })}
                         </select>
                         {formData.trainingId && isTrainingFull(formData.trainingId) && (
-                          <p className="mt-2 text-sm text-red-600">
-                            Ky trajnim ka arritur numrin maksimal të aplikimeve (5). Ju lutem zgjidhni një trajnim tjetër.
+                          <p className="mt-2 text-sm text-red-600 bg-red-50 p-3 rounded-lg border border-red-200">
+                            ⚠️ Ky trajnim ka arritur numrin maksimal të aplikimeve (5). Ju lutem zgjidhni një trajnim tjetër.
                           </p>
                         )}
                       </div>
                     </div>
 
                     {selectedTrainingSchedule && selectedTrainingSchedule.length > 0 && (
-                      <div className="mt-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
-                        <h3 className="text-lg font-medium text-blue-800 mb-3">Orari i Trajnimit</h3>
+                      <div className="mt-6 p-6 bg-gradient-to-r from-teal-50 to-emerald-50 rounded-2xl border-2 border-teal-200">
+                        <div className="flex items-center mb-4">
+                          <div className="w-8 h-8 bg-teal-500 rounded-lg flex items-center justify-center mr-3">
+                            <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                          </div>
+                          <h3 className="text-lg font-bold text-teal-800">📅 Orari i Trajnimit</h3>
+                        </div>
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                           {selectedTrainingSchedule.map((schedule, index) => (
-                            <div key={index} className="bg-white p-3 rounded-md shadow-sm">
-                              <p className="font-medium text-gray-700">Ditët: <span className="font-normal">{schedule.workDays?.join(', ') || 'N/A'}</span></p>
-                              <p className="font-medium text-gray-700">Fillimi: <span className="font-normal">{schedule.startTime || 'N/A'}</span></p>
-                              <p className="font-medium text-gray-700">Përfundimi: <span className="font-normal">{schedule.endTime || 'N/A'}</span></p>
+                            <div key={index} className="bg-white p-4 rounded-xl shadow-lg border border-teal-100">
+                              <p className="font-semibold text-teal-700 mb-1">📅 Ditët: <span className="font-normal text-gray-600">{schedule.workDays?.join(', ') || 'N/A'}</span></p>
+                              <p className="font-semibold text-teal-700 mb-1">🕐 Fillimi: <span className="font-normal text-gray-600">{schedule.startTime || 'N/A'}</span></p>
+                              <p className="font-semibold text-teal-700">🕔 Përfundimi: <span className="font-normal text-gray-600">{schedule.endTime || 'N/A'}</span></p>
                             </div>
                           ))}
                         </div>
@@ -306,14 +332,12 @@ const TrainingApplicationn = () => {
                     <div className="flex justify-end">
                       <button
                         type="submit"
-                        className={`px-6 py-3 rounded-md font-semibold text-white shadow-sm transition-colors duration-200 ${
-                          formData.trainingId && isTrainingFull(formData.trainingId)
+                        className={`px-8 py-4 rounded-xl font-bold text-white shadow-xl transition-all duration-300 transform hover:scale-105 ${formData.trainingId && isTrainingFull(formData.trainingId)
                             ? 'bg-gray-400 cursor-not-allowed'
-                            : 'bg-blue-600 hover:bg-blue-700'
-                        }`}
+                            : 'bg-gradient-to-r from-teal-500 to-emerald-500 hover:from-teal-600 hover:to-emerald-600 shadow-teal-200'}`}
                         disabled={formData.trainingId && isTrainingFull(formData.trainingId)}
                       >
-                        {formData.id ? 'Përditëso Aplikimin' : 'Apliko për Trajnim'}
+                        {formData.id ? '✏️ Përditëso Aplikimin' : '🚀 Apliko për Trajnim'}
                       </button>
                     </div>
                   </form>
@@ -323,68 +347,75 @@ const TrainingApplicationn = () => {
 
             {/* My Applications Section */}
             {!isAdmin && trainingApplications.filter(app => app.userId?.id === loggedInUser.id).length > 0 && (
-              <div className="mb-10">
-                <h2 className="text-2xl font-bold text-gray-900 mb-6">
-                  Aplikimet e Mia
-                </h2>
-                
-                <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+              <div className="mb-12">
+                <div className="flex items-center mb-8">
+                  <div className="w-10 h-10 bg-gradient-to-r from-teal-500 to-emerald-500 rounded-xl flex items-center justify-center mr-4">
+                    <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                  </div>
+                  <h2 className="text-3xl font-bold bg-gradient-to-r from-teal-600 to-emerald-600 bg-clip-text text-transparent">
+                    Aplikimet e Mia
+                  </h2>
+                </div>
+
+                <div className="grid gap-8 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
                   {trainingApplications
                     .filter(app => app.userId?.id === loggedInUser.id)
                     .map((item) => (
-                      <div key={item.mysqlId || item.id} className="bg-white overflow-hidden shadow rounded-lg">
-                        <div className="px-4 py-5 sm:p-6">
+                      <div key={item.mysqlId || item.id} className="bg-white overflow-hidden shadow-2xl rounded-3xl backdrop-blur-sm bg-opacity-95 transition-all duration-300 transform hover:scale-105 hover:shadow-teal-200">
+                        <div className="bg-gradient-to-r from-teal-500 to-emerald-500 px-6 py-4">
                           <div className="flex items-center">
-                            <div className="flex-shrink-0 bg-blue-500 rounded-md p-3">
-                              <svg className="h-6 w-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <div className="flex-shrink-0 bg-white bg-opacity-20 rounded-xl p-3 backdrop-blur-sm">
+                              <svg className="h-6 w-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                               </svg>
                             </div>
-                            <div className="ml-5 w-0 flex-1">
-                              <h3 className="text-lg font-medium text-gray-900">
+                            <div className="ml-4 flex-1">
+                              <h3 className="text-lg font-bold text-white">
                                 {item.trainingId?.title || 'Unknown Training'}
                               </h3>
-                              <p className="text-sm text-gray-500">
-                                Aplikuar më: {item.applicationDate ? new Date(item.applicationDate).toLocaleDateString() : 'N/A'}
+                              <p className="text-teal-100 text-sm">
+                                📅 Aplikuar më: {item.applicationDate ? new Date(item.applicationDate).toLocaleDateString() : 'N/A'}
                               </p>
                             </div>
                           </div>
-                          <div className="mt-4">
-                            <div className="border-t border-gray-200 pt-4">
-                              <dl className="grid grid-cols-1 gap-x-4 gap-y-4 sm:grid-cols-2">
-                                <div className="sm:col-span-1">
-                                  <dt className="text-sm font-medium text-gray-500">
-                                    Kohëzgjatja
-                                  </dt>
-                                  <dd className="mt-1 text-sm text-gray-900">
-                                    {item.trainingId?.duration || 'N/A'}
-                                  </dd>
-                                </div>
-                                <div className="sm:col-span-1">
-                                  <dt className="text-sm font-medium text-gray-500">
-                                    Statusi
-                                  </dt>
-                                  <dd className="mt-1 text-sm text-gray-900">
-                                    <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
-                                      Aktiv
-                                    </span>
-                                  </dd>
-                                </div>
-                              </dl>
+                        </div>
+
+                        <div className="px-6 py-6">
+                          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                            <div>
+                              <dt className="text-sm font-semibold text-teal-700">
+                                ⏰ Kohëzgjatja
+                              </dt>
+                              <dd className="mt-1 text-sm text-gray-900 font-medium">
+                                {item.trainingId?.duration || 'N/A'}
+                              </dd>
+                            </div>
+                            <div>
+                              <dt className="text-sm font-semibold text-teal-700">
+                                📊 Statusi
+                              </dt>
+                              <dd className="mt-1">
+                                <span className="px-3 py-1 text-xs font-bold rounded-full bg-gradient-to-r from-green-100 to-emerald-100 text-green-800 border border-green-200">
+                                  ✅ Aktiv
+                                </span>
+                              </dd>
                             </div>
                           </div>
-                          <div className="mt-5 flex justify-end space-x-3">
+
+                          <div className="mt-6 flex justify-end space-x-3">
                             <button
                               onClick={() => handleEdit(item)}
-                              className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                              className="inline-flex items-center px-4 py-2 border-2 border-teal-300 text-sm font-semibold rounded-xl text-teal-700 bg-teal-50 hover:bg-teal-100 transition-all duration-300 transform hover:scale-105"
                             >
-                              Edito
+                              ✏️ Edito
                             </button>
                             <button
                               onClick={() => handleDelete(item.mysqlId || item.id)}
-                              className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md shadow-sm text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                              className="inline-flex items-center px-4 py-2 border-2 border-transparent text-sm font-semibold rounded-xl text-white bg-gradient-to-r from-red-500 to-pink-500 hover:from-red-600 hover:to-pink-600 transition-all duration-300 transform hover:scale-105 shadow-lg"
                             >
-                              Fshi
+                              🗑️ Fshi
                             </button>
                           </div>
                         </div>
@@ -396,100 +427,121 @@ const TrainingApplicationn = () => {
 
             {/* Admin View - Show all applications */}
             {isAdmin && (
-              <div className="mb-10">
-                <h2 className="text-2xl font-bold text-gray-900 mb-6">
-                  Të gjitha Aplikimet
-                </h2>
-                
-                <div className="bg-white shadow overflow-hidden sm:rounded-lg">
-                  <table className="min-w-full divide-y divide-gray-200">
-                    <thead className="bg-gray-50">
-                      <tr>
-                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Përdoruesi
-                        </th>
-                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Trajnimi
-                        </th>
-                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Kohëzgjatja
-                        </th>
-                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Data e Aplikimit
-                        </th>
-                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Statusi
-                        </th>
-                        <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Veprime
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody className="bg-white divide-y divide-gray-200">
-                      {trainingApplications.length > 0 ? (
-                        trainingApplications.map((item) => (
-                          <tr key={item.mysqlId || item.id} className="hover:bg-gray-50">
-                            <td className="px-6 py-4 whitespace-nowrap">
-                              <div className="text-sm font-medium text-gray-900">
-                                {item.userId?.name || 'Unknown'} {item.userId?.lastName || ''}
+              <div className="mb-12">
+                <div className="flex items-center mb-8">
+                  <div className="w-10 h-10 bg-gradient-to-r from-teal-500 to-emerald-500 rounded-xl flex items-center justify-center mr-4">
+                    <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                    </svg>
+                  </div>
+                  <h2 className="text-3xl font-bold bg-gradient-to-r from-teal-600 to-emerald-600 bg-clip-text text-transparent">
+                    Të gjitha Aplikimet
+                  </h2>
+                </div>
+
+                <div className="bg-white shadow-2xl overflow-hidden rounded-3xl backdrop-blur-sm bg-opacity-95">
+                  <div className="overflow-x-auto">
+                    <table className="min-w-full divide-y divide-teal-200">
+                      <thead className="bg-gradient-to-r from-teal-500 to-emerald-500">
+                        <tr>
+                          <th scope="col" className="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">
+                            👤 Përdoruesi
+                          </th>
+                          <th scope="col" className="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">
+                            📚 Trajnimi
+                          </th>
+                          <th scope="col" className="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">
+                            ⏰ Kohëzgjatja
+                          </th>
+                          <th scope="col" className="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">
+                            📅 Data e Aplikimit
+                          </th>
+                          <th scope="col" className="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">
+                            📊 Statusi
+                          </th>
+                          <th scope="col" className="px-6 py-4 text-right text-xs font-bold text-white uppercase tracking-wider">
+                            ⚙️ Veprime
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody className="bg-white divide-y divide-teal-100">
+                        {trainingApplications.length > 0 ? (
+                          trainingApplications.map((item) => (
+                            <tr key={item.mysqlId || item.id} className="hover:bg-gradient-to-r hover:from-teal-50 hover:to-emerald-50 transition-all duration-300">
+                              <td className="px-6 py-4 whitespace-nowrap">
+                                <div className="text-sm font-semibold text-teal-800">
+                                  {item.userId?.name || 'Unknown'} {item.userId?.lastName || ''}
+                                </div>
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap">
+                                <div className="text-sm font-semibold text-teal-800">
+                                  {item.trainingId?.title || 'Unknown Training'}
+                                </div>
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap">
+                                <div className="text-sm text-gray-600">
+                                  {item.trainingId?.duration || 'N/A'}
+                                </div>
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap">
+                                <div className="text-sm text-gray-600">
+                                  {item.applicationDate ? new Date(item.applicationDate).toLocaleDateString() : 'N/A'}
+                                </div>
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap">
+                                <span className="px-3 py-1 text-xs font-bold rounded-full bg-gradient-to-r from-green-100 to-emerald-100 text-green-800 border border-green-200">
+                                  ✅ Aktiv
+                                </span>
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                <button
+                                  onClick={() => handleEdit(item)}
+                                  className="mr-3 text-teal-600 hover:text-teal-800 font-semibold transition-colors duration-300"
+                                >
+                                  ✏️ Edito
+                                </button>
+                                <button
+                                  onClick={() => handleDelete(item.mysqlId || item.id)}
+                                  className="text-red-600 hover:text-red-800 font-semibold transition-colors duration-300"
+                                >
+                                  🗑️ Fshi
+                                </button>
+                              </td>
+                            </tr>
+                          ))
+                        ) : (
+                          <tr>
+                            <td colSpan="6" className="px-6 py-8 text-center text-sm text-teal-600">
+                              <div className="flex flex-col items-center">
+                                <div className="w-16 h-16 bg-teal-100 rounded-full flex items-center justify-center mb-4">
+                                  <svg className="w-8 h-8 text-teal-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                  </svg>
+                                </div>
+                                📋 Nuk ka asnjë aplikim për trajnime.
                               </div>
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap">
-                              <div className="text-sm font-medium text-gray-900">
-                                {item.trainingId?.title || 'Unknown Training'}
-                              </div>
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap">
-                              <div className="text-sm text-gray-500">
-                                {item.trainingId?.duration || 'N/A'}
-                              </div>
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap">
-                              <div className="text-sm text-gray-500">
-                                {item.applicationDate ? new Date(item.applicationDate).toLocaleDateString() : 'N/A'}
-                              </div>
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap">
-                              <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
-                                Aktiv
-                              </span>
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                              <button
-                                onClick={() => handleEdit(item)}
-                                className="mr-2 text-yellow-600 hover:text-yellow-900"
-                              >
-                                Edito
-                              </button>
-                              <button
-                                onClick={() => handleDelete(item.mysqlId || item.id)}
-                                className="text-red-600 hover:text-red-900"
-                              >
-                                Fshi
-                              </button>
                             </td>
                           </tr>
-                        ))
-                      ) : (
-                        <tr>
-                          <td colSpan="6" className="px-6 py-4 text-center text-sm text-gray-500">
-                            Nuk ka asnjë aplikim për trajnime.
-                          </td>
-                        </tr>
-                      )}
-                    </tbody>
-                  </table>
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
               </div>
             )}
 
             {/* Available Trainings Section */}
             <div className="mt-16">
-              <div className="text-center mb-10">
-                <h2 className="text-3xl font-extrabold text-gray-900 sm:text-4xl sm:tracking-tight lg:text-4xl">
-                  Trajnimet e Disponueshme
+              <div className="text-center mb-12">
+                <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-teal-500 to-emerald-500 rounded-2xl mb-6 shadow-xl">
+                  <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                  </svg>
+                </div>
+                <h2 className="text-4xl font-extrabold bg-gradient-to-r from-teal-600 to-emerald-600 bg-clip-text text-transparent sm:text-5xl">
+                  🎓 Trajnimet e Disponueshme
                 </h2>
-                <p className="mt-3 max-w-2xl mx-auto text-xl text-gray-500 sm:mt-4">
+                <p className="mt-4 max-w-2xl mx-auto text-xl text-teal-700 sm:mt-6">
                   Zgjidhni një nga trajnimet e disponueshme për të aplikuar
                 </p>
               </div>
@@ -498,44 +550,48 @@ const TrainingApplicationn = () => {
                 {trainings.map((training) => {
                   const trainingId = training.mysqlId || training.id;
                   const isFull = isTrainingFull(trainingId);
-                  const userApplication = trainingApplications.find(app => 
-                    (app.trainingId?.mysqlId || app.trainingId) === trainingId && 
+                  const userApplication = trainingApplications.find(app => (app.trainingId?.mysqlId || app.trainingId) === trainingId &&
                     app.userId?.id === loggedInUser.id
                   );
 
                   return (
-                    <div 
-                      key={trainingId} 
-                      className={`flex flex-col rounded-lg shadow-lg overflow-hidden transition-all duration-300 ${
-                        isFull ? 'opacity-75' : 'hover:shadow-xl hover:-translate-y-1'
-                      }`}
+                    <div
+                      key={trainingId}
+                      className={`flex flex-col rounded-3xl shadow-2xl overflow-hidden transition-all duration-300 backdrop-blur-sm bg-opacity-95 ${isFull ? 'opacity-75' : 'hover:shadow-teal-200 hover:-translate-y-2 transform'}`}
                     >
-                      <div className="flex-1 bg-white p-6 flex flex-col justify-between">
+                      <div className="flex-1 bg-white p-8 flex flex-col justify-between">
                         <div className="flex-1">
-                          <div className="flex items-center justify-between mb-3">
-                            <span className="inline-flex items-center px-3 py-0.5 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
-                              {training.duration || 'N/A'}
+                          <div className="flex items-center justify-between mb-4">
+                            <span className="inline-flex items-center px-4 py-2 rounded-full text-sm font-bold bg-gradient-to-r from-teal-100 to-emerald-100 text-teal-800 border border-teal-200">
+                              ⏰ {training.duration || 'N/A'}
                             </span>
-                            <span className={`inline-flex items-center px-3 py-0.5 rounded-full text-sm font-medium ${
-                              isFull ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'
-                            }`}>
-                              {isFull ? 'I plotë' : `${5 - (trainingCapacity[trainingId] || 0)} vende të lira`}
+                            <span className={`inline-flex items-center px-4 py-2 rounded-full text-sm font-bold border-2 ${isFull
+                                ? 'bg-gradient-to-r from-red-100 to-pink-100 text-red-800 border-red-200'
+                                : 'bg-gradient-to-r from-green-100 to-emerald-100 text-green-800 border-green-200'}`}>
+                              {isFull ? '🚫 I plotë' : `✅ ${5 - (trainingCapacity[trainingId] || 0)} vende të lira`}
                             </span>
                           </div>
-                          <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                            {training.title}
+                          <h3 className="text-2xl font-bold text-teal-800 mb-4">
+                            📚 {training.title}
                           </h3>
-                          <p className="mt-3 text-base text-gray-500">
+                          <p className="text-base text-gray-600 leading-relaxed">
                             {training.description || 'Nuk ka përshkrim të disponueshëm për këtë trajnim.'}
                           </p>
                         </div>
-                        
-                        <div className="mt-6">
+
+                        <div className="mt-8">
                           {userApplication ? (
-                            <div className="w-full bg-green-50 border border-green-200 rounded-md p-3 text-center">
-                              <p className="text-sm font-medium text-green-800">
-                                Ju keni aplikuar për këtë trajnim
-                              </p>
+                            <div className="w-full bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-200 rounded-2xl p-6 text-center">
+                              <div className="flex items-center justify-center mb-2">
+                                <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center mr-3">
+                                  <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                  </svg>
+                                </div>
+                                <p className="text-sm font-bold text-green-800">
+                                  ✅ Ju keni aplikuar për këtë trajnim
+                                </p>
+                              </div>
                             </div>
                           ) : (
                             <button
@@ -544,13 +600,13 @@ const TrainingApplicationn = () => {
                                   setFormData({ trainingId, userId: loggedInUser.id });
                                   fetchTrainingSchedule(trainingId);
                                 }
-                              }}
-                              className={`w-full flex items-center justify-center px-4 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white ${
-                                isFull ? 'bg-gray-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'
-                              } focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500`}
+                              } }
+                              className={`w-full flex items-center justify-center px-6 py-4 border-2 border-transparent text-base font-bold rounded-2xl shadow-xl text-white transition-all duration-300 transform ${isFull
+                                  ? 'bg-gray-400 cursor-not-allowed'
+                                  : 'bg-gradient-to-r from-teal-500 to-emerald-500 hover:from-teal-600 hover:to-emerald-600 hover:scale-105 shadow-teal-200'}`}
                               disabled={isFull}
                             >
-                              {isFull ? 'Trajnimi i plotë' : 'Apliko tani'}
+                              {isFull ? '🚫 Trajnimi i plotë' : '🚀 Apliko tani'}
                             </button>
                           )}
                         </div>
@@ -563,7 +619,7 @@ const TrainingApplicationn = () => {
           </>
         )}
       </div>
-    </div>
+    </div></>
   );
 };
 

@@ -69,67 +69,55 @@ const updateAppointment = async (req, res) => {
       }, {});
 
     const updatedResource = await UseCase.update(req.params.id, updates);
-    
-    if (updatedResource) {
-      if (updates.status === 'confirmed') {
-        try {
-          const appointment = await UseCase.getById(req.params.id);
-          
-          if (appointment && appointment.userId && appointment.userId.email) {
-            const mailOptions = {
-              from: process.env.EMAIL_USER,
-              to: appointment.userId.email,
-              subject: 'Appointment Confirmation',
-              text: `Your appointment has been confirmed successfully!\n\n` +
-                    `Details:\n` +
-                    `- Specialist: ${appointment.specialistId.name} ${appointment.specialistId.lastName}\n` +
-                    `- Date: ${new Date(appointment.appointmentDate).toLocaleString()}\n` +
-                    `- Type: ${appointment.type}\n\n` +
-                    `Thank you for using our service!`
-            };
 
-            await transporter.sendMail(mailOptions);
-            console.log('Confirmation email sent to:', appointment.userId.email);
-          }
-        } catch (emailError) {
-          console.error('Error sending confirmation email:', emailError);
-          // Don't fail the request if email fails
-        }
-      }
-      
-      res.json(updatedResource);
-    } else {
-      res.status(404).json({ message: "Appointment not found" });
+    if (!updatedResource) {
+      return res.status(404).json({ message: "Appointment not found" });
     }
+
+    const appointment = await UseCase.getById(req.params.id);
+
+    // Confirmation email
+    if (updates.status === 'confirmed') {
+      if (appointment?.userId?.email) {
+        const mailOptions = {
+          from: process.env.EMAIL_USER,
+          to: appointment.userId.email,
+          subject: 'Appointment Confirmation',
+          text: `Your appointment has been confirmed!\n\n` +
+                `- Specialist: ${appointment.specialistId.name} ${appointment.specialistId.lastName}\n` +
+                `- Date: ${new Date(appointment.appointmentDate).toLocaleString()}\n` +
+                `- Type: ${appointment.type}\n\n` +
+                `Thank you for using our platform.`
+        };
+        await transporter.sendMail(mailOptions);
+      }
+    }
+
+    // Cancellation email with reason
+    if (updates.status === 'canceled') {
+      if (appointment?.userId?.email) {
+        const reason = req.body.cancelReason || 'No reason provided.';
+        const mailOptions = {
+          from: process.env.EMAIL_USER,
+          to: appointment.userId.email,
+          subject: 'Appointment Canceled',
+          text: `Your appointment has been canceled.\n\n` +
+                `Reason: ${reason}\n\n` +
+                `- Specialist: ${appointment.specialistId.name} ${appointment.specialistId.lastName}\n` +
+                `- Date: ${new Date(appointment.appointmentDate).toLocaleString()}\n` +
+                `- Type: ${appointment.type}`
+        };
+        await transporter.sendMail(mailOptions);
+      }
+    }
+
+    res.json(updatedResource);
   } catch (error) {
+    console.error('Error updating appointment:', error);
     res.status(500).json({ message: error.message });
   }
 };
 
-
-// const updateAppointment = async (req, res) => {
-//   try {
-//     // Only allow certain fields to be updated
-//     const allowedUpdates = ['status', 'notes', 'appointmentDate'];
-//     const updates = Object.keys(req.body)
-//       .filter(key => allowedUpdates.includes(key))
-//       .reduce((obj, key) => {
-//         obj[key] = req.body[key];
-//         return obj;
-//       }, {});
-
-//     // Pass the MongoDB _id directly
-//     const updatedResource = await UseCase.update(req.params.id, updates);
-    
-//     if (updatedResource) {
-//       res.json(updatedResource);
-//     } else {
-//       res.status(404).json({ message: "Appointment not found" });
-//     }
-//   } catch (error) {
-//     res.status(500).json({ message: error.message });
-//   }
-// };
 
 
 const deleteAppointment = async (req, res) => {

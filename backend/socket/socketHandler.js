@@ -90,6 +90,8 @@ io.on('connection', (socket) => {
     console.log(`User ${socket.id} left room ${groupId}`);
   });
 
+  
+
   // Handle typing indicator
   socket.on('typing', (data) => {
     const { groupId, userId, userName } = data;
@@ -116,7 +118,7 @@ io.on('connection', (socket) => {
     socket.to(groupId).emit('userStoppedTyping', { userId, groupId });
   });
 
- socket.on('leaveGroup', async (data) => {
+socket.on('leaveGroup', async (data) => {
   try {
     const { groupId, userId, userName, lastName } = data;
 
@@ -131,7 +133,6 @@ io.on('connection', (socket) => {
       return;
     }
 
-    // Gjej grupin në mënyrë të sigurt
     let group;
     if (mongoose.Types.ObjectId.isValid(groupId)) {
       group = await GroupMongo.findById(groupId);
@@ -144,7 +145,6 @@ io.on('connection', (socket) => {
       return;
     }
 
-    // Lësho dhomën (room)
     socket.leave(groupId);
 
     const systemMessage = new MessageMongo({
@@ -155,16 +155,22 @@ io.on('connection', (socket) => {
     });
 
     await systemMessage.save();
-
     const populatedMessage = await MessageMongo.findById(systemMessage._id).exec();
 
     io.to(group._id.toString()).emit('newMessage', populatedMessage);
+
+    // ✅ Emit event që një anëtar është larguar
+    io.to(group._id.toString()).emit('memberLeft', {
+      groupId: group._id.toString(),
+      userId: userId
+    });
 
   } catch (error) {
     console.error('Error handling group leave:', error);
     socket.emit('error', 'Failed to process leaving group');
   }
 });
+
 
 
   // Handle new message
@@ -533,6 +539,10 @@ socket.on('membersAdded', async ({ groupId, addedUserIds, addedBy }) => {
 
     const populatedMessage = await MessageMongo.findById(systemMessage._id).exec();
     io.to(group._id.toString()).emit('newMessage', populatedMessage);
+    io.to(group._id.toString()).emit('membersAdded', {
+      groupId: group._id.toString(),
+      addedUserIds: addedUserIds.map(id => id.toString())
+    });
 
     console.log(`✅ System message sent for added users: ${addedNames}`);
     

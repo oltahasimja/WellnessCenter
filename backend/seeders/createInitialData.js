@@ -77,7 +77,7 @@ const createDefaultRolesAndUsers = async () => {
         name: 'Shaban',
         lastName: 'Buja',
         username: 'bani',
-        email: 'bani@gmail.com',
+        email: 'shaban.buja111@gmail.com',
         role: 'Client',
         dashboardRole: 'Owner',
         birthday: '2004-02-29',

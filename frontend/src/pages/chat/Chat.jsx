@@ -117,6 +117,19 @@ const [userCheckError, setUserCheckError] = useState(null);
       });
     }
   });
+
+  socket.on('memberLeft', ({ groupId, userId }) => {
+  if (selectedGroup && selectedGroup.id === groupId) {
+    fetchGroupMembers(groupId); // rifresko listen
+  }
+});
+
+  socket.on('membersAdded', ({ addedUserIds }) => {
+    if (addedUserIds.includes(user.id?.toString())) {
+      fetchGroups(); 
+    }
+  });
+
   
   // Listen for online status of users
   socket.on('userOnlineStatus', ({ userId, isOnline, onlineUsers: usersList }) => {
@@ -150,6 +163,8 @@ const [userCheckError, setUserCheckError] = useState(null);
       return newOnlineUsers;
     });
   });
+
+  
   
 
 
@@ -201,9 +216,13 @@ const [userCheckError, setUserCheckError] = useState(null);
       socket.off('userStoppedTyping');
       socket.off('userOnlineStatus');
       socket.off('onlineUsersList');
+      socket.off('memberLeft');
+      socket.off('membersAdded');
       socket.off('error');
     };
   }, [socket, user, selectedGroup]);
+
+  
   
   // Handle user typing detection
   useEffect(() => {
