@@ -36,6 +36,18 @@ class TrainingApplicationRepository {
     try {
       console.log("Creating TrainingApplication:", data);
       
+      // Kontrollo nëse përdoruesi ka aplikuar tashmë për të njëjtin trajnim
+      const existingApplication = await TrainingApplication.findOne({
+        where: { 
+          userId: data.userId,
+          trainingId: data.trainingId
+        }
+      });
+      
+      if (existingApplication) {
+        throw new Error('Ju tashmë keni aplikuar për këtë trajnim.');
+      }
+      
       // First create in MySQL
       const mysqlResource = await TrainingApplication.create(data);
       
@@ -55,7 +67,7 @@ class TrainingApplicationRepository {
         }
         mongoData.userId = new ObjectId(user._id.toString());
       }
-
+  
       if (data.trainingId) {
         // Find the related document in MongoDB
         const training = await TrainingMongo.findOne({ mysqlId: data.trainingId.toString() });

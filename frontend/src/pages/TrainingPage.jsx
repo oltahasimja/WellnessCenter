@@ -3,6 +3,7 @@ import { FiClock, FiCalendar, FiUser, FiStar, FiHeart, FiShare2, FiChevronDown, 
 import axios from 'axios';
 import { Link, useNavigate } from 'react-router-dom';
 import Footer from './Footer';
+import Header from './Header';
 
 const TrainingPage = () => {
   const [activeTab, setActiveTab] = useState('classes');
@@ -124,6 +125,9 @@ const TrainingPage = () => {
   const categories = ['all', ...new Set(userTrainings.map(training => training.category))];
   
   return (
+    <>
+    <Header />
+    
     <div className="min-h-screen bg-gray-50">
       {/* Hero Section */}
       <div className="relative bg-teal-400 py-20">
@@ -547,6 +551,7 @@ const TrainingPage = () => {
 
       <Footer />
     </div>
+    </>
   );
 };
 
