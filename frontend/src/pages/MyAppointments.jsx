@@ -27,10 +27,10 @@ const Appointments = () => {
   useEffect(() => {
     const checkLoginStatus = async () => {
       try {
-        const res = await axios.get('http://localhost:5000/user', { withCredentials: true });
+        const res = await axios.get('http://localhost:5001/user', { withCredentials: true });
         if (!res.data.user) return navigate('/login');
 
-        const userRes = await axios.get(`http://localhost:5000/api/user/${res.data.user.id}`);
+        const userRes = await axios.get(`http://localhost:5001/api/user/${res.data.user.id}`);
         const userRole = userRes.data.roleId?.name;
 
         setCurrentUser({
@@ -55,8 +55,8 @@ const Appointments = () => {
     const fetchData = async () => {
       try {
         const [asSpecialist, asClient] = await Promise.all([
-          axios.get(`http://localhost:5000/api/appointment?specialistId=${currentUser.id}`),
-          axios.get(`http://localhost:5000/api/appointment?userId=${currentUser.id}`)
+          axios.get(`http://localhost:5001/api/appointment?specialistId=${currentUser.id}`),
+          axios.get(`http://localhost:5001/api/appointment?userId=${currentUser.id}`)
         ]);
 
         const filterByRole = (list) => {
@@ -87,7 +87,7 @@ const Appointments = () => {
 
 const updateAppointmentStatus = async (appointmentId, newStatus, reason = "") => {
   try {
-    await axios.put(`http://localhost:5000/api/appointment/${appointmentId}`, {
+    await axios.put(`http://localhost:5001/api/appointment/${appointmentId}`, {
       status: newStatus,
       cancelReason: reason
     });

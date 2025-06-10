@@ -18,7 +18,7 @@ const ScheduleTraining = () => {
 
   const fetchScheduleTrainings = async () => {
     try {
-      const response = await axios.get('http://localhost:5000/api/scheduletraining');
+      const response = await axios.get('http://localhost:5001/api/scheduletraining');
       setScheduleTrainingList(response.data);
     } catch (err) {
       setError('Failed to fetch schedule trainings');
@@ -28,7 +28,7 @@ const ScheduleTraining = () => {
 
   const fetchTrainings = async () => {
     try {
-      const response = await axios.get('http://localhost:5000/api/training');
+      const response = await axios.get('http://localhost:5001/api/training');
       setTrainingList(response.data);
     } catch (err) {
       setError('Failed to fetch trainings');
@@ -46,9 +46,9 @@ const ScheduleTraining = () => {
       };
 
       if (formData.id) {
-        await axios.put(`http://localhost:5000/api/scheduletraining/${formData.id}`, dataToSend);
+        await axios.put(`http://localhost:5001/api/scheduletraining/${formData.id}`, dataToSend);
       } else {
-        await axios.post('http://localhost:5000/api/scheduletraining', dataToSend);
+        await axios.post('http://localhost:5001/api/scheduletraining', dataToSend);
       }
       
       fetchScheduleTrainings();
@@ -83,7 +83,7 @@ const ScheduleTraining = () => {
   // ... (pjesa tjetër e kodit mbetet e njëjtë)
 
   const handleDelete = async (id) => {
-    await axios.delete(`http://localhost:5000/api/scheduletraining/${id}`);
+    await axios.delete(`http://localhost:5001/api/scheduletraining/${id}`);
     fetchScheduleTrainings();
   };
 

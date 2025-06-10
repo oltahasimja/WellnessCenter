@@ -30,10 +30,10 @@ const User = ({ setActiveComponent }) => {
   }, []);
 
   const fetchUsers = async (roleId = "all", search = "") => {
-    let url = "http://localhost:5000/api/user";
+    let url = "http://localhost:5001/api/user";
     
     if (roleId !== "all") {
-      url = `http://localhost:5000/api/user/role/${roleId}`;
+      url = `http://localhost:5001/api/user/role/${roleId}`;
     }
     
     try {
@@ -53,7 +53,7 @@ const User = ({ setActiveComponent }) => {
   };
 
   const fetchRoles = async () => {
-    const response = await axios.get("http://localhost:5000/api/role");
+    const response = await axios.get("http://localhost:5001/api/role");
     setRoleList(response.data);
   };
 
@@ -87,7 +87,7 @@ const User = ({ setActiveComponent }) => {
 
   const confirmDelete = async () => {
     if (itemToDelete) {
-      await axios.delete(`http://localhost:5000/api/user/${itemToDelete}`);
+      await axios.delete(`http://localhost:5001/api/user/${itemToDelete}`);
       fetchUsers();
       setDeleteModalOpen(false);
     }
@@ -128,7 +128,7 @@ const User = ({ setActiveComponent }) => {
 
   const handleSaveClick = async (id) => {
     try {
-      await axios.put(`http://localhost:5000/api/user/${id}`, editFormData);
+      await axios.put(`http://localhost:5001/api/user/${id}`, editFormData);
       setEditingId(null);
       fetchUsers();
       navigate('/dashboard/users');

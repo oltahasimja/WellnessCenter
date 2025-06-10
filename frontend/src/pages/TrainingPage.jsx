@@ -19,7 +19,7 @@ const TrainingPage = () => {
   useEffect(() => {
     const checkLoginStatus = async () => {
       try {
-        const response = await axios.get("http://localhost:5000/user", { withCredentials: true });
+        const response = await axios.get("http://localhost:5001/user", { withCredentials: true });
         if (!response.data.user) {
           navigate("/login");
         } else {
@@ -44,7 +44,7 @@ const TrainingPage = () => {
   
   const fetchTrainings = async () => {
     try {
-      const response = await axios.get("http://localhost:5000/api/training", { withCredentials: true });
+      const response = await axios.get("http://localhost:5001/api/training", { withCredentials: true });
       setTrainings(response.data);
     } catch (error) {
       console.error("Error fetching trainings:", error);
@@ -53,7 +53,7 @@ const TrainingPage = () => {
   
   const fetchUserApplications = async () => {
     try {
-      const response = await axios.get("http://localhost:5000/api/trainingapplication", { withCredentials: true });
+      const response = await axios.get("http://localhost:5001/api/trainingapplication", { withCredentials: true });
       console.log("All applications:", response.data);
       console.log("Current user:", currentUser);
       

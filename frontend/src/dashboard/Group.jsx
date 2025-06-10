@@ -21,7 +21,7 @@ const Group = () => {
 
   const fetchCurrentUser = async () => {
     try {
-      const response = await axios.get('http://localhost:5000/user');
+      const response = await axios.get('http://localhost:5001/user');
       setCurrentUser(response.data.user);
       setFormData(prev => ({ ...prev, createdById: response.data.user.id }));
     } catch (error) {
@@ -31,7 +31,7 @@ const Group = () => {
 
   const fetchGroups = async () => {
     try {
-      const response = await axios.get('http://localhost:5000/api/group');
+      const response = await axios.get('http://localhost:5001/api/group');
       const transformedGroups = response.data.map(group => ({
         ...group,
         createdById: group.createdById?.id || group.createdById
@@ -44,7 +44,7 @@ const Group = () => {
 
   const fetchUserss = async () => {
     try {
-      const response = await axios.get('http://localhost:5000/api/user');
+      const response = await axios.get('http://localhost:5001/api/user');
       setUsersList(response.data);
     } catch (error) {
       console.error("Error fetching users:", error);
@@ -60,9 +60,9 @@ const Group = () => {
       };
   
       if (formData.id) {
-        await axios.put(`http://localhost:5000/api/group/${formData.id}`, dataToSend);
+        await axios.put(`http://localhost:5001/api/group/${formData.id}`, dataToSend);
       } else {
-        await axios.post('http://localhost:5000/api/group', dataToSend);
+        await axios.post('http://localhost:5001/api/group', dataToSend);
       }
       fetchGroups();
       setFormData({ createdById: currentUser?.id });
@@ -81,7 +81,7 @@ const Group = () => {
 
   const handleDelete = async (id) => {
     try {
-      await axios.delete(`http://localhost:5000/api/group/${id}`);
+      await axios.delete(`http://localhost:5001/api/group/${id}`);
       fetchGroups();
     } catch (error) {
       console.error("Error deleting group:", error);

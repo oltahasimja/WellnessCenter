@@ -13,16 +13,16 @@ const DashboardRole = () => {
   }, []);
 
   const fetchRoles = async () => {
-    const response = await axios.get('http://localhost:5000/api/dashboardrole');
+    const response = await axios.get('http://localhost:5001/api/dashboardrole');
     setRoleList(response.data);
   };
   
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (formData.id) {
-      await axios.put(`http://localhost:5000/api/dashboardrole/${formData.id}`, formData);
+      await axios.put(`http://localhost:5001/api/dashboardrole/${formData.id}`, formData);
     } else {
-      await axios.post('http://localhost:5000/api/dashboardrole', formData);
+      await axios.post('http://localhost:5001/api/dashboardrole', formData);
     }
     fetchRoles();
     setFormData({});
@@ -37,7 +37,7 @@ const DashboardRole = () => {
   };
 
   const handleDelete = async (id) => {
-    await axios.delete(`http://localhost:5000/api/dashboardrole/${id}`);
+    await axios.delete(`http://localhost:5001/api/dashboardrole/${id}`);
     fetchRoles();
   };
 

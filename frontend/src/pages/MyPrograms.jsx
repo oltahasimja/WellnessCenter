@@ -74,7 +74,7 @@ function MyPrograms() {
     useEffect(() => {
         const checkLoginStatus = async () => {
             try {
-                const response = await axios.get("http://localhost:5000/user", { withCredentials: true });
+                const response = await axios.get("http://localhost:5001/user", { withCredentials: true });
                 if (!response.data.user) {
                     navigate("/login");
                 } else {
@@ -93,8 +93,8 @@ function MyPrograms() {
         try {
           // Fetch programs and all users (to get creator roles)
           const [programsResponse, usersResponse] = await Promise.all([
-            axios.get("http://localhost:5000/api/userprograms"),
-            axios.get("http://localhost:5000/api/user") // Endpoint to get all users with their roles
+            axios.get("http://localhost:5001/api/userprograms"),
+            axios.get("http://localhost:5001/api/user") // Endpoint to get all users with their roles
           ]);
     
           const userIdStr = String(userId);

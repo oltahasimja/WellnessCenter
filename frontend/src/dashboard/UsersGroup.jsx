@@ -29,26 +29,26 @@ const UsersGroup = () => {
   }, []);
 
   const fetchUsersGroups = async () => {
-    const response = await axios.get('http://localhost:5000/api/usersgroup');
+    const response = await axios.get('http://localhost:5001/api/usersgroup');
     setUsersGroupList(response.data);
   };
 
   const fetchUsers = async () => {
-    const response = await axios.get('http://localhost:5000/api/user');
+    const response = await axios.get('http://localhost:5001/api/user');
     setUserList(response.data);
   };
 
   const fetchGroups = async () => {
-    const response = await axios.get('http://localhost:5000/api/group');
+    const response = await axios.get('http://localhost:5001/api/group');
     setGroupList(response.data);
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (formData.id) {
-      await axios.put(`http://localhost:5000/api/usersgroup/${formData.id}`, formData);
+      await axios.put(`http://localhost:5001/api/usersgroup/${formData.id}`, formData);
     } else {
-      await axios.post('http://localhost:5000/api/usersgroup', formData);
+      await axios.post('http://localhost:5001/api/usersgroup', formData);
     }
     fetchUsersGroups();
     setFormData({});
@@ -63,7 +63,7 @@ const UsersGroup = () => {
   };
 
   const handleDelete = async (id) => {
-    await axios.delete(`http://localhost:5000/api/usersgroup/${id}`);
+    await axios.delete(`http://localhost:5001/api/usersgroup/${id}`);
     fetchUsersGroups();
   };
 

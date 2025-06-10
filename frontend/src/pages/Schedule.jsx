@@ -14,7 +14,7 @@ function Schedule() {
   useEffect(() => {
     const fetchSchedules = async () => {
       try {
-        const response = await fetch('http://localhost:5000/api/schedule');
+        const response = await fetch('http://localhost:5001/api/schedule');
         if (!response.ok) {
           throw new Error('Network response was not ok');
         }

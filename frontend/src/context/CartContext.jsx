@@ -29,7 +29,7 @@ export const CartProvider = ({ children }) => {
       }
 
       try {
-        const response = await fetch(`http://localhost:5000/api/cartitem/user/${userId}`);
+        const response = await fetch(`http://localhost:5001/api/cartitem/user/${userId}`);
         if (!response.ok) throw new Error("Failed to fetch cart");
 
         const cartData = await response.json();

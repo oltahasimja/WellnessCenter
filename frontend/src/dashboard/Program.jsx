@@ -16,7 +16,7 @@ const Program = () => {
   useEffect(() => {
     const checkLoginStatus = async () => {
       try {
-        const response = await axios.get('http://localhost:5000/user', { withCredentials: true });
+        const response = await axios.get('http://localhost:5001/user', { withCredentials: true });
         if (response.data.user) {
           setUser(response.data.user);
         } else {
@@ -33,7 +33,7 @@ const Program = () => {
   }, [navigate]);
 
   const fetchPrograms = async () => {
-    const response = await axios.get('http://localhost:5000/api/program');
+    const response = await axios.get('http://localhost:5001/api/program');
     setProgramList(response.data);
   };
 
@@ -44,9 +44,9 @@ const Program = () => {
     const dataToSend = { ...formData, createdById: user.id };
   
     if (formData.id) {
-      await axios.put(`http://localhost:5000/api/program/${formData.id}`, dataToSend);
+      await axios.put(`http://localhost:5001/api/program/${formData.id}`, dataToSend);
     } else {
-      await axios.post('http://localhost:5000/api/program', dataToSend);
+      await axios.post('http://localhost:5001/api/program', dataToSend);
     }
     fetchPrograms();
     setFormData({});
@@ -64,7 +64,7 @@ const Program = () => {
 
   const handleDeleteConfirm = async () => {
     try {
-      await axios.delete(`http://localhost:5000/api/program/${itemToDelete}`, {
+      await axios.delete(`http://localhost:5001/api/program/${itemToDelete}`, {
         data: { userId: user.id }
       });
       fetchPrograms();

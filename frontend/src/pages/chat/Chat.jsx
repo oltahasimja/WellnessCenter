@@ -33,7 +33,7 @@ const [userCheckError, setUserCheckError] = useState(null);
   const typingTimeoutRef = useRef(null);
   
   const messagesEndRef = useRef(null);
-  const API_BASE_URL = 'http://localhost:5000/api';
+  const API_BASE_URL = 'http://localhost:5001/api';
   const navigate = useNavigate();
   const location = useLocation();
   
@@ -42,7 +42,7 @@ const [userCheckError, setUserCheckError] = useState(null);
     // Fetch user data first
     const fetchUser = async () => {
       try {
-        const response = await fetch('http://localhost:5000/user', {
+        const response = await fetch('http://localhost:5001/user', {
           credentials: 'include'
         });
         
@@ -54,7 +54,7 @@ const [userCheckError, setUserCheckError] = useState(null);
         setUser(data.user);
         
         // After getting user data, initialize socket
-        const newSocket = io('http://localhost:5000', {
+        const newSocket = io('http://localhost:5001', {
           withCredentials: true
         });
         

@@ -69,9 +69,9 @@ function EditUser({ setActiveComponent }) {
         if (!id) return;
         
         const [userResponse, rolesResponse, dashboardroleList] = await Promise.all([
-          axios.get(`http://localhost:5000/api/user/${id}`),
-          axios.get("http://localhost:5000/api/role"),
-          axios.get("http://localhost:5000/api/dashboardrole")
+          axios.get(`http://localhost:5001/api/user/${id}`),
+          axios.get("http://localhost:5001/api/role"),
+          axios.get("http://localhost:5001/api/dashboardrole")
         ]);
         
         setUserData(userResponse.data);
@@ -139,14 +139,14 @@ function EditUser({ setActiveComponent }) {
         const base64Image = reader.result.split(',')[1]; // Remove the data URL header
         
         // Update the user's profile image
-        await axios.put(`http://localhost:5000/api/user/${userData._id}`, {
+        await axios.put(`http://localhost:5001/api/user/${userData._id}`, {
           profileImage: base64Image
         }, {
           withCredentials: true
         });
         
         // Refresh user data
-        const response = await axios.get(`http://localhost:5000/api/user/${userData._id}`, {
+        const response = await axios.get(`http://localhost:5001/api/user/${userData._id}`, {
           withCredentials: true
         });
         setUserData(response.data);
@@ -221,7 +221,7 @@ function EditUser({ setActiveComponent }) {
       
       if (selectedCountry && selectedCountry !== userData.countryId?.name) {
         try {
-          const countryResponse = await axios.get(`http://localhost:5000/api/country/byName/${selectedCountry}`);
+          const countryResponse = await axios.get(`http://localhost:5001/api/country/byName/${selectedCountry}`);
           if (countryResponse.data && countryResponse.data._id) {
             dataToSubmit.countryId = countryResponse.data._id;
           }
@@ -232,7 +232,7 @@ function EditUser({ setActiveComponent }) {
       
       if (selectedCity && selectedCity !== userData.cityId?.name) {
         try {
-          const cityResponse = await axios.get(`http://localhost:5000/api/city/byName/${selectedCity}`);
+          const cityResponse = await axios.get(`http://localhost:5001/api/city/byName/${selectedCity}`);
           if (cityResponse.data && cityResponse.data._id) {
             dataToSubmit.cityId = cityResponse.data._id;
         
@@ -242,7 +242,7 @@ function EditUser({ setActiveComponent }) {
         }
       }
       
-      await axios.put(`http://localhost:5000/api/user/${id}`, dataToSubmit);
+      await axios.put(`http://localhost:5001/api/user/${id}`, dataToSubmit);
       setSuccessMessage('Të dhënat u përditësuan me sukses!');
       
       setTimeout(() => {
@@ -274,13 +274,13 @@ function EditUser({ setActiveComponent }) {
           throw new Error('User ID not found');
         }
     
-        await axios.put(`http://localhost:5000/api/user/${userId}`, {
+        await axios.put(`http://localhost:5001/api/user/${userId}`, {
           profileImage: null
         }, {
           withCredentials: true
         });
         
-        const response = await axios.get('http://localhost:5000/user', {
+        const response = await axios.get('http://localhost:5001/user', {
           withCredentials: true
         });
         setUserData(response.data.user);

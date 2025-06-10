@@ -13,7 +13,7 @@ const Product = () => {
 
   const fetchProducts = async () => {
     try {
-      const response = await axios.get('http://localhost:5000/api/product');
+      const response = await axios.get('http://localhost:5001/api/product');
       setProductList(response.data);
     } catch (error) {
       console.error('Error fetching products:', error);
@@ -23,7 +23,7 @@ const Product = () => {
 
   const fetchCategories = async () => {
     try {
-      const response = await axios.get('http://localhost:5000/api/category');
+      const response = await axios.get('http://localhost:5001/api/category');
       setCategoryList(response.data);
     } catch (error) {
       console.error('Error fetching categories:', error);
@@ -41,7 +41,7 @@ const Product = () => {
   
     try {
   
-      const fetchResponse = await fetch('http://localhost:5000/api/product');
+      const fetchResponse = await fetch('http://localhost:5001/api/product');
       const existingProducts = await fetchResponse.json();
   
     
@@ -66,9 +66,9 @@ const Product = () => {
   
       
       if (formData.id) {
-        await axios.put(`http://localhost:5000/api/product/${formData.id}`, dataToSubmit); 
+        await axios.put(`http://localhost:5001/api/product/${formData.id}`, dataToSubmit); 
       } else {
-        await axios.post('http://localhost:5000/api/product', dataToSubmit); 
+        await axios.post('http://localhost:5001/api/product', dataToSubmit); 
       }
   
       fetchProducts(); 
@@ -90,7 +90,7 @@ const Product = () => {
   };
   
   const handleDelete = async (id) => {
-    await axios.delete(`http://localhost:5000/api/product/${id}`);
+    await axios.delete(`http://localhost:5001/api/product/${id}`);
     fetchProducts();
   };
   

@@ -34,10 +34,10 @@ const Schedule = () => {
     setError(null);
     
     try {
-      const usersResponse = await axios.get('http://localhost:5000/api/user/specialists');
+      const usersResponse = await axios.get('http://localhost:5001/api/user/specialists');
       setUserList(usersResponse.data);
       
-      const schedulesResponse = await axios.get('http://localhost:5000/api/schedule');
+      const schedulesResponse = await axios.get('http://localhost:5001/api/schedule');
       
       const schedulesWithNames = schedulesResponse.data.map(schedule => {
         const specialistId = typeof schedule.specialistId === 'object' ? 
@@ -171,9 +171,9 @@ const [validationErrors, setValidationErrors] = useState({
       
       let response;
       if (formData.id) {
-        response = await axios.put(`http://localhost:5000/api/schedule/${formData.id}`, dataToSend);
+        response = await axios.put(`http://localhost:5001/api/schedule/${formData.id}`, dataToSend);
       } else {
-        response = await axios.post('http://localhost:5000/api/schedule', dataToSend);
+        response = await axios.post('http://localhost:5001/api/schedule', dataToSend);
       }
       
       const newSchedule = response.data;
@@ -250,7 +250,7 @@ const [validationErrors, setValidationErrors] = useState({
   const handleDeleteConfirm = async () => {
     setIsLoading(true);
     try {
-      await axios.delete(`http://localhost:5000/api/schedule/${deleteModal.itemId}`);
+      await axios.delete(`http://localhost:5001/api/schedule/${deleteModal.itemId}`);
       setScheduleList(prev => prev.filter(item => 
         (item.mysqlId !== deleteModal.itemId) && (item._id !== deleteModal.itemId)
       ));

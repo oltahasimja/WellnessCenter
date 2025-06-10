@@ -39,7 +39,7 @@ const TrainingApplicationn = () => {
 
   const fetchLoggedInUser = async () => {
     try {
-      const response = await axios.get('http://localhost:5000/user');
+      const response = await axios.get('http://localhost:5001/user');
       setLoggedInUser(response.data.user);
       setIsAdmin(response.data.user?.role === 'admin');
       setFormData(prev => ({ 
@@ -54,7 +54,7 @@ const TrainingApplicationn = () => {
 
   const fetchTrainingApplications = async () => {
     try {
-      const response = await axios.get('http://localhost:5000/api/trainingapplication');
+      const response = await axios.get('http://localhost:5001/api/trainingapplication');
       const processedData = response.data.map(item => ({
         ...item,
         userId: item.userId || { name: 'Unknown', lastName: '' },
@@ -70,7 +70,7 @@ const TrainingApplicationn = () => {
 
   const fetchTrainings = async () => {
     try {
-      const response = await axios.get('http://localhost:5000/api/training');
+      const response = await axios.get('http://localhost:5001/api/training');
       setTrainings(response.data);
     } catch (error) {
       console.error("Error fetching trainings:", error);
@@ -80,7 +80,7 @@ const TrainingApplicationn = () => {
 
   const fetchTrainingSchedule = async (trainingId) => {
     try {
-      const response = await axios.get(`http://localhost:5000/api/scheduleTraining`);
+      const response = await axios.get(`http://localhost:5001/api/scheduleTraining`);
       const filteredSchedules = response.data.filter(schedule => {
         const scheduleTrainingId = schedule.trainingId?.mysqlId || schedule.trainingId;
         return scheduleTrainingId === trainingId;
@@ -100,12 +100,15 @@ const TrainingApplicationn = () => {
     });
     setTrainingCapacity(capacityMap);
   };
-  const hasUserAppliedForTraining = (trainingId) => {
-    return trainingApplications.some(app => 
-      (app.trainingId?.mysqlId === trainingId || app.trainingId === trainingId) && 
-      (app.userId?.id === loggedInUser?.id || app.userId?.mysqlId === loggedInUser?.id)
-    );
-  };
+ const hasUserAppliedForTraining = (trainingId) => {
+  return trainingApplications.some(app => {
+    const appTrainingId = app.trainingId?.mysqlId || app.trainingId;
+    const appUserId = app.userId?.mysqlId || app.userId?.id;
+    return appTrainingId?.toString() === trainingId?.toString() &&
+           appUserId?.toString() === loggedInUser?.id?.toString();
+  });
+};
+
 
   const handleTrainingSelect = (e) => {
     const trainingId = e.target.value;
@@ -143,8 +146,8 @@ const TrainingApplicationn = () => {
   
       // Kontrollo nëse është update ose create
       const url = formData.id 
-        ? `http://localhost:5000/api/trainingapplication/${formData.id}`
-        : 'http://localhost:5000/api/trainingapplication';
+        ? `http://localhost:5001/api/trainingapplication/${formData.id}`
+        : 'http://localhost:5001/api/trainingapplication';
   
       const method = formData.id ? 'put' : 'post';
   
@@ -221,7 +224,7 @@ const TrainingApplicationn = () => {
   const handleDelete = async (id) => {
     if (window.confirm('Jeni i sigurtë që dëshironi të fshini këtë aplikim?')) {
       try {
-        await axios.delete(`http://localhost:5000/api/trainingapplication/${id}`);
+        await axios.delete(`http://localhost:5001/api/trainingapplication/${id}`);
         await fetchTrainingApplications();
       } catch (error) {
         console.error("Error deleting application:", error);

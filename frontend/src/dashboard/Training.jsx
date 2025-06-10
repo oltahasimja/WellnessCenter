@@ -24,7 +24,7 @@ const Training = () => {
     const initializeData = async () => {
       try {
         // Check login status
-        const userResponse = await axios.get('http://localhost:5000/user', { withCredentials: true });
+        const userResponse = await axios.get('http://localhost:5001/user', { withCredentials: true });
         if (!userResponse.data.user) {
           navigate('/login');
           return;
@@ -46,7 +46,7 @@ const Training = () => {
 
   const fetchTrainings = async () => {
     try {
-      const response = await axios.get('http://localhost:5000/api/training', {
+      const response = await axios.get('http://localhost:5001/api/training', {
         withCredentials: true
       });
       
@@ -92,9 +92,9 @@ const Training = () => {
       };
   
       if (formData.id) {
-        await axios.put(`http://localhost:5000/api/training/${formData.id}`, dataToSend);
+        await axios.put(`http://localhost:5001/api/training/${formData.id}`, dataToSend);
       } else {
-        await axios.post('http://localhost:5000/api/training', dataToSend);
+        await axios.post('http://localhost:5001/api/training', dataToSend);
       }
   
       await fetchTrainings();
@@ -116,7 +116,7 @@ const Training = () => {
 
   const handleDelete = async (id) => {
     try {
-      await axios.delete(`http://localhost:5000/api/training/${id}`);
+      await axios.delete(`http://localhost:5001/api/training/${id}`);
       await fetchTrainings();
     } catch (error) {
       console.error('Error deleting training:', error);

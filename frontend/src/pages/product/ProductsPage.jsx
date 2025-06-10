@@ -111,7 +111,7 @@ function ProductsPage() {
         setLoading(true);
         
         // fetch from your api
-        const response = await fetch('http://localhost:5000/api/product');
+        const response = await fetch('http://localhost:5001/api/product');
         
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
@@ -197,7 +197,7 @@ function ProductsPage() {
       quantity: 1,
     };
 
-    const response = await fetch("http://localhost:5000/api/cartitem", {
+    const response = await fetch("http://localhost:5001/api/cartitem", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -221,7 +221,7 @@ function ProductsPage() {
   const refreshProducts = async () => {
     try {
       setLoading(true);
-      const response = await fetch('http://localhost:5000/api/product');
+      const response = await fetch('http://localhost:5001/api/product');
       const dbProducts = await response.json();
       
       if (dbProducts && dbProducts.length > 0) {

@@ -48,7 +48,7 @@ const Register = () => {
         setValidation(prev => ({ ...prev, [type]: { ...prev[type], checking: true } }));
         
         try {
-            const response = await axios.get(`http://localhost:5000/api/login/check/${value}`);
+            const response = await axios.get(`http://localhost:5001/api/login/check/${value}`);
             
             if (response.data.exists) {
                 const isCurrentType = response.data.type === type;
@@ -149,7 +149,7 @@ const Register = () => {
         }
 
         try {
-            await axios.post('http://localhost:5000/api/user', formData, { withCredentials: true });
+            await axios.post('http://localhost:5001/api/user', formData, { withCredentials: true });
             setIsSubmitted(true);
         } catch (error) {
             setMessage('Error during registration: ' + (error.response?.data?.message || error.message));

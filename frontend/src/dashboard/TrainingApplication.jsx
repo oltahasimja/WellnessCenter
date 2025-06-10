@@ -37,7 +37,7 @@ const TrainingApplication = () => {
 
   const fetchLoggedInUser = async () => {
     try {
-      const response = await axios.get('http://localhost:5000/user');
+      const response = await axios.get('http://localhost:5001/user');
       setLoggedInUser(response.data.user);
       setFormData(prev => ({ 
         ...prev, 
@@ -51,7 +51,7 @@ const TrainingApplication = () => {
 
   const fetchTrainingApplications = async () => {
     try {
-      const response = await axios.get('http://localhost:5000/api/trainingapplication');
+      const response = await axios.get('http://localhost:5001/api/trainingapplication');
       // Ensure each item has proper user and training data
       const processedData = response.data.map(item => ({
         ...item,
@@ -68,7 +68,7 @@ const TrainingApplication = () => {
 
   const fetchTrainings = async () => {
     try {
-      const response = await axios.get('http://localhost:5000/api/training');
+      const response = await axios.get('http://localhost:5001/api/training');
       setTrainingList(response.data);
     } catch (error) {
       console.error("Error fetching trainings:", error);
@@ -78,7 +78,7 @@ const TrainingApplication = () => {
 
   const fetchTrainingSchedule = async (trainingId) => {
     try {
-      const response = await axios.get(`http://localhost:5000/api/scheduleTraining`);
+      const response = await axios.get(`http://localhost:5001/api/scheduleTraining`);
       const filteredSchedules = response.data.filter(schedule => {
         const scheduleTrainingId = schedule.trainingId?.mysqlId || schedule.trainingId;
         return scheduleTrainingId === trainingId;
@@ -136,9 +136,9 @@ const TrainingApplication = () => {
       };
 
       if (formData.id) {
-        await axios.put(`http://localhost:5000/api/trainingapplication/${formData.id}`, payload);
+        await axios.put(`http://localhost:5001/api/trainingapplication/${formData.id}`, payload);
       } else {
-        await axios.post('http://localhost:5000/api/trainingapplication', payload);
+        await axios.post('http://localhost:5001/api/trainingapplication', payload);
       }
       
       await fetchTrainingApplications();
@@ -165,7 +165,7 @@ const TrainingApplication = () => {
   const handleDelete = async (id) => {
     if (window.confirm('Jeni i sigurtë që dëshironi të fshini këtë aplikim?')) {
       try {
-        await axios.delete(`http://localhost:5000/api/trainingapplication/${id}`);
+        await axios.delete(`http://localhost:5001/api/trainingapplication/${id}`);
         await fetchTrainingApplications();
       } catch (error) {
         console.error("Error deleting application:", error);

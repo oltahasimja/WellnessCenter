@@ -16,7 +16,7 @@ const navigate = useNavigate();
   if (!user || !user.id) return;
 
   try {
-    const res = await fetch(`http://localhost:5000/api/cartitem/${user.id}/${productId}`, {
+    const res = await fetch(`http://localhost:5001/api/cartitem/${user.id}/${productId}`, {
       method: "DELETE",
     });
 
@@ -50,7 +50,7 @@ const updateQuantity = async (productId, newQuantity) => {
   try {
     console.log(`Updating quantity - User: ${user.id}, Product: ${productId}, Quantity: ${newQuantity}`);
     
-    const res = await fetch(`http://localhost:5000/api/cartitem/${user.id}/${productId}`, {
+    const res = await fetch(`http://localhost:5001/api/cartitem/${user.id}/${productId}`, {
       method: "PATCH",
       headers: { 
         "Content-Type": "application/json",

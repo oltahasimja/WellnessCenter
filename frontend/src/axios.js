@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: 'http://localhost:5000',
+  baseURL: 'http://localhost:5001',
   withCredentials: true,
 });
 
@@ -14,7 +14,7 @@ api.interceptors.response.use(
       originalRequest._retry = true;
 
       try {
-        const refreshRes = await axios.post('http://localhost:5000/refresh', {}, {
+        const refreshRes = await axios.post('http://localhost:5001/refresh', {}, {
           withCredentials: true,
         });
 

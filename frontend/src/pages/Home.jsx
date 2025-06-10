@@ -109,7 +109,7 @@ const WellnessCenter = () => {
   useEffect(() => {
     const fetchTeamMembers = async () => {
       try {
-        const response = await axios.get('http://localhost:5000/api/user/');
+        const response = await axios.get('http://localhost:5001/api/user/');
         // Filter users who have a role AND are not Clients
         const experts = response.data.filter(user => 
           user.roleId && user.roleId.name !== 'Client'
@@ -158,7 +158,7 @@ const WellnessCenter = () => {
     slidesToShow: 3,
     slidesToScroll: 1,
     autoplay: true,
-    autoplaySpeed: 5000,
+    autoplaySpeed: 5001,
   
   
     cssEase: "cubic-bezier(0.645, 0.045, 0.355, 1)",

@@ -8,7 +8,7 @@ const Log = () => {
   useEffect(() => {
     const fetchLogs = async () => {
       try {
-        const res = await fetch('http://localhost:5000/api/log', {
+        const res = await fetch('http://localhost:5001/api/log', {
           headers: {
             'Content-Type': 'application/json',
             // Add token if needed:

@@ -5,7 +5,7 @@ export const useFetchSpecialists = (currentUser, setSpecialists, setErrorMessage
   useEffect(() => {
     const fetchSpecialists = async () => {
       try {
-        const specsResponse = await axios.get("http://localhost:5000/api/user/specialists");
+        const specsResponse = await axios.get("http://localhost:5001/api/user/specialists");
         setSpecialists(specsResponse.data);
       } catch (error) {
         console.error("Error fetching specialists:", error);
@@ -24,7 +24,7 @@ export const useFetchSchedules = (specialists, setSchedules, setLoadingSchedules
     const fetchSchedules = async () => {
       setLoadingSchedules(true);
       try {
-        const response = await axios.get("http://localhost:5000/api/schedule");
+        const response = await axios.get("http://localhost:5001/api/schedule");
         setSchedules(response.data);
       } catch (error) {
         console.error("Error fetching schedules:", error);

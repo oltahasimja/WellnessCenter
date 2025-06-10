@@ -37,7 +37,7 @@ const Card = () => {
   useEffect(() => {
     const checkLoginStatus = async () => {
       try {
-        const response = await axios.get('http://localhost:5000/user', { withCredentials: true });
+        const response = await axios.get('http://localhost:5001/user', { withCredentials: true });
         if (response.data.user) {
           setUser(response.data.user);
           fetchCards();
@@ -55,12 +55,12 @@ const Card = () => {
   }, [navigate]);
 
   const fetchCards = async () => {
-    const response = await axios.get('http://localhost:5000/api/card');
+    const response = await axios.get('http://localhost:5001/api/card');
     setCardList(response.data);
   };
 
   const fetchLists = async () => {
-    const response = await axios.get('http://localhost:5000/api/list');
+    const response = await axios.get('http://localhost:5001/api/list');
     setListList(response.data);
   };
 
@@ -149,8 +149,8 @@ const Card = () => {
       };
   
       const endpoint = formData.id 
-        ? `http://localhost:5000/api/card/${formData.id}`
-        : 'http://localhost:5000/api/card';
+        ? `http://localhost:5001/api/card/${formData.id}`
+        : 'http://localhost:5001/api/card';
   
       const method = formData.id ? 'put' : 'post';
   
@@ -177,7 +177,7 @@ const Card = () => {
 // Updated handleEdit function for Card.jsx
 const handleEdit = async (item) => {
   try {
-    const response = await axios.get(`http://localhost:5000/api/card/${item.mysqlId || item.id}`);
+    const response = await axios.get(`http://localhost:5001/api/card/${item.mysqlId || item.id}`);
     const fullCardData = response.data;
     
     const editData = { 
@@ -216,7 +216,7 @@ const handleEdit = async (item) => {
   }
 };
   const handleDelete = async (id) => {
-    await axios.delete(`http://localhost:5000/api/card/${id}`);
+    await axios.delete(`http://localhost:5001/api/card/${id}`);
     fetchCards();
   };
 

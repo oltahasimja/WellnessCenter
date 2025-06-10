@@ -28,7 +28,7 @@ const CreateUser = ({ setActiveComponent }) => {
 
   const fetchUser = async () => {
     try {
-      const response = await axios.get(`http://localhost:5000/api/user/${id}`);
+      const response = await axios.get(`http://localhost:5001/api/user/${id}`);
       setFormData(response.data);
       setSelectedCountry(response.data.country || "");
       setSelectedCity(response.data.city || "");
@@ -41,7 +41,7 @@ const CreateUser = ({ setActiveComponent }) => {
 
   const fetchRoles = async () => {
     try {
-      const response = await axios.get("http://localhost:5000/api/role");
+      const response = await axios.get("http://localhost:5001/api/role");
       setRoleList(response.data);
     } catch (error) {
       console.error("Error fetching roles:", error);
@@ -111,9 +111,9 @@ const CreateUser = ({ setActiveComponent }) => {
       };
   
       if (id) {
-        await axios.put(`http://localhost:5000/api/user/${id}`, userData);
+        await axios.put(`http://localhost:5001/api/user/${id}`, userData);
       } else {
-        await axios.post("http://localhost:5000/api/user", userData);
+        await axios.post("http://localhost:5001/api/user", userData);
       }
       
       navigate("/dashboard/users"); 

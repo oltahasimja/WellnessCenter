@@ -32,7 +32,7 @@ const TrainingDetail = () => {
   useEffect(() => {
     const checkLoginStatus = async () => {
       try {
-        const response = await axios.get("http://localhost:5000/user", { withCredentials: true });
+        const response = await axios.get("http://localhost:5001/user", { withCredentials: true });
         if (!response.data.user) {
           navigate("/login");
         } else {
@@ -52,7 +52,7 @@ const TrainingDetail = () => {
         setLoading(true);
         setError(null);
         
-        const trainingApplicationRes = await axios.get('http://localhost:5000/api/trainingapplication');
+        const trainingApplicationRes = await axios.get('http://localhost:5001/api/trainingapplication');
         
         // Filter out applications with null userId or trainingId
         const validApplications = trainingApplicationRes.data.filter(ta => 
@@ -84,7 +84,7 @@ const TrainingDetail = () => {
     
         setIsMember(true);
     
-        const trainingRes = await axios.get(`http://localhost:5000/api/training/${id}`);
+        const trainingRes = await axios.get(`http://localhost:5001/api/training/${id}`);
         if (!trainingRes.data) {
           setError("Training not found");
           return;
@@ -136,7 +136,7 @@ const TrainingDetail = () => {
         throw new Error('Member not found');
       }
   
-      const trainingApplicationRes = await axios.get('http://localhost:5000/api/trainingapplication');
+      const trainingApplicationRes = await axios.get('http://localhost:5001/api/trainingapplication');
       
       // Filter out applications with proper userId and trainingId
       const validApplications = trainingApplicationRes.data.filter(ta => 
@@ -170,7 +170,7 @@ const TrainingDetail = () => {
         updateData.trainingId = taToUpdate.trainingId.mysqlId || taToUpdate.trainingId._id;
       }
   
-      await axios.put(`http://localhost:5000/api/trainingapplication/${idToUpdate}`, updateData);
+      await axios.put(`http://localhost:5001/api/trainingapplication/${idToUpdate}`, updateData);
   
       // Generate the certificate
       const certificate = generateCertificate(member, training);
@@ -193,10 +193,10 @@ const TrainingDetail = () => {
       };
   
       // Send email with certificate
-      await axios.post('http://localhost:5000/api/send-email', emailData);
+      await axios.post('http://localhost:5001/api/send-email', emailData);
   
       // Refresh members list with proper filtering
-      const updatedTA = await axios.get('http://localhost:5000/api/trainingapplication');
+      const updatedTA = await axios.get('http://localhost:5001/api/trainingapplication');
       const updatedMembers = updatedTA.data
         .filter(ta => 
           ta.userId !== null && 
@@ -238,7 +238,7 @@ const TrainingDetail = () => {
       }
   
       // 2. Find user by email (case insensitive)
-      const usersRes = await axios.get('http://localhost:5000/api/user');
+      const usersRes = await axios.get('http://localhost:5001/api/user');
       const userToAdd = usersRes.data.find(user => 
         user.email && user.email.toLowerCase() === newMemberEmail.toLowerCase()
       );
@@ -269,10 +269,10 @@ const TrainingDetail = () => {
       }
   
       // 5. Make the API call to add the member
-      await axios.post('http://localhost:5000/api/trainingapplication', postData);
+      await axios.post('http://localhost:5001/api/trainingapplication', postData);
   
       // 6. Refresh the members list
-      const trainingApplicationRes = await axios.get('http://localhost:5000/api/trainingapplication');
+      const trainingApplicationRes = await axios.get('http://localhost:5001/api/trainingapplication');
       
       // Filter applications with proper userId and trainingId
       const trainingMembers = trainingApplicationRes.data.filter(ta => 
@@ -314,7 +314,7 @@ const TrainingDetail = () => {
     if (!deleteModal.memberId) return;
   
     try {
-      const trainingApplicationRes = await axios.get('http://localhost:5000/api/trainingapplication');
+      const trainingApplicationRes = await axios.get('http://localhost:5001/api/trainingapplication');
       
       // Filter out invalid applications first
       const validApplications = trainingApplicationRes.data.filter(ta => 
@@ -334,10 +334,10 @@ const TrainingDetail = () => {
       }
   
       const idToDelete = taToDelete.mysqlId || taToDelete._id;
-      await axios.delete(`http://localhost:5000/api/trainingapplication/${idToDelete}`);
+      await axios.delete(`http://localhost:5001/api/trainingapplication/${idToDelete}`);
       
       // Get updated list with proper filtering
-      const updatedTA = await axios.get('http://localhost:5000/api/trainingapplication');
+      const updatedTA = await axios.get('http://localhost:5001/api/trainingapplication');
       const updatedMembers = updatedTA.data
         .filter(ta => 
           ta.userId !== null && 

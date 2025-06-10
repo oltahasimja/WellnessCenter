@@ -11,7 +11,7 @@ function Navbar({ setTheme, setActiveComponent }) {
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        const response = await axios.get('http://localhost:5000/user', {
+        const response = await axios.get('http://localhost:5001/user', {
           withCredentials: true
         });
         

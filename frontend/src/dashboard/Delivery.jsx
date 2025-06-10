@@ -12,12 +12,12 @@ const Delivery = () => {
   }, []);
 
   const fetchDeliverys = async () => {
-    const response = await axios.get('http://localhost:5000/api/delivery');
+    const response = await axios.get('http://localhost:5001/api/delivery');
     setDeliveryList(response.data);
   };
 
   const fetchOrders = async () => {
-    const response = await axios.get('http://localhost:5000/api/order');
+    const response = await axios.get('http://localhost:5001/api/order');
     setOrderList(response.data);
   };
 
@@ -31,9 +31,9 @@ const Delivery = () => {
       };
       
       if (formData.id) {
-        await axios.put(`http://localhost:5000/api/delivery/${formData.id}`, payload);
+        await axios.put(`http://localhost:5001/api/delivery/${formData.id}`, payload);
       } else {
-        await axios.post('http://localhost:5000/api/delivery', payload);
+        await axios.post('http://localhost:5001/api/delivery', payload);
       }
       fetchDeliverys();
       setFormData({});
@@ -51,7 +51,7 @@ const Delivery = () => {
   };
 
   const handleDelete = async (id) => {
-    await axios.delete(`http://localhost:5000/api/delivery/${id}`);
+    await axios.delete(`http://localhost:5001/api/delivery/${id}`);
     fetchDeliverys();
   };
 
