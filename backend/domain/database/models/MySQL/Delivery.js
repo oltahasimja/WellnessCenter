@@ -1,6 +1,6 @@
 const { DataTypes } = require('sequelize');
-const sequelize = require('../../../config/database');
-const Order = require('./MySQL/Order');
+const sequelize = require('../../../../config/database');
+const Order = require('./Order');
 
 const Delivery = sequelize.define('Delivery', {
 

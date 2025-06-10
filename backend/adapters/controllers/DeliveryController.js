@@ -1,5 +1,4 @@
-
-const DeliveryRepository = require("../../domain/repository/DeliveryRepository");
+const DeliveryRepository = require('../../domain/repository/DeliveryRepository');
 const DeliveryPort = require("../../application/ports/DeliveryPort");
 const DeliveryUseCase = require("../../application/use-cases/DeliveryUseCase");
 const port = new DeliveryPort(DeliveryRepository);
