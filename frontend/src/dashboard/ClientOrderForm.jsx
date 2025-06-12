@@ -89,62 +89,62 @@ const ClientOrderForm = () => {
     setClientData({ ...clientData, city: e.target.value });
   };
 
-  // Handling the order
+  
   const handleSubmit = async (e) => {
-    e.preventDefault();
+  e.preventDefault();
 
-    const totalPrice = calculateTotalPrice(cart);
+  const totalPrice = calculateTotalPrice(cart);
 
-    if (!cart || cart.length === 0) {
-      alert('Your cart is empty.');
-      return;
-    }
+  if (!cart || cart.length === 0) {
+    alert('Your cart is empty.');
+    return;
+  }
 
-    if (!clientData.name || !clientData.lastname || !clientData.email || !clientData.phone) {
-      alert('Please fill in all client details.');
-      return;
-    }
+  if (!clientData.name || !clientData.lastname || !clientData.email || !clientData.phone) {
+    alert('Please fill in all client details.');
+    return;
+  }
 
-    const transformedCart = cart.map(item => ({
-       productId: item._id || item.id,
-      quantity: item.quantity,
-      price: item.price,
-    }));
+  const transformedCart = cart.map(item => ({
+    productId: item._id || item.id,
+    quantity: item.quantity,
+    price: item.price,
+  }));
 
-    const orderData = {
-      mysqlId: "1",
-      clientData,  
-      orderDate: new Date(),
-      cart: transformedCart,  
-      totalPrice,  
-    };
-
-    setLoading(true);
-
-    try {
-      await axios.post('http://localhost:5001/api/order', orderData); 
-      alert('Your order has been placed successfully!');
-
-      setClientData({
-        name: '',
-        lastname: '',
-        city: '',
-        street: '',
-        country: '',
-        email: '',
-        phone: '',
-      });
-
-      localStorage.removeItem("cart");
-      navigate("/productspage");
-
-    } catch (error) {
-      alert('Something went wrong while placing the order. Please try again.');
-      console.error("Error while placing the order:", error);
-    } finally {
-      setLoading(false);
-    }
+  const orderData = {
+    mysqlId: "1",
+    clientData,  
+    orderDate: new Date(),
+    cart: transformedCart,  
+    totalPrice,  
   };
+
+  setLoading(true);
+
+  try {
+    const response = await axios.post('http://localhost:5001/api/order', orderData); 
+
+    const orderNumber = Math.floor(100000 + Math.random() * 900000);
+    
+    
+    navigate("/order-confirmation", {
+      state: {
+        orderNumber,
+        clientData,
+        cart,
+        totalPrice
+      }
+    });
+
+    localStorage.removeItem("cart");
+
+  } catch (error) {
+    alert('Something went wrong while placing the order. Please try again.');
+    console.error("Error while placing the order:", error);
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
     <div className="min-h-screen bg-gray-100 py-12 px-4 sm:px-6 lg:px-8">
