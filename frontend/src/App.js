@@ -36,7 +36,6 @@
   import ClientOrderForm from './dashboard/ClientOrderForm';
   import CartItem from './dashboard/CartItem';
   import { NotificationSoundProvider } from './context/NotificationSoundContext.jsx';
-  import OrderConfirmation from './pages/OrderConfirmation.jsx';
 
   const AppRoutes = () => {
     const { darkMode } = useTheme();
@@ -86,14 +85,10 @@
           <Route path="/training/:id" element={<TrainingDetail />} />
           <Route path="/order" element={<Order />} />
           <Route path="/delivery" element={<Delivery/>}/>
-        
 
           <Route path="/product" element={<Product/>}/>
           <Route path="/productspage" element={<ProductsPage/>}/>
           <Route path="/client-order-form" element={<ClientOrderForm />} />
-          <Route path="/order-confirmation" element={<OrderConfirmation/>}/>
-          <Route path="/product/:productName" element={<ProductDetailPage />} />
-
 
 
           <Route path="/category" element={<Category/>}/>

@@ -18,7 +18,7 @@ const staticProducts = [
   {
     id: 1,
     name: 'Organic Turmeric Powder',
-    description: 'Sourced from the lush fields of India, our Organic Turmeric Powder is a potent golden spice celebrated for its powerful anti-inflammatory and antioxidant properties. Perfect for curries, lattes, and wellness tonics, it supports joint health, boosts immunity, and promotes radiant skin. Add this ancient Ayurvedic staple to your daily routine for a natural health boost.  ',
+    description: 'Anti-inflammatory golden spice from India',
     price: 35.00,
     category: 'Spices',
     rating: 4.5,
@@ -27,7 +27,7 @@ const staticProducts = [
   {
     id: 2,
     name: 'Cold-Pressed Coconut Oil',
-    description: 'Our Cold-Pressed Coconut Oil is extracted from fresh, handpicked coconuts using a traditional method that preserves all its natural nutrients. Rich in healthy fats and lauric acid, this versatile oil is perfect for cooking, baking, hair care, and skincare. It hydrates deeply, promotes hair growth, and adds a delicious tropical flavor to your meals.',
+    description: 'Pure virgin coconut oil for cooking and hair care',
     price: 21.00,
     category: 'Oils',
     rating: 4.8,
@@ -36,7 +36,7 @@ const staticProducts = [
   {
     id: 3,
     name: 'Himalayan Salt Lamp',
-    description: 'Crafted from authentic Himalayan pink salt crystals, this beautiful lamp purifies the air by releasing negative ions, reducing allergens and pollutants. It creates a warm, ambient glow that enhances mood, improves sleep quality, and reduces stress. A perfect addition to your home or workspace for wellness and relaxation.',
+    description: 'Natural air purifier and mood enhancer',
     price: 75.00,
     category: 'Home',
     rating: 4.3,
@@ -45,7 +45,7 @@ const staticProducts = [
   {
     id: 4,
     name: 'Bamboo Toothbrush Set',
-    description: 'Make the switch to sustainability with our Bamboo Toothbrush Set. These biodegradable brushes feature soft, BPA-free bristles and a smooth bamboo handle that’s gentle on your gums and the planet. Designed for effective cleaning, they help reduce plastic waste while keeping your smile fresh and healthy.',
+    description: 'Eco-friendly biodegradable toothbrushes',
     price: 22.00,
     category: 'Personal Care',
     rating: 4.7,
@@ -54,7 +54,7 @@ const staticProducts = [
   {
     id: 5,
     name: 'Lavender Essential Oil',
-    description: 'Steam-distilled from the finest lavender flowers, this essential oil is a natural remedy for stress, anxiety, and insomnia. Just a few drops in a diffuser or bath will soothe your senses, promote restful sleep, and relax tense muscles. It’s also great for skin care, with antimicrobial properties that help reduce blemishes and irritation.',
+    description: 'Calming and relaxing aromatherapy oil',
     price: 17.00,
     category: 'Essentials',
     rating: 4.6,
@@ -63,7 +63,7 @@ const staticProducts = [
   {
     id: 6,
     name: 'Matcha Green Tea Powder',
-    description: 'Harvested in the shade and stone-ground to perfection, our ceremonial grade Matcha Green Tea Powder is rich in antioxidants, especially EGCG, which supports metabolism and detoxification. It delivers sustained energy, mental clarity, and a smooth umami flavor. Ideal for lattes, smoothies, and baking.',
+    description: 'Premium ceremonial grade matcha from Japan',
     price: 28.00,
     category: 'Teas',
     rating: 4.9,
@@ -72,7 +72,7 @@ const staticProducts = [
   {
     id: 7,
     name: 'Yoga Mat',
-    description: 'Elevate your practice with our eco-friendly Yoga Mat, made from non-toxic, biodegradable materials. Designed for durability and comfort, it features a non-slip surface that ensures stability during any pose. Whether you’re practicing yoga, pilates, or stretching, this mat provides the perfect foundation for mindful movement.',
+    description: 'Non-slip eco-friendly yoga mat',
     price: 40.00,
     category: 'Fitness',
     rating: 4.4,
@@ -81,7 +81,7 @@ const staticProducts = [
   {
     id: 8,
     name: 'Aloe Vera Gel',
-    description: 'Made from 99% pure aloe vera extract, this soothing gel is your go-to for hydration, healing, and after-sun care. It absorbs quickly to calm irritation, reduce redness, and moisturize deeply without leaving a greasy residue. Suitable for all skin types, it’s a natural solution for a healthy, refreshed complexion.',
+    description: 'Pure aloe vera for skin hydration',
     price: 36.00,
     category: 'Personal Care',
     rating: 4.2,
@@ -146,8 +146,7 @@ function ProductsPage() {
     };
 
     fetchProducts();
-  },  [setCart]);
-
+  }, []);
 
   useEffect(() => {
     localStorage.setItem('cart', JSON.stringify(cart));
@@ -180,18 +179,18 @@ function ProductsPage() {
     setFilteredProducts(result);
   }, [products, selectedCategory, searchTerm, priceRange, ratingFilter]);
 
-const addToCart = async (product) => {
+ const addToCart = async (product) => {
   try {
     const user = JSON.parse(localStorage.getItem('currentUser'));
-    if (!user?.id) {
-      alert('Please login to add items to cart');
+    if (!user || !user.id) {
+      console.error('User not logged in');
       return;
     }
 
     const payload = {
-      userId: user.id,
-      usersId: user.id,
-      productId: product.id,
+      userId: user.id, // per MySQL
+      usersId: user.id, // per Mongo reference
+      productId: product.id || product._id,
       name: product.name,
       image: product.image,
       price: product.price,
@@ -210,24 +209,8 @@ const addToCart = async (product) => {
 
     const savedItem = await response.json();
 
-    setCart(prevCart => {
-      const existingItem = prevCart.find(item => 
-        item.productId === product.id || 
-        (item.id && item.id === product.id)
-      );
-      
-      if (existingItem) {
-        return prevCart.map(item =>
-          (item.productId === product.id || 
-           (item.id && item.id === product.id))
-            ? { ...item, quantity: item.quantity + 1 }
-            : item
-        );
-      }
-      return [...prevCart, savedItem];
-    });
-
-    setShowCart(true); // Show the cart after adding
+    // opsionalisht mund të përditësosh gjendjen
+    setCart(prevCart => [...prevCart, savedItem]);
     setClickedButtonId(product.id);
     setTimeout(() => setClickedButtonId(null), 1000);
   } catch (err) {
