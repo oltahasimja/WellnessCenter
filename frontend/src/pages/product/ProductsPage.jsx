@@ -11,7 +11,7 @@ import ProductSearch from './ProductSearch';
 import ProductFilters from './ProductFilters';
 import ProductGrid from './ProductGrid';
 import Footer from '../Footer';
-import CartContext from '../../context/CartContext';
+import { CartContext } from '../../context/CartContext';
 
 // static products 
 const staticProducts = [

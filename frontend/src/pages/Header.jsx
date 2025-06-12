@@ -3,7 +3,7 @@ import { useNavigate, Link, useLocation } from "react-router-dom";
 import { motion } from 'framer-motion';
 import { FaShoppingCart, FaSignInAlt, FaSignOutAlt, FaComment, FaUser, FaBars, FaTimes, FaVolumeUp, FaVolumeMute } from 'react-icons/fa';
 import axios from "axios";
-import CartContext from "../context/CartContext";
+import { CartContext } from '../context/CartContext';
 import io from 'socket.io-client';
 import { useNotificationSound } from "../context/NotificationSoundContext";
 

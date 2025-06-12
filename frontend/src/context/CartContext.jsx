@@ -1,10 +1,12 @@
-// In CartContext.js
+import React, { createContext, useState } from 'react';
+
+export const CartContext = createContext(); // ✅ Add this
+
 export const CartProvider = ({ children }) => {
   const [cart, setCart] = useState([]);
   const [showCart, setShowCart] = useState(false);
   const [userId, setUserId] = useState(null);
 
-  // Add this new function to handle adding items
   const addToCart = async (product, quantity = 1) => {
     const user = JSON.parse(localStorage.getItem("currentUser"));
     if (!user?.id) {
@@ -13,7 +15,6 @@ export const CartProvider = ({ children }) => {
     }
 
     try {
-      // Optimistic UI update
       setCart(prevCart => {
         const existingItem = prevCart.find(item => item.productId === product.id);
         
@@ -32,12 +33,9 @@ export const CartProvider = ({ children }) => {
         }
       });
 
-      // Sync with backend
       const response = await fetch('http://localhost:5001/api/cartitem', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           userId: user.id,
           productId: product.id,
@@ -46,26 +44,35 @@ export const CartProvider = ({ children }) => {
       });
 
       if (!response.ok) throw new Error('Failed to add to cart');
-
       return true;
     } catch (err) {
       console.error("Error adding to cart:", err);
-      // Revert optimistic update on error
       setCart(prevCart => prevCart.filter(item => item.productId !== product.id));
       return false;
     }
   };
 
-  // Update the provider value to include addToCart
+  const removeFromCart = (productId) => {
+    setCart(prevCart => prevCart.filter(item => item.productId !== productId));
+  };
+
+  const updateQuantity = (productId, quantity) => {
+    setCart(prevCart =>
+      prevCart.map(item =>
+        item.productId === productId ? { ...item, quantity } : item
+      )
+    );
+  };
+
   return (
-    <CartContext.Provider value={{ 
-      cart, 
-      setCart, 
-      showCart, 
+    <CartContext.Provider value={{
+      cart,
+      setCart,
+      showCart,
       setShowCart,
-      addToCart, // Make sure to expose this
-      removeFromCart, 
-      updateQuantity 
+      addToCart,
+      removeFromCart,
+      updateQuantity,
     }}>
       {children}
     </CartContext.Provider>

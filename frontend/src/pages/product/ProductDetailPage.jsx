@@ -2,7 +2,9 @@ import { useState, useContext, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import Header from '../Header';
-import CartContext from '../../context/CartContext';
+import { CartContext } from '../../context/CartContext';
+import ShoppingCart from './ShoppingCart'; 
+
 
 function ProductDetailPage() {
   const { state } = useLocation();
@@ -172,6 +174,8 @@ function ProductDetailPage() {
           </div>
         </div>
       </div>
+      {showCart && <ShoppingCart />}
+
 
       {/* Footer */}
       <footer className="bg-emerald-100 text-center py-8 mt-16 border-t border-gray-200 text-emerald-700">

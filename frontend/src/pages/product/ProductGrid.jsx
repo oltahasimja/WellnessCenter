@@ -26,11 +26,12 @@ const ProductGrid = ({ products, addToCart, clickedButtonId }) => {
             whileHover={{ y: -5 }}
             transition={{ type: 'spring', stiffness: 300 }}
           >
-            <ProductCard 
-              product={product}
-              addToCart={(e) => handleAddToCart(e, product)}
-              clickedButtonId={clickedButtonId}
-            />
+           <ProductCard 
+            product={product}
+            addToCart={addToCart}
+            clickedButtonId={clickedButtonId}
+          />
+
           </motion.div>
         </Link>
       ))}

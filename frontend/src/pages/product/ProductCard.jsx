@@ -9,18 +9,18 @@ const ProductCard = ({ product, addToCart, clickedButtonId }) => {
   const navigate = useNavigate(); 
 
   const handleAddToCart = (e) => {
-    e.stopPropagation();
-    e.preventDefault();
+  e.preventDefault();
+  e.stopPropagation();
 
-    const user = JSON.parse(localStorage.getItem("currentUser"));
+  const user = JSON.parse(localStorage.getItem("currentUser"));
+  if (!user || !user.id) {
+    alert("Duhet të kyçeni për të shtuar në shportë");
+    return navigate("/login");
+  }
 
-    if (!user || !user.id) {
-      alert("Duhet te kyçeni per te shtuar ne shport E ndreqni qeto mire mu dok ");
-      return navigate("/login");
-    }
+  addToCart(product); // kjo është funksioni origjinal i cartit
+};
 
-    addToCart(product);
-  };
 
   return (
     <motion.div 

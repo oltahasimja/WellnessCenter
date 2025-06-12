@@ -11,7 +11,7 @@ import "slick-carousel/slick/slick-theme.css";
 import axios from 'axios';
 import ShoppingCart from "./product/ShoppingCart";
 import { useNavigate, useLocation } from 'react-router-dom';
-import CartContext from '../context/CartContext';
+import { CartContext } from '../context/CartContext';
 
 
 axios.defaults.withCredentials = true;

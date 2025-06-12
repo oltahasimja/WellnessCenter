@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { useContext } from 'react';
-import CartContext from '../../context/CartContext';
+import { CartContext } from '../../context/CartContext';
 
 const ShoppingCart = () => {
   const { cart, setCart, showCart, setShowCart } = useContext(CartContext);
