@@ -3,6 +3,13 @@ import { Link } from 'react-router-dom';
 import ProductCard from './ProductCard';
 
 const ProductGrid = ({ products, addToCart, clickedButtonId }) => {
+ 
+  const handleAddToCart = (e, product) => {
+    e.preventDefault(); 
+    e.stopPropagation(); 
+    addToCart(product);
+  };
+
   return (
     <motion.div 
       layout
@@ -10,16 +17,21 @@ const ProductGrid = ({ products, addToCart, clickedButtonId }) => {
     >
       {products.map(product => (
         <Link 
-          to={`/product/${encodeURIComponent(product.name)}`}
-          state={{ productData: product }}
+          to={`/product/${product.productName}`} 
+          state={{ product }} 
           key={product.id}
-          className="block" // Ensure Link takes full width/height
+          className="block hover:no-underline" 
         >
-          <ProductCard 
-            product={product}
-            addToCart={() => addToCart(product)}
-            clickedButtonId={clickedButtonId}
-          />
+          <motion.div
+            whileHover={{ y: -5 }}
+            transition={{ type: 'spring', stiffness: 300 }}
+          >
+            <ProductCard 
+              product={product}
+              addToCart={(e) => handleAddToCart(e, product)}
+              clickedButtonId={clickedButtonId}
+            />
+          </motion.div>
         </Link>
       ))}
     </motion.div>
