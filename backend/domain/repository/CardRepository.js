@@ -140,7 +140,7 @@ async create(data) {
         userId: data.createdById || null,
         programId: list.programId, // Add programId from the list
         action: 'CREATE_CARD_SUCCESS',
-        details: `User ${mysqlUser ? mysqlUser.username + ' (ID: ' + data.createdById + ')' : 'ID: ' + data.createdById} created card with ID ${mysqlResource.id} (${data.title}) in program ${list.programId}`
+        details: `User ${mysqlUser ? mysqlUser.username + ' (ID: ' + data.createdById + ')' : 'ID: ' + data.createdById} created card with title ${mysqlResource.title} `
       });
       return mysqlResource;
     } catch (error) {
@@ -288,7 +288,7 @@ async update(id, data) {
         userId: userId || null,
         programId: list?.programId || null,
         action: 'UPDATE_CARD_SUCCESS',
-        details: `User ${user ? user.username + ' (ID: ' + userId + ')' : 'ID: ' + userId} updated card with ID ${id} in program ${list?.programId || 'unknown'}`
+        details: `User ${user ? user.username + ' (ID: ' + userId + ')' : 'ID: ' + userId} updated card with name ${mysqlUpdateData.title} in program ${list?.programId || 'unknown'}`
       });
       } else {
         await Log.create({

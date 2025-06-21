@@ -53,8 +53,8 @@ const LogsDisplay = ({ logs }) => {
 
                   {expandedLogIds.includes(log.id) && (
                     <div className="mt-3 space-y-1 text-sm text-gray-600">
-                      <p><span className="font-medium">User ID:</span> {log.userId}</p>
-                      <p><span className="font-medium">Program ID:</span> {log.programId}</p>
+                      {/* <p><span className="font-medium">User ID:</span> {log.userId}</p> */}
+                      {/* <p><span className="font-medium">Program ID:</span> {log.programId}</p> */}
                       <p><span className="font-medium">Details:</span> {log.details}</p>
                       <p className="text-xs text-gray-400">
                         <span className="font-medium">Updated:</span> {new Date(log.updatedAt).toLocaleString()}
