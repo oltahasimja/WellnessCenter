@@ -3,7 +3,7 @@ const sequelize = require('../../../../config/database');
 
 const ProfileImage = sequelize.define('ProfileImage', {
     name: {
-      type: DataTypes.TEXT,
+      type: DataTypes.TEXT('long'),
       allowNull: false,
       // unique: true 
     },

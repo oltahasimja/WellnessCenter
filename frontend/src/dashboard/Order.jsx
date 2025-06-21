@@ -32,7 +32,7 @@ const Order = () => {
 
   return (
     <div className="flex justify-center items-center min-h-screen bg-gray-700">
-      <div className="bg-gray-800 shadow-lg rounded-lg p-6 w-full max-w-3xl">
+      <div className="bg-gray-800 shadow-lg rounded-lg p-6 w-full max-w-7xl">
         <h1 className="text-3xl font-bold text-center mb-6 text-white">Order Dashboard</h1>
 
         <div className="overflow-x-auto">

@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import axios from "axios";
 import { useLocation, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import { useContext } from 'react';
+import { CartContext } from '../context/CartContext';
 
 const ClientOrderForm = () => {
   const [clientData, setClientData] = useState({
@@ -20,6 +22,8 @@ const ClientOrderForm = () => {
   const [countryList, setCountryList] = useState([]);
   const [cityList, setCityList] = useState([]);
   const [selectedCountry, setSelectedCountry] = useState("");
+  const { setCart } = useContext(CartContext);
+
 
   
   useEffect(() => {
@@ -115,12 +119,12 @@ const ClientOrderForm = () => {
     setLoading(true);
 
     try {
-      const response = await axios.post('http://localhost:5001/api/orders', orderData);
+      const response = await axios.post('http://localhost:5001/api/order', orderData);
       const orderNumber = response.data.orderId || Math.floor(100000 + Math.random() * 900000);
       
       
       localStorage.removeItem("cart");
-      
+      setCart([]);
       
       navigate("/order-confirmation", {
         state: {
