@@ -96,25 +96,30 @@ class TrainingRepository {
   
   async update(id, data) {
     try {
-      // Update in MySQL
-      const [updatedCount] = await Training.update(
-        { ...data },
-        { where: { id } }
-      );
-  
-      if (updatedCount === 0) {
+      // First check if training exists in MySQL
+      const mysqlTraining = await Training.findByPk(id);
+      if (!mysqlTraining) {
         throw new Error("Training not found in MySQL");
       }
-      
+  
+      // Update in MySQL
+      await mysqlTraining.update(data);
+  
       // Prepare update data for MongoDB
       const mongoUpdateData = { ...data };
-      
-      // Handle foreign keys - convert MySQL IDs to MongoDB references
-      
-      
+  
+      // Handle createdById conversion if it's being updated
+      if (data.createdById) {
+        const user = await UserMongo.findOne({ mysqlId: data.createdById.toString() });
+        if (!user) {
+          throw new Error(`User with mysqlId ${data.createdById} not found in MongoDB`);
+        }
+        mongoUpdateData.createdById = user._id;
+      }
+  
       // Update in MongoDB
       const updatedMongoDB = await TrainingMongo.updateOne(
-        { mysqlId: id },
+        { mysqlId: id.toString() }, // Ensure id is string
         { $set: mongoUpdateData }
       );
   
@@ -122,7 +127,6 @@ class TrainingRepository {
         console.warn("Training not found in MongoDB or no changes made");
       }
   
-      // Return the updated resource with populated relationships
       return this.findById(id);
     } catch (error) {
       console.error("Error updating Training:", error);
