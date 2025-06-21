@@ -14,7 +14,7 @@ function Schedule() {
   useEffect(() => {
     const fetchSchedules = async () => {
       try {
-        const response = await fetch('http://localhost:5000/api/schedule');
+        const response = await fetch('http://localhost:5001/api/schedule');
         if (!response.ok) {
           throw new Error('Network response was not ok');
         }
@@ -31,17 +31,20 @@ function Schedule() {
   }, []);
 
   // Function to get profile image URL
-  const getProfileImageUrl = (specialist) => {
-    if (specialist.specialistId?.profileImageId?.name) {
-      // If it's a base64 string, prepend with data URL
-      const base64String = specialist.specialistId.profileImageId.name;
-      if (base64String.startsWith('/9j/') || base64String.startsWith('iVBOR')) {
-        return `data:image/jpeg;base64,${base64String}`;
-      }
+const getProfileImageUrl = (specialist) => {
+  if (specialist?.specialistId?.profileImageId?.name) {
+    const base64String = specialist.specialistId.profileImageId.name;
+
+    // Kontrollo nëse string-u tashmë përmban 'data:image'
+    if (base64String.startsWith('data:image')) {
       return base64String;
     }
-    return null;
-  };
+
+    // Shto prefix nëse mungon
+    return `data:image/jpeg;base64,${base64String}`;
+  }
+  return null;
+};
 
   // Get specialist name
   const getSpecialistName = (specialist) => {
@@ -86,7 +89,7 @@ function Schedule() {
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
+      <div className="flex justify-center items-center h-screen bg-gradient-to-br from-teal-900 via-teal-900 to-teal-900">
         <div className="relative">
           <div className="animate-spin rounded-full h-32 w-32 border-t-4 border-b-4 border-cyan-400"></div>
           <div className="absolute inset-0 rounded-full border-4 border-purple-300 opacity-30 animate-pulse"></div>
@@ -97,7 +100,7 @@ function Schedule() {
 
   if (error) {
     return (
-      <div className="flex justify-center items-center h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
+      <div className="flex justify-center items-center h-screen bg-gradient-to-br from-red-900 via-red-900 to-red-900">
         <div className="bg-red-900/80 backdrop-blur-lg border border-red-500 text-red-100 px-6 py-4 rounded-2xl shadow-2xl">
           <div className="flex items-center space-x-3">
             <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
@@ -280,22 +283,18 @@ function Schedule() {
                           <div className="flex items-center justify-between mb-4">
                             <div className="flex items-center space-x-4">
                               {/* Profile Image */}
-                              <div className="w-16 h-16 rounded-full overflow-hidden bg-white/20 backdrop-blur-sm border-2 border-white/30 flex-shrink-0">
-                                {profileImageUrl ? (
-                                  <img 
-                                    src={profileImageUrl} 
-                                    alt={specialistName}
-                                    className="w-full h-full object-cover"
-                                    onError={(e) => {
-                                      e.target.style.display = 'none';
-                                      e.target.nextSibling.style.display = 'flex';
-                                    }}
-                                  />
-                                ) : null}
-                                <div className={`w-full h-full flex items-center justify-center ${profileImageUrl ? 'hidden' : 'flex'}`}>
-                                  <FaUser className="text-2xl text-white/80" />
-                                </div>
-                              </div>
+                            <div className="w-16 h-16 rounded-full overflow-hidden border border-white/30 bg-white/10 flex items-center justify-center">
+                                    {profileImageUrl ? (
+                                      <img 
+                                        src={profileImageUrl} 
+                                        alt={specialistName}
+                                        className="w-full h-full object-cover object-center"
+                                      />
+                                    ) : (
+                                      <FaUser className="text-2xl text-white/80" />
+                                    )}
+                                  </div>
+
                               <FaUserMd className="text-2xl text-white/80" />
                             </div>
                             <div className="px-3 py-1 bg-white/20 backdrop-blur-sm rounded-full">

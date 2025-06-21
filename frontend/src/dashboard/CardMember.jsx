@@ -19,17 +19,17 @@ const CardMember = () => {
   }, []);
 
   const fetchCardMember = async () => {
-    const response = await axios.get("http://localhost:5000/api/cardmember");
+    const response = await axios.get("http://localhost:5001/api/cardmember");
     setCardMemberList(response.data);
   };
   useEffect(() => {
     const checkLoginStatus = async () => {
       try {
-        const response = await axios.get('http://localhost:5000/user', { withCredentials: true });
+        const response = await axios.get('http://localhost:5001/user', { withCredentials: true });
         if (!response.data.user) {
           navigate('/login');
         } else {
-          const userResponse = await axios.get(`http://localhost:5000/api/user/${response.data.user.id}`);
+          const userResponse = await axios.get(`http://localhost:5001/api/user/${response.data.user.id}`);
           const userRole = userResponse.data.roleId?.name;
           
           setCurrentUser({
@@ -47,12 +47,12 @@ const CardMember = () => {
     checkLoginStatus();
   }, [navigate]);
   const fetchUsers = async () => {
-    const response = await axios.get("http://localhost:5000/api/user");
+    const response = await axios.get("http://localhost:5001/api/user");
     setUserList(response.data);
   };
 
   const fetchCards = async () => {
-    const response = await axios.get("http://localhost:5000/api/card");
+    const response = await axios.get("http://localhost:5001/api/card");
     setCardList(response.data);
   };
 
@@ -74,13 +74,13 @@ const CardMember = () => {
       if (formData.id) {
         submissionData.id = formData.id;
         await axios.put(
-          `http://localhost:5000/api/cardmember/${formData.id}`,
+          `http://localhost:5001/api/cardmember/${formData.id}`,
           submissionData
         );
       } else {
         // First try to add the invited user
         try {
-          await axios.post("http://localhost:5000/api/cardmember", submissionData);
+          await axios.post("http://localhost:5001/api/cardmember", submissionData);
         } catch (error) {
           if (error.response?.data?.message?.includes("already exists")) {
             alert('This user is already in the card');
@@ -112,7 +112,7 @@ const CardMember = () => {
   };
 
   const handleDelete = async (id) => {
-    await axios.delete(`http://localhost:5000/api/cardmember/${id}`);
+    await axios.delete(`http://localhost:5001/api/cardmember/${id}`);
     fetchCardMember();
   };
 

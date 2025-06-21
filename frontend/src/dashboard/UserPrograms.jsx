@@ -19,17 +19,17 @@ const UserPrograms = () => {
   }, []);
 
   const fetchUserPrograms = async () => {
-    const response = await axios.get("http://localhost:5000/api/userprograms");
+    const response = await axios.get("http://localhost:5001/api/userprograms");
     setUserProgramsList(response.data);
   };
   useEffect(() => {
     const checkLoginStatus = async () => {
       try {
-        const response = await axios.get('http://localhost:5000/user', { withCredentials: true });
+        const response = await axios.get('http://localhost:5001/user', { withCredentials: true });
         if (!response.data.user) {
           navigate('/login');
         } else {
-          const userResponse = await axios.get(`http://localhost:5000/api/user/${response.data.user.id}`);
+          const userResponse = await axios.get(`http://localhost:5001/api/user/${response.data.user.id}`);
           const userRole = userResponse.data.roleId?.name;
           
           setCurrentUser({
@@ -47,12 +47,12 @@ const UserPrograms = () => {
     checkLoginStatus();
   }, [navigate]);
   const fetchUsers = async () => {
-    const response = await axios.get("http://localhost:5000/api/user");
+    const response = await axios.get("http://localhost:5001/api/user");
     setUserList(response.data);
   };
 
   const fetchPrograms = async () => {
-    const response = await axios.get("http://localhost:5000/api/program");
+    const response = await axios.get("http://localhost:5001/api/program");
     setProgramList(response.data);
   };
 
@@ -74,13 +74,13 @@ const UserPrograms = () => {
       if (formData.id) {
         submissionData.id = formData.id;
         await axios.put(
-          `http://localhost:5000/api/userprograms/${formData.id}`,
+          `http://localhost:5001/api/userprograms/${formData.id}`,
           submissionData
         );
       } else {
         // First try to add the invited user
         try {
-          await axios.post("http://localhost:5000/api/userprograms", submissionData);
+          await axios.post("http://localhost:5001/api/userprograms", submissionData);
         } catch (error) {
           if (error.response?.data?.message?.includes("already exists")) {
             alert('This user is already in the program');
@@ -92,7 +92,7 @@ const UserPrograms = () => {
         // Then ensure the inviter is in the program (unless they're adding themselves)
         if (formData.userId !== currentUser.id) {
           try {
-            await axios.post("http://localhost:5000/api/userprograms", {
+            await axios.post("http://localhost:5001/api/userprograms", {
               userId: currentUser.id,
               programId: formData.programId,
               invitedById: currentUser.id // Self-invited
@@ -125,7 +125,7 @@ const UserPrograms = () => {
   };
 
   const handleDelete = async (id) => {
-    await axios.delete(`http://localhost:5000/api/userprograms/${id}`);
+    await axios.delete(`http://localhost:5001/api/userprograms/${id}`);
     fetchUserPrograms();
   };
 

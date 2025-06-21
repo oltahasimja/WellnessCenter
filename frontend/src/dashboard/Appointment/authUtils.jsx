@@ -11,11 +11,11 @@ import axios from "axios";
  */
 export const checkLoginStatus = async (navigate, setCurrentUser, setFormData, setLoading) => {
   try {
-    const response = await axios.get('http://localhost:5000/user', { withCredentials: true });
+    const response = await axios.get('http://localhost:5001/user', { withCredentials: true });
     if (!response.data.user) {
       navigate('/login');
     } else {
-      const userResponse = await axios.get(`http://localhost:5000/api/user/${response.data.user.id}`);
+      const userResponse = await axios.get(`http://localhost:5001/api/user/${response.data.user.id}`);
       const userRole = userResponse.data.roleId?.name;
       
       setCurrentUser({

@@ -32,7 +32,7 @@ const Login = () => {
     e.preventDefault();
     try {
       const response = await axios.post(
-        'http://localhost:5000/api/login/login',
+        'http://localhost:5001/api/login/login',
         { username, password }
       );
 
@@ -67,7 +67,7 @@ const Login = () => {
   const handleGoogleSuccess = async (credentialResponse) => {
     try {
       const response = await axios.post(
-        'http://localhost:5000/api/login/auth/google',
+        'http://localhost:5001/api/login/auth/google',
         { token: credentialResponse.credential },
         { withCredentials: true }
       );

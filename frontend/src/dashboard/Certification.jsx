@@ -13,23 +13,23 @@ axios.defaults.withCredentials = true;
 fetchTrainings();;
   }, []);
   const fetchCertifications = async () => {
-    const response = await axios.get('http://localhost:5000/api/certification');
+    const response = await axios.get('http://localhost:5001/api/certification');
     setCertificationList(response.data);
   };
   const fetchUsers = async () => {
-    const response = await axios.get('http://localhost:5000/api/user');
+    const response = await axios.get('http://localhost:5001/api/user');
     setUserList(response.data);
   };
 const fetchTrainings = async () => {
-    const response = await axios.get('http://localhost:5000/api/training');
+    const response = await axios.get('http://localhost:5001/api/training');
     setTrainingList(response.data);
   };
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (formData.id) {
-      await axios.put(`http://localhost:5000/api/certification/${formData.id}`, formData);
+      await axios.put(`http://localhost:5001/api/certification/${formData.id}`, formData);
     } else {
-      await axios.post('http://localhost:5000/api/certification', formData);
+      await axios.post('http://localhost:5001/api/certification', formData);
     }
     fetchCertifications();
     setFormData({});
@@ -43,7 +43,7 @@ const fetchTrainings = async () => {
     setFormData(editData);
   };
   const handleDelete = async (id) => {
-    await axios.delete(`http://localhost:5000/api/certification/${id}`);
+    await axios.delete(`http://localhost:5001/api/certification/${id}`);
     fetchCertifications();
   };
   return (

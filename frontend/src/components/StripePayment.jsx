@@ -16,11 +16,11 @@ const StripePayment = ({ appointmentData, onSuccess, schedules }) => {
       // Get specialist schedule
       const schedule = getSpecialistSchedule(appointmentData.specialistId, schedules);
       
-      // Get the price from schedule (default to 5000 if not found)
-      const amount = schedule?.price ? Math.round(schedule.price * 100) : 5000;
+      // Get the price from schedule (default to 5001 if not found)
+      const amount = schedule?.price ? Math.round(schedule.price * 100) : 5001;
 
       // 1. Create payment intent
-      const res = await axios.post("http://localhost:5000/api/stripe/create-payment-intent", {
+      const res = await axios.post("http://localhost:5001/api/stripe/create-payment-intent", {
         amount: amount,
         metadata: appointmentData
       });

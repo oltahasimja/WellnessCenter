@@ -12,43 +12,52 @@ class AppointmentRepository {
    * @param {Object} filter - Filter criteria (userId or specialistId)
    * @returns {Promise<Array>} Array of appointments
    */
-  async findAll(filter = {}) {
-    try {
-      const query = {};
-      
-      if (filter.specialistId) {
-        const specialist = await UserMongo.findOne({ 
-          mysqlId: filter.specialistId.toString() 
-        }).populate('roleId');
-        
-        if (!specialist) throw new Error('Specialist not found');
-        query.specialistId = specialist._id;
-      } 
-      else if (filter.userId) {
-        const user = await UserMongo.findOne({ mysqlId: filter.userId.toString() });
-        if (!user) throw new Error('User not found');
-        query.userId = user._id;
-      }
+ async findAll(filter = {}) {
+  try {
+    const query = {};
 
-      return await AppointmentMongo.find(query)
-        .populate({
-          path: 'userId',
-          select: 'name lastName email mysqlId'
-        })
-        .populate({
-          path: 'specialistId',
-          select: 'name lastName roleId mysqlId',
-          populate: {
-            path: 'roleId',
-            select: 'name mysqlId'
-          }
-        })
-        .lean();
-    } catch (error) {
-      console.error("Error finding appointments:", error);
-      throw error;
+    const conditions = [];
+
+    if (filter.specialistId) {
+      const specialist = await UserMongo.findOne({ 
+        mysqlId: filter.specialistId.toString() 
+      }).populate('roleId');
+      if (!specialist) throw new Error('Specialist not found');
+      conditions.push({ specialistId: specialist._id });
     }
+
+    if (filter.userId) {
+      const user = await UserMongo.findOne({ mysqlId: filter.userId.toString() });
+      if (!user) throw new Error('User not found');
+      conditions.push({ userId: user._id });
+    }
+
+    if (conditions.length === 1) {
+      Object.assign(query, conditions[0]); // specialistId ose userId
+    } else if (conditions.length > 1) {
+      query.$or = conditions; // te dyja
+    }
+
+    return await AppointmentMongo.find(query)
+      .populate({
+        path: 'userId',
+        select: 'name lastName email mysqlId'
+      })
+      .populate({
+        path: 'specialistId',
+        select: 'name lastName roleId mysqlId',
+        populate: {
+          path: 'roleId',
+          select: 'name mysqlId'
+        }
+      })
+      .lean();
+  } catch (error) {
+    console.error("Error finding appointments:", error);
+    throw error;
   }
+}
+
 
   /**
    * Find appointment by ID (handles both MongoDB _id and mysqlId)

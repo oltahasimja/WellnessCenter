@@ -10,19 +10,19 @@ const CartItem = () => {
     fetchUserss();;
   }, []);
   const fetchCartItems = async () => {
-    const response = await axios.get('http://localhost:5000/api/cartitem');
+    const response = await axios.get('http://localhost:5001/api/cartitem');
     setCartItemList(response.data);
   };
   const fetchUserss = async () => {
-    const response = await axios.get('http://localhost:5000/api/user');
+    const response = await axios.get('http://localhost:5001/api/user');
     setUsersList(response.data);
   };
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (formData.id) {
-      await axios.put(`http://localhost:5000/api/cartitem/${formData.id}`, formData);
+      await axios.put(`http://localhost:5001/api/cartitem/${formData.id}`, formData);
     } else {
-      await axios.post('http://localhost:5000/api/cartitem', formData);
+      await axios.post('http://localhost:5001/api/cartitem', formData);
     }
     fetchCartItems();
     setFormData({});
@@ -36,7 +36,7 @@ const CartItem = () => {
     setFormData(editData);
   };
   const handleDelete = async (id) => {
-    await axios.delete(`http://localhost:5000/api/cartitem/${id}`);
+    await axios.delete(`http://localhost:5001/api/cartitem/${id}`);
     fetchCartItems();
   };
   return (

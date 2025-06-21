@@ -13,7 +13,7 @@ const List = () => {
     useEffect(() => {
       const checkLoginStatus = async () => {
         try {
-          const response = await axios.get('http://localhost:5000/user', { withCredentials: true });
+          const response = await axios.get('http://localhost:5001/user', { withCredentials: true });
           if (response.data.user) {
             setUser(response.data.user);
           } else {
@@ -30,12 +30,12 @@ const List = () => {
       fetchPrograms(); // ✅ Make sure to call this function
     }, [navigate]);
   const fetchLists = async () => {
-    const response = await axios.get('http://localhost:5000/api/list');
+    const response = await axios.get('http://localhost:5001/api/list');
     setListList(response.data);
   };
 
     const fetchPrograms = async () => {
-      const response = await axios.get("http://localhost:5000/api/program");
+      const response = await axios.get("http://localhost:5001/api/program");
       setProgramList(response.data);
     };
   
@@ -50,9 +50,9 @@ const List = () => {
     const dataToSend = { ...formData, createdById: user.id, programId: formData.programId }; // Assign createdById automatically
 
     if (formData.id) {
-      await axios.put(`http://localhost:5000/api/list/${formData.id}`, dataToSend);
+      await axios.put(`http://localhost:5001/api/list/${formData.id}`, dataToSend);
     } else {
-      await axios.post('http://localhost:5000/api/list', dataToSend);
+      await axios.post('http://localhost:5001/api/list', dataToSend);
     }
     fetchLists();
     setFormData({});
@@ -77,7 +77,7 @@ const List = () => {
 
   const saveInlineEdit = async (id) => {
     try {
-      await axios.put(`http://localhost:5000/api/list/${id}`, { name: editName });
+      await axios.put(`http://localhost:5001/api/list/${id}`, { name: editName });
       setEditingId(null);
       setEditName('');
       fetchLists();
@@ -86,7 +86,7 @@ const List = () => {
     }
   };
   const handleDelete = async (id) => {
-    await axios.delete(`http://localhost:5000/api/list/${id}`);
+    await axios.delete(`http://localhost:5001/api/list/${id}`);
     fetchLists();
   };
   return (

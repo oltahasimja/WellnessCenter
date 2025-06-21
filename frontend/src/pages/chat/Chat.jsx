@@ -21,6 +21,8 @@ const [availableUsers, setAvailableUsers] = useState([]);
 const [selectedUsersToAdd, setSelectedUsersToAdd] = useState([]);
 const [showCreateGroupModal, setShowCreateGroupModal] = useState(false);
 const [newGroupName, setNewGroupName] = useState('');
+const [seenMessagesOnce, setSeenMessagesOnce] = useState(new Set());
+
 
 const [newMemberUsername, setNewMemberUsername] = useState('');
 const [isCheckingUser, setIsCheckingUser] = useState(false);
@@ -31,7 +33,7 @@ const [userCheckError, setUserCheckError] = useState(null);
   const typingTimeoutRef = useRef(null);
   
   const messagesEndRef = useRef(null);
-  const API_BASE_URL = 'http://localhost:5000/api';
+  const API_BASE_URL = 'http://localhost:5001/api';
   const navigate = useNavigate();
   const location = useLocation();
   
@@ -40,7 +42,7 @@ const [userCheckError, setUserCheckError] = useState(null);
     // Fetch user data first
     const fetchUser = async () => {
       try {
-        const response = await fetch('http://localhost:5000/user', {
+        const response = await fetch('http://localhost:5001/user', {
           credentials: 'include'
         });
         
@@ -52,7 +54,7 @@ const [userCheckError, setUserCheckError] = useState(null);
         setUser(data.user);
         
         // After getting user data, initialize socket
-        const newSocket = io('http://localhost:5000', {
+        const newSocket = io('http://localhost:5001', {
           withCredentials: true
         });
         
@@ -115,6 +117,19 @@ const [userCheckError, setUserCheckError] = useState(null);
       });
     }
   });
+
+  socket.on('memberLeft', ({ groupId, userId }) => {
+  if (selectedGroup && selectedGroup.id === groupId) {
+    fetchGroupMembers(groupId); // rifresko listen
+  }
+});
+
+  socket.on('membersAdded', ({ addedUserIds }) => {
+    if (addedUserIds.includes(user.id?.toString())) {
+      fetchGroups(); 
+    }
+  });
+
   
   // Listen for online status of users
   socket.on('userOnlineStatus', ({ userId, isOnline, onlineUsers: usersList }) => {
@@ -148,17 +163,10 @@ const [userCheckError, setUserCheckError] = useState(null);
       return newOnlineUsers;
     });
   });
+
   
-  // Get initial list of online users
-// socket.on('onlineUsersList', (usersList) => {
-//   const newOnlineUsers = {};
-//   usersList.forEach(user => {
-//     if (user && user.userId) {
-//       newOnlineUsers[user.userId.toString()] = true;
-//     }
-//   });
-//   setOnlineUsers(newOnlineUsers);
-// });
+  
+
 
 
     
@@ -183,7 +191,7 @@ const [userCheckError, setUserCheckError] = useState(null);
       }
     });
 
-    socket.on('messageSeenUpdate', ({ messageId, groupId, seenBy }) => {
+  socket.on('messageSeenUpdate', ({ messageId, groupId, seenBy }) => {
   if (selectedGroup && selectedGroup.id === groupId) {
     setMessageSeenStatus(prev => ({
       ...prev,
@@ -208,9 +216,13 @@ const [userCheckError, setUserCheckError] = useState(null);
       socket.off('userStoppedTyping');
       socket.off('userOnlineStatus');
       socket.off('onlineUsersList');
+      socket.off('memberLeft');
+      socket.off('membersAdded');
       socket.off('error');
     };
   }, [socket, user, selectedGroup]);
+
+  
   
   // Handle user typing detection
   useEffect(() => {
@@ -270,7 +282,7 @@ useEffect(() => {
   if (!socket) return;
 
   socket.on('removedFromGroup', ({ groupId, message }) => {
-    // Nëse je në atë grup aktualisht
+    // Nese je ne ate grup aktualisht
     if (selectedGroup && selectedGroup.id === groupId) {
       // alert(message); 
        navigate('/');  
@@ -283,47 +295,65 @@ useEffect(() => {
 }, [socket, selectedGroup]);
 
 
+const getLastSeenMessageForUsers = () => {
+  const userLastSeenMessages = {};
 
-const getLastSeenOwnMessageId = () => {
   for (let i = messages.length - 1; i >= 0; i--) {
     const msg = messages[i];
 
-    if (!isUserMessage(msg)) continue;
-
     const seenArray = messageSeenStatus[msg._id] || [];
 
-    // Hiq vetën nga lista e parëse
-    const otherSeen = seenArray.filter(seen =>
-      seen.userId._id !== user.id && seen.userId.mysqlId !== user.id.toString()
-    );
+    seenArray.forEach(seen => {
+      const userId = seen.userId._id || seen.userId.mysqlId;
 
-    if (otherSeen.length > 0) return msg._id;
+      // Mos perfshi veten (nese nuk do)
+      if (userId === user.id || userId === user.id.toString()) return;
+
+      if (!userLastSeenMessages[userId]) {
+        userLastSeenMessages[userId] = {
+          messageId: msg._id,
+          userData: seen.userId
+        };
+      }
+    });
   }
-  return null;
+
+  return userLastSeenMessages;
 };
 
+
+// Render i ri qe tregon "Seen by" per secilin mesazh sipas logjikes se re
 const renderMessageSeenBy = (message) => {
-  const lastSeenOwnMessageId = getLastSeenOwnMessageId();
-
-  if (message._id !== lastSeenOwnMessageId) return null;
-
-  const seenUsers = (messageSeenStatus[message._id] || []).filter(
-    seen => seen.userId._id !== user.id && seen.userId.mysqlId !== user.id.toString()
-  );
-
-  if (seenUsers.length === 0) return null;
-
-  // Unifikimi i përdoruesve për të mos u përsëritur
-  const uniqueSeenUsers = Array.from(
-    new Set(seenUsers.map(seen => seen.userId._id))
+  const userLastSeenMessages = getLastSeenMessageForUsers();
+  
+  // Gjej cilet users kane kete mesazh si te fundit qe kane lexuar
+  const usersWhoLastSeenThisMessage = [];
+  
+  Object.entries(userLastSeenMessages).forEach(([userId, data]) => {
+    if (data.messageId === message._id) {
+if (
+  (data.userData._id?.toString() !== user.id?.toString()) &&
+  (data.userData.mysqlId?.toString() !== user.id?.toString())
+) {
+  usersWhoLastSeenThisMessage.push(data.userData);
+}    }
+  });
+  
+  if (usersWhoLastSeenThisMessage.length === 0) return null;
+  
+  // Hiq duplikatet
+  const uniqueUsers = Array.from(
+    new Set(usersWhoLastSeenThisMessage.map(user => user._id || user.mysqlId))
   ).map(userId =>
-    seenUsers.find(seen => seen.userId._id === userId)
+    usersWhoLastSeenThisMessage.find(user => 
+      (user._id || user.mysqlId) === userId
+    )
   );
-
+  
   return (
     <div className="text-xs text-red-600 text-right mt-1 opacity-70">
-      Seen by: {uniqueSeenUsers.map(seen =>
-        `${seen.userId.name} ${seen.userId.lastName}`
+      Seen by: {uniqueUsers.map(user =>
+        `${user.name} ${user.lastName}`
       ).join(', ')}
     </div>
   );
@@ -369,22 +399,30 @@ const renderMessageSeenBy = (message) => {
   };
   
   // Fetch messages for a specific group
-  const fetchMessages = async (groupId) => {
-    try {
-      const response = await fetch(`${API_BASE_URL}/messagemongo/group/${groupId}`, {
-        credentials: 'include'
-      });
-      // if (!response.ok) {
-      //   throw new Error(`Failed to fetch messages: ${response.status} ${response.statusText}`);
-      // }
-      
-      const data = await response.json();
-      setMessages(data);
-    } catch (err) {
-      console.error("Error fetching messages:", err);
-      setError('Error fetching messages: ' + err.message);
-    }
-  };
+const fetchMessages = async (groupId) => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/messagemongo/group/${groupId}`, {
+      credentials: 'include'
+    });
+    
+    const data = await response.json();
+    setMessages(data);
+    
+    // Rifillo messageSeenStatus nga mesazhet e marra
+    const seenStatusObj = {};
+    data.forEach(message => {
+      if (message.seenBy && message.seenBy.length > 0) {
+        seenStatusObj[message._id] = message.seenBy;
+      }
+    });
+    
+    setMessageSeenStatus(seenStatusObj);
+    
+  } catch (err) {
+    console.error("Error fetching messages:", err);
+    setError('Error fetching messages: ' + err.message);
+  }
+};
   
   // Fetch members of a specific group
   const fetchGroupMembers = async (groupId) => {
@@ -402,6 +440,8 @@ const renderMessageSeenBy = (message) => {
       // Extract user details from the usersgroup data
       const members = data.map(item => item.userId);
       setGroupMembers(members);
+      // console.log("Group Members:", members);
+
     } catch (err) {
       setError('Error fetching group members: ' + err.message);
     }
@@ -491,7 +531,7 @@ const renderMessageSeenBy = (message) => {
     return false;
   };
   
-  // Kontrollo nëse një përdorues është online
+  // Kontrollo nese nje perdorues eshte online
 const isUserOnline = (userId) => {
   if (!userId || !onlineUsers) return false;
 
@@ -516,24 +556,7 @@ const isUserOnline = (userId) => {
 
 
   
-  // Render typing indicators
-  const renderTypingIndicators = () => {
-    const typingUsersArray = Object.values(typingUsers);
-    
-    if (typingUsersArray.length === 0) return null;
-    
-    return (
-      <div className="px-4 py-2 text-sm text-teal-700 italic animate-pulse">
-        {typingUsersArray.length === 1 ? (
-          <span>{typingUsersArray[0].name} is typing...</span>
-        ) : typingUsersArray.length === 2 ? (
-          <span>{typingUsersArray[0].name} and {typingUsersArray[1].name} are typing...</span>
-        ) : (
-          <span>Multiple people are typing...</span>
-        )}
-      </div>
-    );
-  };
+
   
   if (loading) {
     return <div className="flex items-center justify-center h-screen bg-teal-50">Loading...</div>;
@@ -543,28 +566,37 @@ const isUserOnline = (userId) => {
     return <div className="text-red-500 p-4 bg-teal-50">{error}</div>;
   }
 
-  // Helper function to get profile image for any user (including current user)
-  const getUserProfileImage = (userObj) => {
-    if (!userObj) return null;
-    
-    // Check if user has a profile image
-    if (userObj.profileImageId && userObj.profileImageId.name) {
-      return (
-        <img 
-          src={`data:image/jpeg;base64,${userObj.profileImageId.name}`} 
-          alt="Profile" 
-          className="w-8 h-8 rounded-full object-cover mt-1"
-        />
-      );
-    } else {
-      // Fallback to initials avatar
-      return (
-        <div className="w-8 h-8 rounded-full bg-teal-300 flex items-center justify-center text-white font-bold mt-1">
-          {userObj.name?.charAt(0) || '?'}
-        </div>
-      );
-    }
-  };
+
+
+
+
+
+const getUserProfileImageUniversal = (userObj) => {
+  const user = userObj?.userId || userObj;
+
+  if (!user) return null;
+
+  const imageData = user.profileImage || user.profileImageId?.name;
+
+  if (imageData) {
+    return (
+      <img 
+        src={`data:image/jpeg;base64,${imageData}`} 
+        alt="Profile" 
+        className="w-8 h-8 rounded-full object-cover mt-1"
+      />
+    );
+  } else {
+    return (
+      <div className="w-8 h-8 rounded-full bg-teal-300 flex items-center justify-center text-white font-bold mt-1">
+        {user.name?.charAt(0) || '?'}
+      </div>
+    );
+  }
+};
+
+
+
 
 
 
@@ -687,7 +719,7 @@ const fetchAvailableUsers = async () => {
     
     const data = await response.json();
     
-    // Filtro përdoruesit që nuk janë tashmë në grup
+    // Filtro perdoruesit qe nuk jane tashme ne grup
     const usersNotInGroup = data.filter(user => 
       !groupMembers.some(member => 
         member._id === user._id || 
@@ -701,73 +733,22 @@ const fetchAvailableUsers = async () => {
   }
 };
 
-const handleAddMembersToGroup = async () => {
-  if (!selectedGroup || !socket || selectedUsersToAdd.length === 0) return;
-  
-  try {
-    // Create an array of promises for each user to add
-    const addUserPromises = selectedUsersToAdd.map(async (userId) => {
-      const userObj = availableUsers.find(user => 
-        user._id === userId || user.mysqlId === userId
-      );
-      
-      const userToAdd = userObj?.mysqlId || userId;
-      
-      const response = await fetch(`${API_BASE_URL}/usersgroup`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
-        body: JSON.stringify({
-          groupId: selectedGroup.mysqlId || selectedGroup.id,
-          userId: userToAdd // Send one user at a time
-        })
-      });
-      
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to add member');
-      }
-      
-      return response.json();
-    });
 
-    // Wait for all additions to complete
-    await Promise.all(addUserPromises);
-    
-    // Notify via socket
-    socket.emit('membersAdded', {
-      groupId: selectedGroup.id,
-      addedUserIds: selectedUsersToAdd,
-      addedBy: user.id
-    });
-    
-    // Refresh group members
-    await fetchGroupMembers(selectedGroup.id);
-    
-    // Close modal
-    closeAddMembersModal();
-    
-  } catch (err) {
-    console.error("Error adding members:", err);
-    setError('Error adding members: ' + err.message);
-  }
-};
 
-// Funksioni për të hapur modalin e shtimit të përdoruesve
 const openAddMembersModal = async () => {
   await fetchAvailableUsers();
   setShowAddMembersModal(true);
 };
 
-// Funksioni për të mbyllur modalin
+// Funksioni per te mbyllur modalin
 const closeAddMembersModal = () => {
   setShowAddMembersModal(false);
   setSelectedUsersToAdd([]);
 };
-const isGroupCreator = () =>
-  selectedGroup?.createdById?.toString() === user?._id?.toString();
+
+
+
+
 
 
 
@@ -826,7 +807,7 @@ const handleCreateGroup = async () => {
 
 
 
-// Funksioni për të shtuar përdorues me username
+// Funksioni per te shtuar perdorues me username
 const handleAddMemberByUsername = async () => {
   if (!newMemberUsername.trim() || !selectedGroup || !socket) return;
   
@@ -927,6 +908,9 @@ const handleAddMemberByUsername = async () => {
 
 
 
+
+
+
   
   
 return (
@@ -970,7 +954,9 @@ return (
   {user && (
     <div className="flex items-center gap-2 mt-3 p-2 bg-white bg-opacity-20 rounded-lg backdrop-blur-sm">
       <div className="w-8 h-8 rounded-full bg-teal-200 text-teal-700 flex items-center justify-center font-bold">
-        {user.name?.charAt(0) || '?'}
+        {/* {user.name?.charAt(0) || '?'} */}
+{getUserProfileImageUniversal(user)}
+
       </div>
       <div className="flex-1">
         <p className="text-sm font-medium">{user.name} {user.lastName}</p>
@@ -1075,7 +1061,9 @@ return (
 
                        <div className="relative">
                 <div className="w-8 h-8 rounded-full bg-teal-100 flex items-center justify-center font-medium text-teal-700">
-                  {member.name?.charAt(0) || '?'}
+                  {/* {member.name?.charAt(0) || '?'} */}
+{getUserProfileImageUniversal({ userId: member })}
+
                 </div>
                 {isUserOnline(member.mysqlId?.toString()) && (
   <span className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white rounded-full" />
@@ -1104,22 +1092,27 @@ return (
     </span>
   )}
 
-{isGroupCreator() &&
-  member._id?.toString() !== selectedGroup.createdById?.toString() &&
-  member.mysqlId?.toString() !== selectedGroup.createdById?.toString() && (
-      <button 
-        onClick={(e) => {
-          e.stopPropagation();
-          handleRemoveMember(member);
-        }}
-        className="text-xs text-red-500 hover:text-red-700 p-1 hover:bg-red-50 rounded-full"
-        title="Remove member"
-      >
-        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-        </svg>
-      </button>
-  )}
+{selectedGroup.createdBy !== (member._id || member.mysqlId) && (
+
+    <button
+      onClick={(e) => {
+        e.stopPropagation();
+        handleRemoveMember(member);
+      }}
+      className="text-xs text-red-500 hover:text-red-700 p-1 hover:bg-red-50 rounded-full"
+      title="Remove member"
+    >
+      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+      </svg>
+    </button>
+                            )}
+
+
+
+
+
+
 </div>
 
                       </div>
@@ -1162,6 +1155,7 @@ return (
       </div>
     );
   }
+
               const isCurrentUser = 
                 (typeof message.userId === 'string' && message.userId === user.id) ||
                 (typeof message.userId === 'object' && (
@@ -1174,24 +1168,29 @@ return (
                 : (typeof message.userId === 'object' ? message.userId : null);
               
               // Check if this user is online
-              const userIsOnline = messageUser ? isUserOnline(messageUser._id || messageUser.id || messageUser.mysqlId) : false;
-              
+                              const userIsOnline = messageUser ? isUserOnline(messageUser._id || messageUser.id || messageUser.mysqlId) : false;
+
               return (
                 <div 
                   key={message._id || index} 
                   className={`flex ${isCurrentUser ? 'justify-end' : 'justify-start'} items-start gap-3 animate-fade-in transition-all duration-300 ease-in-out`}
                 >
+                  
                   {/* Profile image on left for received messages */}
-                  {!isCurrentUser && (
-                    <div className="relative">
-                      {getUserProfileImage(messageUser)}
-                {messageUser && isUserOnline(messageUser._id || messageUser.mysqlId || messageUser.id) && (
-  <span className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white rounded-full" />
-)}
+              {!isCurrentUser && (
+                  <div className="relative">
+                    {getUserProfileImageUniversal(messageUser)}
 
-                      
-                    </div>
-                  )}
+                    {isUserOnline(
+                      messageUser?._id?.toString() ||
+                      messageUser?.mysqlId?.toString() ||
+                      messageUser?.id?.toString()
+                    ) && (
+                      <span className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white rounded-full" />
+                    )}
+                  </div>
+                )}
+
                   
                   <div 
                     className={`max-w-[90%] p-4 rounded-2xl shadow-md ${
@@ -1201,6 +1200,7 @@ return (
                     }`}
                   >
                     <div className="flex items-center gap-2 mb-1">
+                      
                       <span className={`text-xs font-semibold ${isCurrentUser ? 'text-teal-100' : 'text-teal-600'} flex items-center gap-1`}>
                         {isCurrentUser
                           ? `You (${user.name} ${user.lastName})`
@@ -1208,10 +1208,11 @@ return (
                             ? `${messageUser.name} ${messageUser.lastName}`
                             : 'Unknown User'}
                         
-                        {userIsOnline && (
+                        {/* {userIsOnline && (
                           <span className="w-2 h-2 bg-green-500 rounded-full" title="Online"></span>
-                        )}
+                        )} */}
                       </span>
+                      
                     </div>
                     
                     <p className="leading-relaxed">{message.text}</p>
@@ -1219,15 +1220,17 @@ return (
                       {formatTime(message.createdAt)}
                     </div>
                     {renderMessageSeenBy(message)}
+                    
                   </div>
                   
                   {/* Profile image on right for sent messages */}
-                  {isCurrentUser && (
+                    {isCurrentUser && (
                     <div className="relative">
-                      {/* {getUserProfileImage(user)} */}
-                      {/* <span className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white rounded-full"></span> */}
+                      {getUserProfileImageUniversal(user)}
+                      <span className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white rounded-full"></span>
                     </div>
                   )}
+                
                 </div>
               );
             })}

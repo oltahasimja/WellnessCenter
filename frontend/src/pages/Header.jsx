@@ -3,7 +3,7 @@ import { useNavigate, Link, useLocation } from "react-router-dom";
 import { motion } from 'framer-motion';
 import { FaShoppingCart, FaSignInAlt, FaSignOutAlt, FaComment, FaUser, FaBars, FaTimes, FaVolumeUp, FaVolumeMute } from 'react-icons/fa';
 import axios from "axios";
-import CartContext from "../context/CartContext";
+import { CartContext } from '../context/CartContext';
 import io from 'socket.io-client';
 import { useNotificationSound } from "../context/NotificationSoundContext";
 
@@ -43,7 +43,7 @@ const { soundEnabled, toggleSound, audioInitialized, playNotificationSound } = u
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        const res = await axios.get('http://localhost:5000/user', { withCredentials: true });
+        const res = await axios.get('http://localhost:5001/user', { withCredentials: true });
         if (res.data.user) setUserData(res.data.user);
       } catch (err) {
         console.error("User fetch error:", err);
@@ -56,7 +56,7 @@ const { soundEnabled, toggleSound, audioInitialized, playNotificationSound } = u
 
   useEffect(() => {
     if (userData) {
-      const socketConnection = io('http://localhost:5000', {
+      const socketConnection = io('http://localhost:5001', {
         auth: {
           userId: userData.id
         }
@@ -143,7 +143,7 @@ const { soundEnabled, toggleSound, audioInitialized, playNotificationSound } = u
 
   const handleLogout = async () => {
     try {
-      const res = await axios.post('http://localhost:5000/logout', {}, { withCredentials: true });
+      const res = await axios.post('http://localhost:5001/logout', {}, { withCredentials: true });
       if (res.status === 200) {
         localStorage.removeItem('redirectAfterLogin');
         localStorage.removeItem('currentUser');

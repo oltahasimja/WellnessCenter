@@ -11,7 +11,7 @@ import ProductSearch from './ProductSearch';
 import ProductFilters from './ProductFilters';
 import ProductGrid from './ProductGrid';
 import Footer from '../Footer';
-import CartContext from '../../context/CartContext';
+import { CartContext } from '../../context/CartContext';
 
 // static products 
 const staticProducts = [
@@ -110,8 +110,8 @@ function ProductsPage() {
       try {
         setLoading(true);
         
-        // fetch from your api
-        const response = await fetch('http://localhost:5000/api/product');
+        
+        const response = await fetch('http://localhost:5001/api/product');
         
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
@@ -119,13 +119,13 @@ function ProductsPage() {
         
         const dbProducts = await response.json();
         
-        // database products if available
+        
         if (dbProducts && dbProducts.length > 0) {
           setProducts(dbProducts);
           setFilteredProducts(dbProducts);
           setCategories(['All', ...new Set(dbProducts.map(p => p.category))]);
         } 
-        // display static products if api returns empty
+        
         else {
           setProducts(staticProducts);
           setFilteredProducts(staticProducts);
@@ -133,7 +133,7 @@ function ProductsPage() {
         }
       } catch (err) {
         console.error("Failed to fetch products:", err);
-        // display static products if api fails 
+        
         setProducts(staticProducts);
         setFilteredProducts(staticProducts);
         setCategories(['All', ...new Set(staticProducts.map(p => p.category))]);
@@ -179,25 +179,25 @@ function ProductsPage() {
     setFilteredProducts(result);
   }, [products, selectedCategory, searchTerm, priceRange, ratingFilter]);
 
- const addToCart = async (product) => {
+const addToCart = async (product) => {
   try {
     const user = JSON.parse(localStorage.getItem('currentUser'));
-    if (!user || !user.id) {
-      console.error('User not logged in');
+    if (!user?.id) {
+      alert('Please login to add items to cart');
       return;
     }
 
     const payload = {
-      userId: user.id, // per MySQL
-      usersId: user.id, // per Mongo reference
-      productId: product.id || product._id,
+      userId: user.id,
+      usersId: user.id,
+      productId: product.id,
       name: product.name,
       image: product.image,
       price: product.price,
       quantity: 1,
     };
 
-    const response = await fetch("http://localhost:5000/api/cartitem", {
+    const response = await fetch("http://localhost:5001/api/cartitem", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -209,8 +209,24 @@ function ProductsPage() {
 
     const savedItem = await response.json();
 
-    // opsionalisht mund të përditësosh gjendjen
-    setCart(prevCart => [...prevCart, savedItem]);
+    setCart(prevCart => {
+      const existingItem = prevCart.find(item => 
+        item.productId === product.id || 
+        (item.id && item.id === product.id)
+      );
+      
+      if (existingItem) {
+        return prevCart.map(item =>
+          (item.productId === product.id || 
+           (item.id && item.id === product.id))
+            ? { ...item, quantity: item.quantity + 1 }
+            : item
+        );
+      }
+      return [...prevCart, savedItem];
+    });
+
+    setShowCart(true); // Show the cart after adding
     setClickedButtonId(product.id);
     setTimeout(() => setClickedButtonId(null), 1000);
   } catch (err) {
@@ -221,7 +237,7 @@ function ProductsPage() {
   const refreshProducts = async () => {
     try {
       setLoading(true);
-      const response = await fetch('http://localhost:5000/api/product');
+      const response = await fetch('http://localhost:5001/api/product');
       const dbProducts = await response.json();
       
       if (dbProducts && dbProducts.length > 0) {
@@ -326,6 +342,3 @@ function ProductsPage() {
 }
 
 export default ProductsPage;
-
-
-

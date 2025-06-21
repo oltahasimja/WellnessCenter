@@ -90,7 +90,7 @@ function Profile() {
     const fetchUserData = async () => {
       try {
         setLoading(true);
-        const response = await axios.get('http://localhost:5000/user', {
+        const response = await axios.get('http://localhost:5001/user', {
           withCredentials: true
         });
         
@@ -145,14 +145,14 @@ function Profile() {
       try {
         const base64Image = reader.result.split(',')[1]; // Heq header-in
         
-        await axios.put(`http://localhost:5000/api/user/${userData.id}`, {
+        await axios.put(`http://localhost:5001/api/user/${userData.id}`, {
           profileImage: base64Image
         }, {
           withCredentials: true
         });
         
         // Rifresko të dhënat e përdoruesit
-        const response = await axios.get('http://localhost:5000/user', {
+        const response = await axios.get('http://localhost:5001/user', {
           withCredentials: true
         });
         setUserData(response.data.user);
@@ -199,13 +199,13 @@ function Profile() {
         throw new Error('User ID not found');
       }
   
-      await axios.put(`http://localhost:5000/api/user/${userId}`, {
+      await axios.put(`http://localhost:5001/api/user/${userId}`, {
         profileImage: null
       }, {
         withCredentials: true
       });
       
-      const response = await axios.get('http://localhost:5000/user', {
+      const response = await axios.get('http://localhost:5001/user', {
         withCredentials: true
       });
       setUserData(response.data.user);
@@ -238,12 +238,12 @@ function Profile() {
       }
   
       // Dërgo të dhënat e përditësuara në server
-      await axios.put(`http://localhost:5000/api/user/${userId}`, updateData, {
+      await axios.put(`http://localhost:5001/api/user/${userId}`, updateData, {
         withCredentials: true
       });
   
       // Rifresko të dhënat e përdoruesit
-      const response = await axios.get('http://localhost:5000/user', {
+      const response = await axios.get('http://localhost:5001/user', {
         withCredentials: true
       });
       
@@ -297,7 +297,7 @@ function Profile() {
   
       // Send password update request
       const response = await axios.put(
-        `http://localhost:5000/api/user/${userId}/password`,
+        `http://localhost:5001/api/user/${userId}/password`,
         {
           currentPassword: passwordData.currentPassword,
           newPassword: passwordData.newPassword

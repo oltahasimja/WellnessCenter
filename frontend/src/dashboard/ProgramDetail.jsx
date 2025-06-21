@@ -57,7 +57,7 @@ const [logs, setLogs] = useState([]);
   // Add this to your useEffect that fetches data
   const fetchRoles = async () => {
     try {
-      const response = await axios.get('http://localhost:5000/api/role');
+      const response = await axios.get('http://localhost:5001/api/role');
       setRoles(response.data);
     } catch (error) {
       console.error('Error fetching roles:', error);
@@ -89,7 +89,7 @@ useEffect(() => {
     fetchRoles();
     const checkLoginStatus = async () => {
       try {
-        const response = await axios.get("http://localhost:5000/user", { withCredentials: true });
+        const response = await axios.get("http://localhost:5001/user", { withCredentials: true });
         if (!response.data.user) {
           navigate("/login");
         } else {
@@ -109,7 +109,7 @@ useEffect(() => {
         setLoading(true);
         setError(null);
 
-        const userProgramsRes = await axios.get('http://localhost:5000/api/userprograms');
+        const userProgramsRes = await axios.get('http://localhost:5001/api/userprograms');
 
         const isProgramMember = userProgramsRes.data.some(userProgram => {
           if (!userProgram || !userProgram.userId) return false;
@@ -135,14 +135,14 @@ useEffect(() => {
         setIsMember(true);
 const fetchProgramLogs = async () => {
   try {
-    const response = await axios.get(`http://localhost:5000/api/log/program/${id}`);
+    const response = await axios.get(`http://localhost:5001/api/log/program/${id}`);
     setLogs(response.data);
   } catch (err) {
     console.error("Error fetching logs:", err);
   }
 };
 
-        const programRes = await axios.get(`http://localhost:5000/api/program/${id}`);
+        const programRes = await axios.get(`http://localhost:5001/api/program/${id}`);
         if (!programRes.data || programRes.data.message === "Program not found") {
           setError("Program not found");
           return;
@@ -184,10 +184,10 @@ setMembers(membersList);
 await fetchProgramLogs();
 
         const [listsRes, cardsRes] = await Promise.all([
-          axios.get('http://localhost:5000/api/list'),
-          axios.get('http://localhost:5000/api/card')
+          axios.get('http://localhost:5001/api/list'),
+          axios.get('http://localhost:5001/api/card')
         ]);
-        const cardMembersRes = await axios.get('http://localhost:5000/api/cardmember');
+        const cardMembersRes = await axios.get('http://localhost:5001/api/cardmember');
 
         const boardLists = listsRes.data
           .filter(list => list.programId && (
@@ -267,8 +267,8 @@ await fetchProgramLogs();
   const fetchLists = async () => {
     try {
       const [listsRes, cardsRes] = await Promise.all([
-        axios.get('http://localhost:5000/api/list'),
-        axios.get('http://localhost:5000/api/card')
+        axios.get('http://localhost:5001/api/list'),
+        axios.get('http://localhost:5001/api/card')
       ]);
 
       const boardLists = listsRes.data
@@ -307,7 +307,7 @@ await fetchProgramLogs();
     }
 
     try {
-      const response = await axios.post('http://localhost:5000/api/list', {
+      const response = await axios.post('http://localhost:5001/api/list', {
         name: newListName,
         programId: id,
         createdById: currentUser.id,
@@ -336,7 +336,7 @@ await fetchProgramLogs();
         throw new Error('You must be logged in to delete lists');
       }
   
-      await axios.delete(`http://localhost:5000/api/list/${listId}`, {
+      await axios.delete(`http://localhost:5001/api/list/${listId}`, {
         headers: {
           'Content-Type': 'application/json',
         },
@@ -398,7 +398,7 @@ const handleDeleteListClick = (listId, listName) => {
       throw new Error("User not authenticated");
     }
 
-    const response = await axios.put(`http://localhost:5000/api/list/${listId}`, {
+    const response = await axios.put(`http://localhost:5001/api/list/${listId}`, {
       name: editedListName,  // Use 'name' instead of 'title'
       updatedById: currentUser.id  // Include user ID for logging
     });
@@ -428,25 +428,25 @@ const handleDeleteListClick = (listId, listName) => {
     }
 
     try {
-      const usersRes = await axios.get('http://localhost:5000/api/user');
+      const usersRes = await axios.get('http://localhost:5001/api/user');
       const userToAdd = usersRes.data.find(user => user.email === newMemberEmail);
 
       if (!userToAdd) {
         throw new Error('User with this email not found');
       }
 
-      const programRes = await axios.get(`http://localhost:5000/api/program/${id}`);
+      const programRes = await axios.get(`http://localhost:5001/api/program/${id}`);
       if (!programRes.data) {
         throw new Error('Program not found');
       }
 
-      await axios.post('http://localhost:5000/api/userprograms', {
+      await axios.post('http://localhost:5001/api/userprograms', {
         userId: userToAdd.mysqlId,
         programId: programRes.data.mysqlId,
         invitedById: "1"
       });
 
-      const userProgramsRes = await axios.get('http://localhost:5000/api/userprograms');
+      const userProgramsRes = await axios.get('http://localhost:5001/api/userprograms');
       const programMembers = userProgramsRes.data.filter(
         userProgram => userProgram.programId._id === id || userProgram.programId.mysqlId === id
       );
@@ -479,7 +479,7 @@ const handleDeleteListClick = (listId, listName) => {
     if (!deleteModal.memberId) return;
 
     try {
-      const userProgramsRes = await axios.get('http://localhost:5000/api/userprograms');
+      const userProgramsRes = await axios.get('http://localhost:5001/api/userprograms');
 
       const userProgramToDelete = userProgramsRes.data.find(up =>
         (up.userId._id === deleteModal.memberId || up.userId.mysqlId == deleteModal.memberId) &&
@@ -492,9 +492,9 @@ const handleDeleteListClick = (listId, listName) => {
 
       const idToDelete = userProgramToDelete.mysqlId || userProgramToDelete._id;
 
-      await axios.delete(`http://localhost:5000/api/userprograms/${idToDelete}`);
+      await axios.delete(`http://localhost:5001/api/userprograms/${idToDelete}`);
 
-      const updatedUserPrograms = await axios.get('http://localhost:5000/api/userprograms');
+      const updatedUserPrograms = await axios.get('http://localhost:5001/api/userprograms');
       const updatedMembers = updatedUserPrograms.data
         .filter(up => up.programId._id === id || up.programId.mysqlId == id)
         .map(up => ({
@@ -535,9 +535,9 @@ const handleDeleteListClick = (listId, listName) => {
     const [movedCard] = sourceList.cards.splice(source.index, 1);
 
     try {
-      const listRes = await axios.get(`http://localhost:5000/api/list/${destination.droppableId}`);
+      const listRes = await axios.get(`http://localhost:5001/api/list/${destination.droppableId}`);
 
-      await axios.put(`http://localhost:5000/api/card/${movedCard.id}`, {
+      await axios.put(`http://localhost:5001/api/card/${movedCard.id}`, {
         listId: listRes.data.mysqlId,
         mongoListId: listRes.data._id
       });
@@ -575,7 +575,7 @@ const handleDeleteListClick = (listId, listName) => {
     if (!cardText || !cardText.trim()) return;
 
     try {
-      const response = await axios.post('http://localhost:5000/api/card', {
+      const response = await axios.post('http://localhost:5001/api/card', {
         title: cardText,
         listId: listId,
         createdById: currentUser.id
@@ -655,7 +655,7 @@ const handleDeleteListClick = (listId, listName) => {
       };
 
       // Make the API call
-      const response = await axios.put(`http://localhost:5000/api/card/${cardId}`, updateData);
+      const response = await axios.put(`http://localhost:5001/api/card/${cardId}`, updateData);
 
       return response.data;
     } catch (error) {
@@ -665,7 +665,7 @@ const handleDeleteListClick = (listId, listName) => {
   };
   const handleDeleteCard = async (listId, cardId) => {
     try {
-      await axios.delete(`http://localhost:5000/api/card/${cardId}`);
+      await axios.delete(`http://localhost:5001/api/card/${cardId}`);
 
       // Update local state
       setLists(lists.map(list => {
@@ -756,7 +756,7 @@ const handleDeleteListClick = (listId, listName) => {
 
   const fetchCardDetails = async (cardId) => {
     try {
-      const response = await axios.get(`http://localhost:5000/api/card/${cardId}`);
+      const response = await axios.get(`http://localhost:5001/api/card/${cardId}`);
 
       // Process attachments to make them easier to handle in the UI
       const processedCard = {
@@ -778,7 +778,7 @@ const handleDeleteListClick = (listId, listName) => {
 
   const fetchCardMembers = async (cardId) => {
     try {
-      const response = await axios.get(`http://localhost:5000/api/cardmember/by-card?cardId=${cardId}`);
+      const response = await axios.get(`http://localhost:5001/api/cardmember/by-card?cardId=${cardId}`);
 
       const membersData = response.data || [];
 
@@ -828,7 +828,7 @@ const handleDeleteListClick = (listId, listName) => {
       }
 
       // Make API call with proper ID
-      await axios.post('http://localhost:5000/api/cardmember', {
+      await axios.post('http://localhost:5001/api/cardmember', {
         userId: memberToAdd.mysqlId || memberToAdd._id,
         cardId: selectedCard.id,
         invitedById: currentUser.id
@@ -850,7 +850,7 @@ const handleDeleteListClick = (listId, listName) => {
 
     try {
       // Keep your existing delete API call
-      await axios.delete(`http://localhost:5000/api/cardmember/${cardMemberId}`);
+      await axios.delete(`http://localhost:5001/api/cardmember/${cardMemberId}`);
 
       // Keep your existing state updates
       const refreshedCard = await fetchCardDetails(selectedCard.id);

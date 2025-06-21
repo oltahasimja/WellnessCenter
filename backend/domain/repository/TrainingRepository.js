@@ -31,15 +31,28 @@ class TrainingRepository {
   }
   
   async findById(id) {
-    try {
-      // Get from MongoDB with populated relationships
-      return await TrainingMongo.findOne({ mysqlId: id }).lean();
-    } catch (error) {
-      // Fallback to MySQL if MongoDB fails
-      console.error("MongoDB findById failed, falling back to MySQL:", error);
-      // return await Training.findByPk(id, {  });
-    }
+  try {
+    const training = await TrainingMongo.findOne({ mysqlId: id })
+      .populate({
+        path: 'createdById',
+        select: 'name lastName email mysqlId',
+        model: 'UserMongo'
+      })
+      .lean();
+
+    if (!training) return null;
+
+    return {
+      ...training,
+      creatorDisplayName: training.createdById
+        ? `${training.createdById.name} ${training.createdById.lastName || ''}`.trim()
+        : 'Unknown'
+    };
+  } catch (error) {
+    console.error("MongoDB findById failed, falling back to MySQL:", error);
   }
+}
+
   
   // Write operations - Write to both MongoDB and MySQL
   async create(data) {
@@ -83,25 +96,30 @@ class TrainingRepository {
   
   async update(id, data) {
     try {
-      // Update in MySQL
-      const [updatedCount] = await Training.update(
-        { ...data },
-        { where: { id } }
-      );
-  
-      if (updatedCount === 0) {
+      // First check if training exists in MySQL
+      const mysqlTraining = await Training.findByPk(id);
+      if (!mysqlTraining) {
         throw new Error("Training not found in MySQL");
       }
-      
+  
+      // Update in MySQL
+      await mysqlTraining.update(data);
+  
       // Prepare update data for MongoDB
       const mongoUpdateData = { ...data };
-      
-      // Handle foreign keys - convert MySQL IDs to MongoDB references
-      
-      
+  
+      // Handle createdById conversion if it's being updated
+      if (data.createdById) {
+        const user = await UserMongo.findOne({ mysqlId: data.createdById.toString() });
+        if (!user) {
+          throw new Error(`User with mysqlId ${data.createdById} not found in MongoDB`);
+        }
+        mongoUpdateData.createdById = user._id;
+      }
+  
       // Update in MongoDB
       const updatedMongoDB = await TrainingMongo.updateOne(
-        { mysqlId: id },
+        { mysqlId: id.toString() }, // Ensure id is string
         { $set: mongoUpdateData }
       );
   
@@ -109,7 +127,6 @@ class TrainingRepository {
         console.warn("Training not found in MongoDB or no changes made");
       }
   
-      // Return the updated resource with populated relationships
       return this.findById(id);
     } catch (error) {
       console.error("Error updating Training:", error);

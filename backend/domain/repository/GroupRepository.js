@@ -85,33 +85,39 @@ class GroupRepository {
   
   async update(id, data) {
     try {
-      // Update in MySQL
-      const [updatedCount] = await Group.update(
-        { ...data },
-        { where: { id } }
-      );
-  
-      if (updatedCount === 0) {
+      // First check if group exists in MySQL
+      const mysqlGroup = await Group.findByPk(id);
+      if (!mysqlGroup) {
         throw new Error("Group not found in MySQL");
       }
-      
+  
+      // Update in MySQL
+      await mysqlGroup.update(data);
+  
       // Prepare update data for MongoDB
       const mongoUpdateData = { ...data };
-      
-      // Handle foreign keys - convert MySQL IDs to MongoDB references
-      
+  
+      // Handle createdById conversion if it's being updated
+      if (data.createdById) {
+        const user = await UserMongo.findOne({ mysqlId: data.createdById.toString() });
+        if (!user) {
+          throw new Error(`User with mysqlId ${data.createdById} not found in MongoDB`);
+        }
+        mongoUpdateData.createdById = user._id; // Use MongoDB ObjectId
+      }
+  
+      // Handle usersId conversion if it's being updated
       if (data.usersId) {
-        // Find the related document in MongoDB
         const users = await UserMongo.findOne({ mysqlId: data.usersId.toString() });
         if (!users) {
           throw new Error(`Users with MySQL ID ${data.usersId} not found in MongoDB`);
         }
-        mongoUpdateData.usersId = new ObjectId(users._id.toString());
+        mongoUpdateData.usersId = users._id; // Use MongoDB ObjectId
       }
-      
+  
       // Update in MongoDB
       const updatedMongoDB = await GroupMongo.updateOne(
-        { mysqlId: id },
+        { mysqlId: id.toString() }, // Ensure id is string
         { $set: mongoUpdateData }
       );
   
@@ -119,7 +125,6 @@ class GroupRepository {
         console.warn("Group not found in MongoDB or no changes made");
       }
   
-      // Return the updated resource with populated relationships
       return this.findById(id);
     } catch (error) {
       console.error("Error updating Group:", error);

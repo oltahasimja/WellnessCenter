@@ -11,7 +11,7 @@ export const getSpecialistSchedule = (specialistId, schedules) => {
       const dateStr = new Date(selectedDate).toISOString().split('T')[0];
       
       const response = await axios.get(
-        `http://localhost:5000/api/appointment`,
+        `http://localhost:5001/api/appointment`,
         {
           params: {
             specialistId: specialistId,

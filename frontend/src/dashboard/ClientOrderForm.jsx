@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from "axios";
-import { useLocation } from 'react-router-dom';
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import { useContext } from 'react';
+import { CartContext } from '../context/CartContext';
 
 const ClientOrderForm = () => {
   const [clientData, setClientData] = useState({
@@ -21,52 +22,55 @@ const ClientOrderForm = () => {
   const [countryList, setCountryList] = useState([]);
   const [cityList, setCityList] = useState([]);
   const [selectedCountry, setSelectedCountry] = useState("");
-  const [selectedCity, setSelectedCity] = useState("");
+  const { setCart } = useContext(CartContext);
 
+
+  
+  useEffect(() => {
+    const fetchCountries = async () => {
+      try {
+        const response = await axios.get("https://countriesnow.space/api/v0.1/countries", {
+          withCredentials: false 
+        });
+        if (response.data?.data) {
+          setCountryList(response.data.data);
+        }
+      } catch (error) {
+        console.error("Error fetching countries:", error);
+      }
+    };
+    fetchCountries();
+  }, []);
+
+  // Redirect if no cart items
   if (!cart || cart.length === 0) {
-    alert("No items in the cart. Please add items first.");
-    return <div className="min-h-screen bg-gray-100 flex items-center justify-center">
-      <div className="bg-white p-8 rounded-xl shadow-lg max-w-md w-full text-center">
-        <h2 className="text-2xl font-bold text-gray-800 mb-4">Your cart is empty</h2>
-        <p className="text-gray-600 mb-6">Please add items to your cart before proceeding to checkout.</p>
-        <motion.button
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
-          onClick={() => navigate("/productspage")}
-          className="w-full bg-teal-500 hover:bg-teal-600 text-white py-3 px-6 rounded-lg font-medium text-lg transition-all duration-200"
-        >
-          Back to Shopping
-        </motion.button>
+    return (
+      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+        <div className="bg-white p-8 rounded-xl shadow-lg max-w-md w-full text-center">
+          <h2 className="text-2xl font-bold text-gray-800 mb-4">Your cart is empty</h2>
+          <p className="text-gray-600 mb-6">Please add items to your cart before proceeding to checkout.</p>
+          <motion.button
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            onClick={() => navigate("/productspage")}
+            className="w-full bg-teal-500 hover:bg-teal-600 text-white py-3 px-6 rounded-lg font-medium text-lg transition-all duration-200"
+          >
+            Back to Shopping
+          </motion.button>
+        </div>
       </div>
-    </div>;
+    );
   }
 
   const calculateTotalPrice = (cartItems) => {
-    if (!Array.isArray(cartItems)) {
-      return 0; 
-    }
-    return cartItems.reduce((total, item) => total + item.price * item.quantity, 0);
+    if (!Array.isArray(cartItems)) return 0;
+    return cartItems.reduce((total, item) => total + (item.price * item.quantity), 0);
   };
-
-  // Handling city and country 
-  const fetchCountries = async () => {
-    try {
-      const response = await axios.get("https://countriesnow.space/api/v0.1/countries", {
-        withCredentials: false 
-      });
-      if (response.data?.data) {
-        setCountryList(response.data.data);
-      }
-    } catch (error) {
-      console.error("Error fetching countries:", error);
-    }
-  };
-  fetchCountries();
 
   const handleCountryChange = (e) => {
     const country = e.target.value;
     setSelectedCountry(country);
-    setClientData(prev => ({ ...prev, country })); 
+    setClientData(prev => ({ ...prev, country, city: '' })); // Reset city when country changes
 
     if (country === "Kosovo") {
       setCityList([
@@ -78,76 +82,69 @@ const ClientOrderForm = () => {
       ]);
     } else {
       const countryData = countryList.find(c => c.country === country);
-      setCityList(countryData ? countryData.cities : []);
+      setCityList(countryData?.cities || []);
     }
-
-    setSelectedCity(""); 
-    setClientData(prev => ({ ...prev, city: "" }));
   };
 
   const handleCityChange = (e) => {
-    setClientData({ ...clientData, city: e.target.value });
+    setClientData(prev => ({ ...prev, city: e.target.value }));
   };
 
-  // Handling the order
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    
+    if (!clientData.name || !clientData.lastname || !clientData.email || !clientData.phone || 
+        !clientData.country || !clientData.city || !clientData.street) {
+      alert('Please fill in all required fields.');
+      return;
+    }
+
     const totalPrice = calculateTotalPrice(cart);
 
-    if (!cart || cart.length === 0) {
-      alert('Your cart is empty.');
-      return;
-    }
-
-    if (!clientData.name || !clientData.lastname || !clientData.email || !clientData.phone) {
-      alert('Please fill in all client details.');
-      return;
-    }
-
     const transformedCart = cart.map(item => ({
-       productId: item._id || item.id,
+      productId: item._id || item.id,
       quantity: item.quantity,
       price: item.price,
     }));
 
     const orderData = {
-      mysqlId: "1",
       clientData,  
-      orderDate: new Date(),
+      orderDate: new Date().toISOString(),
       cart: transformedCart,  
       totalPrice,  
+      status: 'pending'
     };
 
     setLoading(true);
 
     try {
-      await axios.post('http://localhost:5000/api/order', orderData); 
-      alert('Your order has been placed successfully!');
-
-      setClientData({
-        name: '',
-        lastname: '',
-        city: '',
-        street: '',
-        country: '',
-        email: '',
-        phone: '',
+      const response = await axios.post('http://localhost:5001/api/order', orderData);
+      const orderNumber = response.data.orderId || Math.floor(100000 + Math.random() * 900000);
+      
+      
+      localStorage.removeItem("cart");
+      setCart([]);
+      
+      navigate("/order-confirmation", {
+        state: {
+          orderNumber,
+          clientData,
+          cart,
+          totalPrice
+        }
       });
 
-      localStorage.removeItem("cart");
-      navigate("/productspage");
-
     } catch (error) {
-      alert('Something went wrong while placing the order. Please try again.');
-      console.error("Error while placing the order:", error);
+      console.error("Order submission error:", error);
+      alert('Failed to place order. Please try again.');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 py-12 px-4 sm:px-6 lg:px-8">
+   <div className="min-h-screen bg-gray-100 py-12 px-4 sm:px-6 lg:px-8">
       <motion.div 
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}

@@ -3,6 +3,7 @@ import { FiClock, FiCalendar, FiUser, FiStar, FiHeart, FiShare2, FiChevronDown, 
 import axios from 'axios';
 import { Link, useNavigate } from 'react-router-dom';
 import Footer from './Footer';
+import Header from './Header';
 
 const TrainingPage = () => {
   const [activeTab, setActiveTab] = useState('classes');
@@ -18,7 +19,7 @@ const TrainingPage = () => {
   useEffect(() => {
     const checkLoginStatus = async () => {
       try {
-        const response = await axios.get("http://localhost:5000/user", { withCredentials: true });
+        const response = await axios.get("http://localhost:5001/user", { withCredentials: true });
         if (!response.data.user) {
           navigate("/login");
         } else {
@@ -43,7 +44,7 @@ const TrainingPage = () => {
   
   const fetchTrainings = async () => {
     try {
-      const response = await axios.get("http://localhost:5000/api/training", { withCredentials: true });
+      const response = await axios.get("http://localhost:5001/api/training", { withCredentials: true });
       setTrainings(response.data);
     } catch (error) {
       console.error("Error fetching trainings:", error);
@@ -52,7 +53,7 @@ const TrainingPage = () => {
   
   const fetchUserApplications = async () => {
     try {
-      const response = await axios.get("http://localhost:5000/api/trainingapplication", { withCredentials: true });
+      const response = await axios.get("http://localhost:5001/api/trainingapplication", { withCredentials: true });
       console.log("All applications:", response.data);
       console.log("Current user:", currentUser);
       
@@ -124,6 +125,9 @@ const TrainingPage = () => {
   const categories = ['all', ...new Set(userTrainings.map(training => training.category))];
   
   return (
+    <>
+    <Header />
+    
     <div className="min-h-screen bg-gray-50">
       {/* Hero Section */}
       <div className="relative bg-teal-400 py-20">
@@ -138,6 +142,15 @@ const TrainingPage = () => {
       
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        {/* New Button Added Here */}
+        <div className="mb-8 flex justify-end">
+          <Link 
+            to="/trainingapplicationn" // Replace this with your desired path
+            className="bg-teal-500 hover:bg-teal-600 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-300"
+          >
+            Shiko dhe Apliko për Trajnimet që Ne Ofrojmë 
+          </Link>
+        </div>
         
         {/* Tab Navigation */}
         <div className="flex flex-wrap border-b border-gray-200 mb-8">
@@ -538,6 +551,7 @@ const TrainingPage = () => {
 
       <Footer />
     </div>
+    </>
   );
 };
 

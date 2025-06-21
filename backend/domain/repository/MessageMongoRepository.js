@@ -7,7 +7,7 @@ class MessageMongoRepository {
     return MessageMongo.find()
       .populate({
         path: 'userId',
-        select: 'name lastName mysqlId profileImage',
+        select: 'name lastName mysqlId profileImageId',
         populate: {
           path: 'profileImageId',
           select: 'name data'

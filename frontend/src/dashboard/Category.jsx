@@ -10,16 +10,16 @@ const Category = () => {
   }, []);
 
   const fetchCategorys = async () => {
-    const response = await axios.get('http://localhost:5000/api/category');
+    const response = await axios.get('http://localhost:5001/api/category');
     setCategoryList(response.data);
   };
   
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (formData.id) {
-      await axios.put(`http://localhost:5000/api/category/${formData.id}`, formData);
+      await axios.put(`http://localhost:5001/api/category/${formData.id}`, formData);
     } else {
-      await axios.post('http://localhost:5000/api/category', formData);
+      await axios.post('http://localhost:5001/api/category', formData);
     }
     fetchCategorys();
     setFormData({});
@@ -34,7 +34,7 @@ const Category = () => {
   };
 
   const handleDelete = async (id) => {
-    await axios.delete(`http://localhost:5000/api/category/${id}`);
+    await axios.delete(`http://localhost:5001/api/category/${id}`);
     fetchCategorys();
   };
 
