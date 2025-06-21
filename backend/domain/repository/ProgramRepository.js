@@ -5,7 +5,7 @@ const Log = require('../database/models/MySQL/log');
 
 const { Program, User } = require('../database/models/index');
 const { ProgramMongo, UserMongo } = require('../database/models/indexMongo');
-
+const userProgramsRepository = require('./UserProgramsRepository');
 
 class ProgramRepository {
   // Read operations - Get from MongoDB with fallback to MySQL
@@ -32,41 +32,47 @@ class ProgramRepository {
   }
   
   // Write operations - Write to both MongoDB and MySQL
-  async create(data) {
-    try {
-      console.log("Creating Program:", data);
-  
-      // First create in MySQL
-      const mysqlResource = await Program.create(data);
-      await Log.create({
-        userId: data.createdById, // assuming createdById is the user who created this
-        action: 'CREATE_PROGRAM',
-        details: `Created program with ID ${mysqlResource.id}`,
-        programId: mysqlResource.id
-      });
-  
-      // Prepare data for MongoDB, remove _id to let MongoDB generate it automatically
-      const mongoData = {
-        mysqlId: mysqlResource.id.toString(),
-        ...data,
-        createdAt: new Date(), // Ensure createdAt is set for MongoDB as well
-      };
-  
-      // Handle foreign keys - convert MySQL IDs to MongoDB references
-      if (data.createdById) {
-        const user = await UserMongo.findOne({ mysqlId: data.createdById.toString() });
-        if (!user) {
-          throw new Error(`User with MySQL ID ${data.createdById} not found in MongoDB`);
-        }
-        mongoData.createdById = new ObjectId(user._id.toString()); // Ensure proper casting
-      }
-  
-      // Create in MongoDB (let MongoDB generate the _id)
-      const mongoResource = await ProgramMongo.create(mongoData);
-      console.log("Program saved in MongoDB:", mongoResource);
-  
-      return mysqlResource;
-    } catch (error) {
+async create(data) {
+  try {
+    console.log("Creating Program:", data);
+    
+    // 1. Create in MySQL
+    const mysqlResource = await Program.create(data);
+    
+    // 2. Prepare MongoDB data
+    const mongoData = {
+      mysqlId: mysqlResource.id.toString(),
+      ...data,
+      createdAt: new Date(),
+    };
+
+    // 3. Handle user reference
+    if (data.createdById) {
+      const user = await UserMongo.findOne({ mysqlId: data.createdById.toString() });
+      if (!user) throw new Error(`User with MySQL ID ${data.createdById} not found in MongoDB`);
+      mongoData.createdById = new ObjectId(user._id.toString());
+    }
+
+    // 4. Create in MongoDB FIRST
+    const mongoResource = await ProgramMongo.create(mongoData);
+    console.log("Program saved in MongoDB:", mongoResource);
+
+    // 5. NOW create user-program relationship (after MongoDB exists)
+    await userProgramsRepository.create({
+      userId: data.createdById,
+      programId: mysqlResource.id
+    });
+
+    // 6. Log success
+    await Log.create({
+      userId: data.createdById,
+      action: 'CREATE_PROGRAM',
+      details: `Created program with ID ${mysqlResource.id}`,
+      programId: mysqlResource.id
+    });
+
+    return mysqlResource;
+  } catch (error) {
       await Log.create({
         userId: data.createdById || null,
         action: 'CREATE_PROGRAM_ERROR',
