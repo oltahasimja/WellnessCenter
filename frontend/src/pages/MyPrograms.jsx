@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { FaDumbbell, FaAppleAlt, FaArrowRight, FaStar } from 'react-icons/fa';
 import { GiMuscleUp } from 'react-icons/gi';
 import Header from './Header';
+import StripeModal from '../stripe/StripeModal';
 // Add this role mapping at the top of your MyPrograms file
 // Role-based image mapping
 const roleImageMapping = {
@@ -32,6 +33,10 @@ function MyPrograms() {
     const [loading, setLoading] = useState(true);
     const [currentUser, setCurrentUser] = useState(null);
     const [hoveredProgram, setHoveredProgram] = useState(null);
+    const [selectedProgram, setSelectedProgram] = useState(null);
+const [clientSecret, setClientSecret] = useState(null);
+const [showStripeModal, setShowStripeModal] = useState(false);
+
     const navigate = useNavigate();
     const [roles, setRoles] = useState([]);
     const normalizeRole = (role) => {
@@ -251,84 +256,112 @@ function MyPrograms() {
                         animate="visible"
                         className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
                     >
-                        {programs.map((program) => (
-                            <motion.div
-                                key={program._id}
-                                variants={fadeInUp}
-                                onHoverStart={() => setHoveredProgram(program._id)}
-                                onHoverEnd={() => setHoveredProgram(null)}
-                                whileHover={{
-                                    y: -10,
-                                    boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)"
-                                }}
-                                onClick={() => navigate(`/programs/${program.programId.mysqlId}`)}
-                                className={`bg-white rounded-2xl shadow-md overflow-hidden border border-gray-100 transition-all duration-300 cursor-pointer ${hoveredProgram === program._id ? 'ring-2 ring-teal-500' : ''
-                                    }`}
-                            >
-                                {/* Card Image */}
-                                <div className="relative h-48 overflow-hidden">
-                                    <motion.img
-                                        initial={{ scale: 1.1 }}
-                                        animate={hoveredProgram === program._id ? { scale: 1 } : {}}
-                                        className="w-full h-full object-cover"
-                                        src={getProgramImage(program, roles)}
-                                        alt="Wellness program"
-                                    />
-                                    <div className="absolute inset-0 bg-gradient-to-t from-gray-900 to-transparent opacity-60"></div>
-                                    <div className="absolute bottom-4 left-4">
-                                        <h3 className="text-xl font-bold text-white">
-                                            {program.programId?.title || 'Wellness Program'}
-                                        </h3>
-                                        <div className="flex mt-1">
-                                            {[...Array(5)].map((_, i) => (
-                                                <FaStar key={i} className="text-yellow-400" />
-                                            ))}
-                                        </div>
-                                    </div>
-                                </div>
+                       {programs.map((program) => (
+  <motion.div
+    key={program._id}
+    variants={fadeInUp}
+    onHoverStart={() => setHoveredProgram(program._id)}
+    onHoverEnd={() => setHoveredProgram(null)}
+    whileHover={{
+      y: -10,
+      boxShadow:
+        "0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)",
+    }}
+    onClick={async () => {
+      if (program.payment === "unpaid") {
+        try {
+          const res = await axios.post(
+            "http://localhost:5001/api/stripe/create-payment-intent",
+            {
+             amount: program.programId?.price * 100, // cents (Stripe expects integer)
 
-                                {/* Card Content */}
-                                <div className="p-6">
-                                    <div className="flex items-center justify-between mb-4">
-                                        <span className="px-3 py-1 rounded-full text-xs font-medium bg-teal-100 text-teal-800">
-                                            Active
-                                        </span>
-                                        <span className="text-sm text-gray-500">
-                                            Joined {new Date(program.createdAt).toLocaleDateString()}
-                                        </span>
-                                    </div>
+              metadata: {
+                programId: program._id,
+                userId: currentUser.id,
+              },
+            }
+          );
 
-                                    <p className="text-gray-600 mb-4">
-                                        {program.programId?.description || 'A comprehensive wellness program designed for your needs.'}
-                                    </p>
+          setClientSecret(res.data.clientSecret);
+          setSelectedProgram(program);
+          setShowStripeModal(true);
+        } catch (err) {
+          console.error("Payment intent error:", err);
+        }
+      } else {
+        navigate(`/programs/${program.programId.mysqlId}`);
+      }
+    }}
+    className={`bg-white rounded-2xl shadow-md overflow-hidden border border-gray-100 transition-all duration-300 cursor-pointer ${
+      hoveredProgram === program._id ? "ring-2 ring-teal-500" : ""
+    }`}
+  >
+    {/* Card Image */}
+    <div className="relative h-48 overflow-hidden">
+      <motion.img
+        initial={{ scale: 1.1 }}
+        animate={hoveredProgram === program._id ? { scale: 1 } : {}}
+        className="w-full h-full object-cover"
+        src={getProgramImage(program, roles)}
+        alt="Wellness program"
+      />
+      <div className="absolute inset-0 bg-gradient-to-t from-gray-900 to-transparent opacity-60"></div>
+      <div className="absolute bottom-4 left-4">
+        <h3 className="text-xl font-bold text-white">
+          {program.programId?.title || "Wellness Program"}
+        </h3>
+        <div className="flex mt-1">
+          {[...Array(5)].map((_, i) => (
+            <FaStar key={i} className="text-yellow-400" />
+          ))}
+        </div>
+      </div>
+    </div>
 
-                                    <div className="flex items-center justify-between mt-6">
-                                        <div className="flex items-center">
-                                            <div className="flex-shrink-0 h-10 w-10 rounded-full bg-teal-50 flex items-center justify-center">
-                                                <FaDumbbell className="text-teal-500" />
-                                            </div>
-                                            <div className="ml-3">
-                                            <p className="text-sm font-medium text-gray-900">
-  {program.creatorName}
-</p>
-                                                <p className="text-sm text-gray-500">Coach</p>
-                                            </div>
-                                        </div>
+    {/* Card Content */}
+    <div className="p-6">
+      <div className="flex items-center justify-between mb-4">
+        <span className="px-3 py-1 rounded-full text-xs font-medium bg-teal-100 text-teal-800">
+          {program.payment === "unpaid" ? "Payment Required" : "Active"}
+        </span>
+        <span className="text-sm text-gray-500">
+          Joined {new Date(program.createdAt).toLocaleDateString()}
+        </span>
+      </div>
 
-                                        <div className="inline-flex items-center text-sm font-medium text-teal-600">
-                                            View details
-                                            <motion.span
-                                                animate={hoveredProgram === program._id ? { x: [0, 5, 0] } : {}}
-                                                transition={{ duration: 1, repeat: Infinity }}
-                                                className="ml-1"
-                                            >
-                                                <FaArrowRight />
-                                            </motion.span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </motion.div>
-                        ))}
+      <p className="text-gray-600 mb-4">
+        {program.programId?.description ||
+          "A comprehensive wellness program designed for your needs."}
+      </p>
+
+      <div className="flex items-center justify-between mt-6">
+        <div className="flex items-center">
+          <div className="flex-shrink-0 h-10 w-10 rounded-full bg-teal-50 flex items-center justify-center">
+            <FaDumbbell className="text-teal-500" />
+          </div>
+          <div className="ml-3">
+            <p className="text-sm font-medium text-gray-900">
+              {program.creatorName}
+            </p>
+            <p className="text-sm text-gray-500">Coach</p>
+          </div>
+        </div>
+
+        <div className="inline-flex items-center text-sm font-medium text-teal-600">
+          {program.payment === "unpaid" ? "Pay now" : "View details"}
+          <motion.span
+            animate={hoveredProgram === program._id ? { x: [0, 5, 0] } : {}}
+            transition={{ duration: 1, repeat: Infinity }}
+            className="ml-1"
+          >
+            <FaArrowRight />
+          </motion.span>
+        </div>
+      </div>
+    </div>
+  </motion.div>
+))}
+
                     </motion.div>
                 )}
             </motion.div>
@@ -377,6 +410,21 @@ function MyPrograms() {
                     </div>
                 </motion.div>
             )}
+
+            {showStripeModal && (
+  <StripeModal
+    show={showStripeModal}
+    clientSecret={clientSecret}
+    programId={selectedProgram._id}
+      selectedProgram={selectedProgram}
+    onClose={() => setShowStripeModal(false)}
+    onSuccess={() => {
+      setShowStripeModal(false);
+      fetchUserPrograms(currentUser.id); // Refresh programs
+    }}
+  />
+)}
+
         </div>
     );
 }

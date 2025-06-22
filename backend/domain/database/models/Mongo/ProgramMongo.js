@@ -14,6 +14,11 @@ const programSchema = new Schema({
   description: {
     type: String,
   },
+  price: {
+    type: Number,
+    required: true,
+  },
+
   createdById: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'UserMongo',

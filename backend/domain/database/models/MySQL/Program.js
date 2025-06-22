@@ -10,10 +10,14 @@ const Program = sequelize.define('Program', {
     type: DataTypes.TEXT,
     allowNull: true,
   },
+  price: {
+    type: DataTypes.DECIMAL(10, 2),
+    allowNull: false,
+  },
   createdById: {
     type: DataTypes.INTEGER,
     references: {
-      model: 'Users',  
+      model: 'Users',
       key: 'id',
     },
     onDelete: 'CASCADE',

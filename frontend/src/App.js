@@ -1,6 +1,11 @@
   import React, { useEffect } from 'react';
   import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
   import { ThemeProvider, useTheme } from './components/ThemeContext'; 
+  import { Elements } from '@stripe/react-stripe-js';
+import { loadStripe } from '@stripe/stripe-js';
+
+
+// const root = ReactDOM.createRoot(document.getElementById('root'));
   import Home from './pages/Home';
   import Login from './pages/Login';
   import Register from './pages/Register';
@@ -41,6 +46,7 @@
 
   const AppRoutes = () => {
     const { darkMode } = useTheme();
+
 
     useEffect(() => {
       if (darkMode) {
@@ -110,17 +116,21 @@
     );
   };
 
-  const App = () => {
-    return (
-  <ThemeProvider>
-        <CartProvider>
-          <NotificationSoundProvider>
+const App = () => {
+      const stripePromise = loadStripe("pk_test_51REGk6LPejWsTmTS57FbFFRXJO8hOcu0PVbqIn0Wemc9dlNaMi9HuB24KRZAiRIgJTSFNnI7juFs7I2rwiHJcHVZ00yEoXp6bE"); 
 
-          <AppRoutes />
-          </NotificationSoundProvider>
-        </CartProvider>
-      </ThemeProvider>
-    );
-  };
+  return (
+    <ThemeProvider>
+      <CartProvider>
+        <NotificationSoundProvider>
+          <Elements stripe={stripePromise}>
+            <AppRoutes />
+          </Elements>
+        </NotificationSoundProvider>
+      </CartProvider>
+    </ThemeProvider>
+  );
+};
+
 
   export default App;

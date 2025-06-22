@@ -12,8 +12,7 @@ import { handleAppointmentChange, handleAppointmentSubmit } from "../dashboard/A
 import Header from "./Header";
 import { Link } from "react-router-dom";
 import { FaArrowLeft, FaCalendarAlt, FaSearch, FaClock, FaUserMd, FaClipboardList, FaRegCalendarCheck } from "react-icons/fa";
-const stripePromise = loadStripe("pk_test_51REGkKPsCfe1J16zzfcF7oGALBqhMFHd68diTSTeVs6WTdKioXySxZ3vAmsgVrWOtHFfztmDRI3UO9BO87xz7DJW00u1mnHwuw"); // public key nga Stripe
-
+const stripePromise = loadStripe("pk_test_51REGk6LPejWsTmTS57FbFFRXJO8hOcu0PVbqIn0Wemc9dlNaMi9HuB24KRZAiRIgJTSFNnI7juFs7I2rwiHJcHVZ00yEoXp6bE"); 
 
 function CreateAppointment({ onAppointmentCreated }) {
   const [specialists, setSpecialists] = useState([]);

@@ -34,6 +34,10 @@ const UserPrograms = sequelize.define('UserPrograms', {
     type: DataTypes.STRING,
     allowNull: true,
   
+  },    payment: {
+    type: DataTypes.TEXT,
+    allowNull: true,
+      defaultValue: 'unpaid' 
   },
   // status: {  // Invitation status (Pending, Accepted, Rejected)
   //   type: DataTypes.ENUM('Pending', 'Accepted', 'Rejected'),

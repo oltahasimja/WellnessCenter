@@ -166,6 +166,16 @@ const Program = () => {
                   }`}
                 />
 
+                 <input
+                  type="text"
+                  placeholder="price"
+                  value={formData.price || ''}
+                  onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+                  className={`border p-3 rounded-md w-full focus:ring-2 focus:ring-blue-500 outline-none ${
+                    theme === 'dark' ? 'bg-gray-700 border-gray-600 text-white' : ''
+                  }`}
+                />
+
                 <button 
                   type="submit" 
                   className="w-full bg-blue-500 hover:bg-blue-600 text-white py-2 rounded-md font-semibold text-lg"
@@ -184,6 +194,9 @@ const Program = () => {
                     } uppercase text-sm leading-normal`}>
                       <th className="py-3 px-6 text-left">Title</th>
                       <th className="py-3 px-6 text-left">Description</th>
+                      <th className="py-3 px-6 text-left">Price</th>
+
+
                       <th className="py-3 px-6 text-left">Created By</th>
                       <th className="py-3 px-6 text-left">Created At</th>
                       <th className="py-3 px-6 text-center">Veprime</th>
@@ -209,6 +222,9 @@ const Program = () => {
                             </Link>
                           </td>
                           <td className="py-3 px-6 text-left">{item.description}</td>
+                          <td className="py-3 px-6 text-left">
+                            {item.price ? `${item.price} €` : 'N/A'}
+                          </td>
                           <td className="py-3 px-6 text-left">
                             {item.createdById?.name || 'N/A'}
                           </td>

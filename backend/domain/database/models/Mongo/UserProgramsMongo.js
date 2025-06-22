@@ -21,6 +21,11 @@ const userProgramsSchema = new Schema({
     type: String,
     required: false,
   },
+     payment: {
+    type: String,
+       required: false,
+         default: 'unpaid'
+  },
   createdAt: { type: Date, default: Date.now },
 });
 
