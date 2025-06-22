@@ -2,9 +2,9 @@ const mongoose = require('mongoose');
 const { ObjectId } = require('mongoose').Types;
 
 
-const { UserMongo, ProgramMongo, UserProgramsMongo } = require('../database/models/indexMongo');
+const { User, Program, UserPrograms, UsersGroup, Group } = require('../database/models/index');
+const { UserMongo, ProgramMongo, UserProgramsMongo, UsersGroupMongo, GroupMongo } = require('../database/models/indexMongo');
 
-const { User, Program, UserPrograms } = require('../database/models/index');
 
 
 class UserProgramsRepository {
@@ -30,88 +30,95 @@ class UserProgramsRepository {
 
  
 
-  async create(data) {
-    try {
-      console.log("Received data for creation:", data);
-      
-      // Validate input data structure
-      if (!data || typeof data !== 'object') {
-        throw new Error('Invalid data format');
+async create(data) {
+  try {
+    console.log("Received data for creation:", data);
+
+    if (!data || typeof data !== 'object') throw new Error('Invalid data format');
+    if (!data.userId || !data.programId) throw new Error('Both userId and programId are required');
+
+    const userIdStr = String(data.userId || '');
+    const programIdStr = String(data.programId || '');
+
+    if (!userIdStr || !programIdStr) throw new Error('Invalid userId or programId format');
+
+    const existing = await UserPrograms.findOne({
+      where: {
+        userId: userIdStr,
+        programId: programIdStr
       }
-  
-      // Validate required fields with more detailed checks
-      if (!data.userId || !data.programId) {
-        throw new Error('Both userId and programId are required');
-      }
-  
-      // Safely convert to strings
-      const userIdStr = String(data.userId || '');
-      const programIdStr = String(data.programId || '');
-  
-      if (!userIdStr || !programIdStr) {
-        throw new Error('Invalid userId or programId format');
-      }
-  
-      // Check if the relationship already exists
-      const existing = await UserPrograms.findOne({
+    });
+
+    if (existing) throw new Error('This user-program relationship already exists');
+
+    const program = await Program.findByPk(programIdStr);
+    if (!program) throw new Error(`Program with ID ${programIdStr} not found`);
+
+    // 1. Krijo në MySQL
+    const mysqlResource = await UserPrograms.create({
+      userId: userIdStr,
+      programId: programIdStr,
+      invitedById: program.createdById || null
+    });
+
+    // 2. Përgatit MongoDB të dhënat
+    const mongoData = {
+      mysqlId: String(mysqlResource.id),
+      createdAt: new Date(),
+      invitedById: program.createdById || null
+    };
+
+    const user = await UserMongo.findOne({ mysqlId: userIdStr });
+    if (!user) throw new Error(`User with ID ${userIdStr} not found in MongoDB`);
+    mongoData.userId = user._id;
+
+    const programMongo = await ProgramMongo.findOne({ mysqlId: programIdStr });
+    if (!programMongo) throw new Error(`Program with ID ${programIdStr} not found in MongoDB`);
+    mongoData.programId = programMongo._id;
+
+    // 3. Krijo në MongoDB
+    const mongoResource = await UserProgramsMongo.create(mongoData);
+    console.log("Successfully created in MongoDB:", mongoResource);
+
+    // 4. ✅ Shto në grupin më të fundit të krijuar
+    const group = await Group.findOne({ order: [['id', 'DESC']] }); // pa programId
+    if (group) {
+      const [usersGroupMySQL] = await UsersGroup.findOrCreate({
         where: {
           userId: userIdStr,
-          programId: programIdStr
+          groupId: group.id
         }
       });
-  
-      if (existing) {
-        throw new Error('This user-program relationship already exists');
+
+      const groupMongo = await GroupMongo.findOne({ mysqlId: group.id.toString() });
+      if (groupMongo) {
+        const existsInMongo = await UsersGroupMongo.findOne({
+          userId: user._id,
+          groupId: groupMongo._id
+        });
+
+        if (!existsInMongo) {
+          await UsersGroupMongo.create({
+            mysqlId: `${userIdStr}-${group.id}`, // ose përdor ID të vërtetë nëse ke MySQL insert
+            userId: user._id,
+            groupId: groupMongo._id
+          });
+        }
       }
-  
-      // Get the program to set invitedById
-      const program = await Program.findByPk(programIdStr);
-      if (!program) {
-        throw new Error(`Program with ID ${programIdStr} not found`);
-      }
-  
-      // Create in MySQL
-      const mysqlResource = await UserPrograms.create({
-        userId: userIdStr,
-        programId: programIdStr,
-        invitedById: program.createdById || null
-      });
-  
-      // Prepare data for MongoDB
-      const mongoData = {
-        mysqlId: String(mysqlResource.id),
-        createdAt: new Date(),
-        invitedById: program.createdById || null
-      };
-  
-      // Find and validate user in MongoDB
-      const user = await UserMongo.findOne({ mysqlId: userIdStr });
-      if (!user) {
-        throw new Error(`User with ID ${userIdStr} not found in MongoDB`);
-      }
-      mongoData.userId = user._id;
-  
-      // Find and validate program in MongoDB
-      const programMongo = await ProgramMongo.findOne({ mysqlId: programIdStr });
-      if (!programMongo) {
-        throw new Error(`Program with ID ${programIdStr} not found in MongoDB`);
-      }
-      mongoData.programId = programMongo._id;
-  
-      // Create in MongoDB
-      const mongoResource = await UserProgramsMongo.create(mongoData);
-      console.log("Successfully created in MongoDB:", mongoResource);
-  
-      return mysqlResource;
-    } catch (error) {
-      console.error("Detailed creation error:", {
-        message: error.message,
-        stack: error.stack,
-        inputData: data
-      });
-      throw new Error(`Failed to create user-program relationship: ${error.message}`);
     }
+
+    return mysqlResource;
+  } catch (error) {
+    console.error("Detailed creation error:", {
+      message: error.message,
+      stack: error.stack,
+      inputData: data
+    });
+    throw new Error(`Failed to create user-program relationship: ${error.message}`);
   }
+}
+
+
 
 
   async update(id, data) {

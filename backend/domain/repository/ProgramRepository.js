@@ -3,8 +3,8 @@ const mongoose = require('mongoose');
 const { ObjectId } = require('mongoose').Types;
 const Log = require('../database/models/MySQL/log');
 
-const { Program, User } = require('../database/models/index');
-const { ProgramMongo, UserMongo } = require('../database/models/indexMongo');
+const { Program, User, Group, UsersGroup } = require('../database/models/index');
+const { ProgramMongo, UserMongo, GroupMongo, UsersGroupMongo } = require('../database/models/indexMongo');
 const userProgramsRepository = require('./UserProgramsRepository');
 
 class ProgramRepository {
@@ -35,10 +35,10 @@ class ProgramRepository {
 async create(data) {
   try {
     console.log("Creating Program:", data);
-    
+
     // 1. Create in MySQL
     const mysqlResource = await Program.create(data);
-    
+
     // 2. Prepare MongoDB data
     const mongoData = {
       mysqlId: mysqlResource.id.toString(),
@@ -46,24 +46,51 @@ async create(data) {
       createdAt: new Date(),
     };
 
-    // 3. Handle user reference
+    // 3. Handle createdById reference
+    let user;
     if (data.createdById) {
-      const user = await UserMongo.findOne({ mysqlId: data.createdById.toString() });
+      user = await UserMongo.findOne({ mysqlId: data.createdById.toString() });
       if (!user) throw new Error(`User with MySQL ID ${data.createdById} not found in MongoDB`);
       mongoData.createdById = new ObjectId(user._id.toString());
     }
 
-    // 4. Create in MongoDB FIRST
+    // 4. Create Program in MongoDB
     const mongoResource = await ProgramMongo.create(mongoData);
     console.log("Program saved in MongoDB:", mongoResource);
 
-    // 5. NOW create user-program relationship (after MongoDB exists)
+    // 5. Create Group in MySQL
+    const group = await Group.create({
+      name: `Group for Program ${mysqlResource.id}`,
+      createdById: data.createdById
+    });
+
+    // 6. Create Group in MongoDB
+    const groupMongo = await GroupMongo.create({
+      name: `Group for Program ${mysqlResource.id}`,
+      mysqlId: String(group.id),
+      createdById: user._id
+    });
+
+    // 7. Add creator to UsersGroup (MySQL)
+    const usersGroupMySQL = await UsersGroup.create({
+      userId: data.createdById,
+      groupId: group.id
+    });
+
+    // 8. Add creator to UsersGroupMongo
+    await UsersGroupMongo.create({
+      mysqlId: usersGroupMySQL.id.toString(),
+      userId: user._id,
+      groupId: groupMongo._id
+    });
+
+    // 9. Add creator to UserPrograms (and into group from there)
     await userProgramsRepository.create({
       userId: data.createdById,
       programId: mysqlResource.id
     });
 
-    // 6. Log success
+    // 10. Log success
     await Log.create({
       userId: data.createdById,
       action: 'CREATE_PROGRAM',
@@ -73,17 +100,17 @@ async create(data) {
 
     return mysqlResource;
   } catch (error) {
-      await Log.create({
-        userId: data.createdById || null,
-        action: 'CREATE_PROGRAM_ERROR',
-        details: `Error creating program: ${error.message}`
-      });
-      console.error("Error creating Program:", error);
-      throw error;
-      throw new Error('Error creating Program: ' + error.message);
-    }
-    
+    await Log.create({
+      userId: data.createdById || null,
+      action: 'CREATE_PROGRAM_ERROR',
+      details: `Error creating program: ${error.message}`
+    });
+    console.error("Error creating Program:", error);
+    throw new Error('Error creating Program: ' + error.message);
   }
+}
+
+
   async update(id, data) {
     try {
 
