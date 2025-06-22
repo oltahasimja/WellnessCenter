@@ -5,7 +5,8 @@ const {
   Role,
   DashboardRole,
   Country,
-  City
+  City,
+  Schedule
 } = require('../domain/database/models');
 
 const {
@@ -13,7 +14,8 @@ const {
   RoleMongo,
   DashboardRoleMongo,
   CountryMongo,
-  CityMongo
+  CityMongo,
+  ScheduleMongo
 } = require('../domain/database/models/indexMongo');
 
 const createDefaultRolesAndUsers = async () => {
@@ -93,7 +95,6 @@ const createDefaultRolesAndUsers = async () => {
         birthday: '1992-08-10',
         city: 'Gjakovë',
         gender: 'Female'
-
       },
       {
         name: 'Festim',
@@ -104,7 +105,6 @@ const createDefaultRolesAndUsers = async () => {
         birthday: '1988-12-01',
         city: 'Podujevë',
         gender: 'Male'
-
       },
       {
         name: 'Vesa',
@@ -115,7 +115,6 @@ const createDefaultRolesAndUsers = async () => {
         birthday: '1995-07-18',
         city: 'Prishtinë',
         gender: 'Female'
-
       },
       {
         name: 'Greta',
@@ -126,7 +125,6 @@ const createDefaultRolesAndUsers = async () => {
         birthday: '1990-03-22',
         city: 'Istogu',
         gender: 'Female'
-
       },
       {
         name: 'Rinarda',
@@ -137,9 +135,11 @@ const createDefaultRolesAndUsers = async () => {
         birthday: '1993-09-14',
         city: 'Prishtinë',
         gender: 'Female'
-
       }
     ];
+
+    // Specialistët që duan orar
+    const specialistNames = ['Greta', 'Olta', 'Festim', 'Vesa'];
 
     // 5. Create each user
     for (const userData of usersToCreate) {
@@ -166,7 +166,7 @@ const createDefaultRolesAndUsers = async () => {
         cityId: userCity.sql.id
       });
 
-      await UserMongo.create({
+      const userMongo = await UserMongo.create({
         mysqlId: newUser.id.toString(),
         username: userData.username,
         email: userData.email,
@@ -182,6 +182,35 @@ const createDefaultRolesAndUsers = async () => {
       });
 
       console.log(`Përdoruesi ${userData.email} u krijua.`);
+
+      // Shto orarin nëse është specialist
+      if (specialistNames.includes(userData.name)) {
+        const scheduleSql = await Schedule.create({
+          specialistId: newUser.id,
+          workDays: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'],
+          startTime: '08:00',
+          endTime: '16:00',
+          breakStartTime: '12:00',
+          breakEndTime: '13:00',
+          price: 50,
+          unavailableDates: []
+        });
+
+        await ScheduleMongo.create({
+          mysqlId: scheduleSql.id.toString(),
+          specialistId: userMongo._id,
+          userId: userMongo._id,
+          workDays: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'],
+          startTime: '08:00',
+          endTime: '16:00',
+          breakStartTime: '12:00',
+          breakEndTime: '13:00',
+          price: 50,
+          unavailableDates: []
+        });
+
+        console.log(`Orari u krijua për specialistin ${userData.name}`);
+      }
     }
 
   } catch (err) {

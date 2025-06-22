@@ -144,6 +144,30 @@ const deleteCartItemByUserProduct = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+const deleteCartByUserId = async (req, res) => {
+  try {
+    const { userId } = req.params;
+
+    const allItems = await UseCase.getAll();
+    const userCart = allItems.find(item => item.userId?.mysqlId === userId);
+
+    if (!userCart) {
+      return res.status(404).json({ message: "Cart not found for user" });
+    }
+
+    const deleted = await UseCase.delete(userCart._id || userCart.mysqlId);
+    if (deleted) {
+      return res.json({ message: "Cart deleted after order" });
+    } else {
+      return res.status(500).json({ message: "Failed to delete cart" });
+    }
+
+  } catch (error) {
+    console.error("Error deleting cart after order:", error);
+    res.status(500).json({ message: error.message });
+  }
+};
+
 
 
 
@@ -158,5 +182,6 @@ module.exports = {
   createCartItem, 
   updateCartItem, 
   deleteCartItem,
-  deleteCartItemByUserProduct
+  deleteCartItemByUserProduct,
+  deleteCartByUserId
 };

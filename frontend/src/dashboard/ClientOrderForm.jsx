@@ -1,8 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import axios from "axios";
 import { useLocation, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { useContext } from 'react';
 import { CartContext } from '../context/CartContext';
 
 const ClientOrderForm = () => {
@@ -15,7 +14,7 @@ const ClientOrderForm = () => {
     email: '',
     phone: '',
   });
-  const [loading, setLoading] = useState(false); 
+  const [loading, setLoading] = useState(false);
   const { state } = useLocation();
   const { cart } = state || {};
   const navigate = useNavigate();
@@ -24,25 +23,25 @@ const ClientOrderForm = () => {
   const [selectedCountry, setSelectedCountry] = useState("");
   const { setCart } = useContext(CartContext);
 
+  const currentUser = JSON.parse(localStorage.getItem("currentUser"));
+  const userId = currentUser?.id;
+    useEffect(() => {
+        const fetchCountries = async () => {
+            try {
+                const response = await axios.get("https://countriesnow.space/api/v0.1/countries", {
+                    withCredentials: false 
+                });
+                if (response.data?.data) {
+                    setCountryList(response.data.data);
+                }
+            } catch (error) {
+                console.error("Error fetching countries:", error);
+            }
+        };
+        fetchCountries();
+    }, []);
 
-  
-  useEffect(() => {
-    const fetchCountries = async () => {
-      try {
-        const response = await axios.get("https://countriesnow.space/api/v0.1/countries", {
-          withCredentials: false 
-        });
-        if (response.data?.data) {
-          setCountryList(response.data.data);
-        }
-      } catch (error) {
-        console.error("Error fetching countries:", error);
-      }
-    };
-    fetchCountries();
-  }, []);
 
-  // Redirect if no cart items
   if (!cart || cart.length === 0) {
     return (
       <div className="min-h-screen bg-gray-100 flex items-center justify-center">
@@ -63,14 +62,13 @@ const ClientOrderForm = () => {
   }
 
   const calculateTotalPrice = (cartItems) => {
-    if (!Array.isArray(cartItems)) return 0;
     return cartItems.reduce((total, item) => total + (item.price * item.quantity), 0);
   };
 
   const handleCountryChange = (e) => {
     const country = e.target.value;
     setSelectedCountry(country);
-    setClientData(prev => ({ ...prev, country, city: '' })); // Reset city when country changes
+    setClientData(prev => ({ ...prev, country, city: '' }));
 
     if (country === "Kosovo") {
       setCityList([
@@ -93,10 +91,14 @@ const ClientOrderForm = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    
-    if (!clientData.name || !clientData.lastname || !clientData.email || !clientData.phone || 
-        !clientData.country || !clientData.city || !clientData.street) {
-      alert('Please fill in all required fields.');
+    if (!userId) {
+      alert("Ju lutem kyçuni para se të vazhdoni.");
+      return;
+    }
+
+    if (!clientData.name || !clientData.lastname || !clientData.email || !clientData.phone ||
+      !clientData.country || !clientData.city || !clientData.street) {
+      alert('Ju lutem plotësoni të gjitha fushat.');
       return;
     }
 
@@ -109,10 +111,13 @@ const ClientOrderForm = () => {
     }));
 
     const orderData = {
-      clientData,  
+      clientData: {
+        ...clientData,
+        userId // 🟢 Dërgohet te backend për fshirjen e saktë të CartItems
+      },
       orderDate: new Date().toISOString(),
-      cart: transformedCart,  
-      totalPrice,  
+      cart: transformedCart,
+      totalPrice,
       status: 'pending'
     };
 
@@ -121,11 +126,14 @@ const ClientOrderForm = () => {
     try {
       const response = await axios.post('http://localhost:5001/api/order', orderData);
       const orderNumber = response.data.orderId || Math.floor(100000 + Math.random() * 900000);
-      
-      
+
+      // ✅ Pas porosisë fshij cart lokal
       localStorage.removeItem("cart");
       setCart([]);
-      
+
+      // Optional: mund të thërret API për të fshirë edhe manualisht nga backend nëse do
+      // await axios.delete(`http://localhost:5001/api/cartitem/${userId}`);
+
       navigate("/order-confirmation", {
         state: {
           orderNumber,
@@ -134,18 +142,17 @@ const ClientOrderForm = () => {
           totalPrice
         }
       });
-
     } catch (error) {
       console.error("Order submission error:", error);
-      alert('Failed to place order. Please try again.');
+      alert('Porosia nuk u realizua. Ju lutem provoni përsëri.');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-   <div className="min-h-screen bg-gray-100 py-12 px-4 sm:px-6 lg:px-8">
-      <motion.div 
+    <div className="min-h-screen bg-gray-100 py-12 px-4 sm:px-6 lg:px-8">
+      <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
@@ -164,7 +171,7 @@ const ClientOrderForm = () => {
           )}
 
           <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Personal Info */}
+            {/* Personal Information */}
             <div className="space-y-4">
               <h3 className="text-xl font-semibold text-gray-800 border-b pb-2">Personal Information</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -174,7 +181,7 @@ const ClientOrderForm = () => {
                     type="text"
                     value={clientData.name}
                     onChange={(e) => setClientData({ ...clientData, name: e.target.value })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-400 focus:border-teal-400 transition-all"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg"
                     required
                   />
                 </div>
@@ -184,7 +191,7 @@ const ClientOrderForm = () => {
                     type="text"
                     value={clientData.lastname}
                     onChange={(e) => setClientData({ ...clientData, lastname: e.target.value })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-400 focus:border-teal-400 transition-all"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg"
                     required
                   />
                 </div>
@@ -201,7 +208,7 @@ const ClientOrderForm = () => {
                     type="email"
                     value={clientData.email}
                     onChange={(e) => setClientData({ ...clientData, email: e.target.value })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-400 focus:border-teal-400 transition-all"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg"
                     required
                   />
                 </div>
@@ -211,7 +218,7 @@ const ClientOrderForm = () => {
                     type="tel"
                     value={clientData.phone}
                     onChange={(e) => setClientData({ ...clientData, phone: e.target.value })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-400 focus:border-teal-400 transition-all"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg"
                     required
                   />
                 </div>
@@ -227,7 +234,7 @@ const ClientOrderForm = () => {
                   <select
                     value={clientData.country}
                     onChange={handleCountryChange}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-400 focus:border-teal-400 transition-all"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg"
                     required
                   >
                     <option value="">Select country</option>
@@ -241,8 +248,7 @@ const ClientOrderForm = () => {
                   <select
                     value={clientData.city}
                     onChange={handleCityChange}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-400 focus:border-teal-400 transition-all"
-                    disabled={!clientData.country}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg"
                     required
                   >
                     <option value="">Select city</option>
@@ -259,13 +265,13 @@ const ClientOrderForm = () => {
                   type="text"
                   value={clientData.street}
                   onChange={(e) => setClientData({ ...clientData, street: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-400 focus:border-teal-400 transition-all"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg"
                   required
                 />
               </div>
             </div>
 
-            {/* Order Summary */}
+            {/* Summary */}
             <div className="space-y-4">
               <h3 className="text-xl font-semibold text-gray-800 border-b pb-2">Order Summary</h3>
               <div className="bg-gray-50 p-4 rounded-lg">
@@ -280,14 +286,13 @@ const ClientOrderForm = () => {
               </div>
             </div>
 
-            {/* Submit */}
             <div className="pt-4">
               <motion.button
                 type="submit"
                 disabled={loading}
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
-                className="w-full bg-teal-500 hover:bg-teal-600 text-white py-3 px-6 rounded-lg font-medium text-lg transition-all duration-200 disabled:opacity-70 disabled:cursor-not-allowed"
+                className="w-full bg-teal-500 hover:bg-teal-600 text-white py-3 px-6 rounded-lg font-medium text-lg disabled:opacity-70"
               >
                 {loading ? 'Processing...' : 'Place Order'}
               </motion.button>

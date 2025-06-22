@@ -14,11 +14,34 @@ const ShoppingCart = () => {
 
   const navigate = useNavigate();
 
-  // Check for current user on component mount
-  useEffect(() => {
+    useEffect(() => {
     const user = JSON.parse(localStorage.getItem("currentUser"));
     setCurrentUser(user);
   }, []);
+
+  // Check for current user on component mount
+ useEffect(() => {
+  const user = JSON.parse(localStorage.getItem("currentUser"));
+  setCurrentUser(user);
+
+  if (user && user.id) {
+    // Fetch cart items from backend
+    fetch(`http://localhost:5001/api/cartitem/user/${user.id}`)
+      .then(res => res.json())
+      .then(data => {
+        if (data && data.items) {
+          setCart(data.items);
+        } else if (Array.isArray(data)) {
+          // In case your API returns array of carts, get first one
+          setCart(data[0]?.items || []);
+        }
+      })
+      .catch(err => console.error("Error fetching cart items", err));
+  }
+}, []);
+
+
+
 
   const removeFromCart = async (productId) => {
     const user = JSON.parse(localStorage.getItem("currentUser"));

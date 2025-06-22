@@ -60,13 +60,13 @@ async create(data) {
 
     // 5. Create Group in MySQL
     const group = await Group.create({
-      name: `Group for Program ${mysqlResource.id}`,
+      name: `Group for Program ${mysqlResource.title}`,
       createdById: data.createdById
     });
 
     // 6. Create Group in MongoDB
     const groupMongo = await GroupMongo.create({
-      name: `Group for Program ${mysqlResource.id}`,
+      name: `Group for Program ${mysqlResource.title}`,
       mysqlId: String(group.id),
       createdById: user._id
     });

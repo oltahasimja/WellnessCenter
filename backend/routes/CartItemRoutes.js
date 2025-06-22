@@ -9,7 +9,8 @@ const {
   updateCartItem,
   patchCartItem,
   deleteCartItem,
-  deleteCartItemByUserProduct
+  deleteCartItemByUserProduct,
+  deleteCartByUserId
 } = require("../adapters/controllers/CartItemController");
 
 // GET all cart items
@@ -35,5 +36,8 @@ router.delete('/:id', deleteCartItem);
 
 // DELETE by userId and productId
 router.delete('/:userId/:productId', deleteCartItemByUserProduct);
+
+router.delete('/:userId', deleteCartByUserId);
+
 
 module.exports = router;

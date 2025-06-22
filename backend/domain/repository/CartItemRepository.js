@@ -41,7 +41,7 @@ class CartItemRepository {
     const mysqlResource = await CartItem.create(data);
 
     // 2. Gjej user-in në MongoDB
-    const users = await UserMongo.findOne({ mysqlId: data.usersId.toString() });
+const users = await UserMongo.findOne({ mysqlId: data.userId.toString() });
     if (!users) {
       throw new Error(`Users with MySQL ID ${data.usersId} not found in MongoDB`);
     }

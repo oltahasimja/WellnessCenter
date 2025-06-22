@@ -36,45 +36,60 @@ function ProductDetailPage() {
     }
   }, [product, navigate]);
 
-  const addToCart = async () => {
-    try {
-      const user = JSON.parse(localStorage.getItem('currentUser'));
-      if (!user?.id) {
-        alert('Please login to add items to cart');
-        navigate('/login');
-        return;
-      }
-
-      setCart(prevCart => {
-        const existingItem = prevCart.find(item => 
-          item.productId === product.id || 
-          (item.id && item.id === product.id)
-        );
-        
-        if (existingItem) {
-          return prevCart.map(item =>
-            (item.productId === product.id || 
-             (item.id && item.id === product.id))
-              ? { ...item, quantity: item.quantity + quantity }
-              : item
-          );
-        } else {
-          return [...prevCart, { 
-            ...product, 
-            quantity,
-            productId: product.id
-          }];
-        }
-      });
-
-      setShowCart(true);
-      setClickedButtonId(product.id);
-      setTimeout(() => setClickedButtonId(null), 1000);
-    } catch (err) {
-      console.error("Error adding to cart:", err);
-      alert('Failed to add item to cart. Please try again.');
+ const addToCart = async () => {
+  try {
+    const user = JSON.parse(localStorage.getItem('currentUser'));
+    if (!user?.id) {
+      alert('Please login to add items to cart');
+      navigate('/login');
+      return;
     }
-  };
+
+    const newItem = {
+      productId: product.id,
+      name: product.name,
+      price: product.price,
+      quantity,
+      image: product.image,
+      userId: user.id
+    };
+
+    // Update frontend cart state
+    setCart(prevCart => {
+      const existingItem = prevCart.find(item => item.productId === product.id);
+      if (existingItem) {
+        return prevCart.map(item =>
+          item.productId === product.id
+            ? { ...item, quantity: item.quantity + quantity }
+            : item
+        );
+      } else {
+        return [...prevCart, newItem];
+      }
+    });
+
+    // 🔁 Send new item to backend (Mongo + MySQL)
+    const res = await fetch("http://localhost:5001/api/cartitem", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(newItem),
+    });
+
+    if (!res.ok) throw new Error("Failed to save cart item to backend");
+
+    // Show cart
+    setShowCart(true);
+    setClickedButtonId(product.id);
+    setTimeout(() => setClickedButtonId(null), 1000);
+
+  } catch (err) {
+    console.error("Error adding to cart:", err);
+    alert("Failed to add item to cart. Please try again.");
+  }
+};
+
 
   if (!product) {
     return null; 
