@@ -1,4 +1,5 @@
 const bcrypt = require('bcryptjs');
+const { faker } = require('@faker-js/faker');
 const sequelize = require('../config/database');
 const {
   User,
@@ -73,8 +74,8 @@ const createDefaultRolesAndUsers = async () => {
     const dashboardOwner = await DashboardRole.findOne({ where: { name: 'Owner' } });
     const dashboardOwnerMongo = await DashboardRoleMongo.findOne({ name: 'Owner' });
 
-    // 4. Users to create
-    const usersToCreate = [
+    // 4. Add static users
+    const staticUsers = [
       {
         name: 'Shaban',
         lastName: 'Buja',
@@ -138,80 +139,106 @@ const createDefaultRolesAndUsers = async () => {
       }
     ];
 
-    // Specialistët që duan orar
-    const specialistNames = ['Greta', 'Olta', 'Festim', 'Vesa'];
+    // 5. Generate 100 faker users
+    const fakerUsers = [];
+    for (let i = 0; i < 100; i++) {
+      const gender = faker.person.sexType(); // male | female
+      const cityName = cities[Math.floor(Math.random() * cities.length)];
+      const role = roles[Math.floor(Math.random() * roles.length)];
 
-    // 5. Create each user
-    for (const userData of usersToCreate) {
-      const existing = await User.findOne({ where: { email: userData.email } });
-      if (existing) {
-        console.log(`Përdoruesi ${userData.email} ekziston.`);
-        continue;
-      }
-
-      const hashedPassword = await bcrypt.hash('bani1234', 10);
-      const userCity = cityMap[userData.city];
-
-      const newUser = await User.create({
-        username: userData.username,
-        email: userData.email,
-        password: hashedPassword,
-        name: userData.name,
-        lastName: userData.lastName,
-        number: '000000000',
-        birthday: userData.birthday,
-        roleId: roleMap[userData.role].sql.id,
-        dashboardRoleId: userData.dashboardRole === 'Owner' ? dashboardOwner.id : null,
-        countryId: kosova.id,
-        cityId: userCity.sql.id
+      fakerUsers.push({
+        name: faker.person.firstName(gender),
+        lastName: faker.person.lastName(gender),
+        username: faker.internet.userName(),
+        email: faker.internet.email(),
+        role,
+        birthday: faker.date.birthdate({ min: 1970, max: 2005, mode: 'year' }).toISOString().split('T')[0],
+        city: cityName,
+        gender: gender === 'male' ? 'Male' : 'Female',
+        dashboardRole: null
       });
-
-      const userMongo = await UserMongo.create({
-        mysqlId: newUser.id.toString(),
-        username: userData.username,
-        email: userData.email,
-        password: hashedPassword,
-        name: userData.name,
-        lastName: userData.lastName,
-        number: '000000000',
-        birthday: new Date(userData.birthday),
-        roleId: roleMap[userData.role].mongo._id,
-        dashboardRoleId: userData.dashboardRole === 'Owner' ? dashboardOwnerMongo._id : null,
-        countryId: kosovaMongo._id,
-        cityId: userCity.mongo._id
-      });
-
-      console.log(`Përdoruesi ${userData.email} u krijua.`);
-
-      // Shto orarin nëse është specialist
-      if (specialistNames.includes(userData.name)) {
-        const scheduleSql = await Schedule.create({
-          specialistId: newUser.id,
-          workDays: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'],
-          startTime: '08:00',
-          endTime: '16:00',
-          breakStartTime: '12:00',
-          breakEndTime: '13:00',
-          price: 50,
-          unavailableDates: []
-        });
-
-        await ScheduleMongo.create({
-          mysqlId: scheduleSql.id.toString(),
-          specialistId: userMongo._id,
-          userId: userMongo._id,
-          workDays: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'],
-          startTime: '08:00',
-          endTime: '16:00',
-          breakStartTime: '12:00',
-          breakEndTime: '13:00',
-          price: 50,
-          unavailableDates: []
-        });
-
-        console.log(`Orari u krijua për specialistin ${userData.name}`);
-      }
     }
+
+    const usersToCreate = [...staticUsers, ...fakerUsers];
+
+
+   const specialistNames = ['Greta', 'Olta', 'Festim', 'Vesa'];
+let specialistCount = specialistNames.length; 
+
+for (const userData of usersToCreate) {
+  const existing = await User.findOne({ where: { email: userData.email } });
+  if (existing) {
+    console.log(`Përdoruesi ${userData.email} ekziston.`);
+    continue;
+  }
+
+  const hashedPassword = await bcrypt.hash('bani1234', 10);
+  const userCity = cityMap[userData.city];
+
+  const newUser = await User.create({
+    username: userData.username,
+    email: userData.email,
+    password: hashedPassword,
+    name: userData.name,
+    lastName: userData.lastName,
+    number: '000000000',
+    birthday: userData.birthday,
+    roleId: roleMap[userData.role].sql.id,
+    dashboardRoleId: userData.dashboardRole === 'Owner' ? dashboardOwner.id : null,
+    countryId: kosova.id,
+    cityId: userCity.sql.id
+  });
+
+  const userMongo = await UserMongo.create({
+    mysqlId: newUser.id.toString(),
+    username: userData.username,
+    email: userData.email,
+    password: hashedPassword,
+    name: userData.name,
+    lastName: userData.lastName,
+    number: '000000000',
+    birthday: new Date(userData.birthday),
+    roleId: roleMap[userData.role].mongo._id,
+    dashboardRoleId: userData.dashboardRole === 'Owner' ? dashboardOwnerMongo._id : null,
+    countryId: kosovaMongo._id,
+    cityId: userCity.mongo._id
+  });
+
+  console.log(`Përdoruesi ${userData.email} u krijua.`);
+
+  // Shto orarin nëse është në listën fillestare ose është specialist (dhe <= 50)
+  const isFakerSpecialist = ['Fizioterapeut', 'Nutricionist', 'Trajner', 'Psikolog'].includes(userData.role);
+
+  if (specialistNames.includes(userData.name) || (isFakerSpecialist && specialistCount < 50)) {
+    await Schedule.create({
+      specialistId: newUser.id,
+      workDays: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'],
+      startTime: '08:00',
+      endTime: '16:00',
+      breakStartTime: '12:00',
+      breakEndTime: '13:00',
+      price: 50,
+      unavailableDates: []
+    });
+
+    await ScheduleMongo.create({
+      mysqlId: newUser.id.toString(),
+      specialistId: userMongo._id,
+      userId: userMongo._id,
+      workDays: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'],
+      startTime: '08:00',
+      endTime: '16:00',
+      breakStartTime: '12:00',
+      breakEndTime: '13:00',
+      price: 50,
+      unavailableDates: []
+    });
+
+    specialistCount++;
+    console.log(`Orari u krijua për specialistin ${userData.name}`);
+  }
+}
+
 
   } catch (err) {
     console.error('Gabim në seed:', err.message);

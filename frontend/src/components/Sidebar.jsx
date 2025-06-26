@@ -21,8 +21,8 @@ const Sidebar = () => {
 
   if (isChecking) {
     return (
-      <div className="flex items-center justify-center min-h-screen dark:bg-gray-900 bg-white">
-        <div className="w-16 h-16 border-4 border-blue-500 border-dashed rounded-full animate-spin"></div>
+      <div className="flex items-center justify-center min-h-screen dark:bg-slate-900 bg-slate-50">
+        <div className="w-16 h-16 border-4 border-teal-500 border-dashed rounded-full animate-spin"></div>
       </div>
     );
   }
@@ -59,7 +59,7 @@ const Sidebar = () => {
   const MenuItem = ({ icon: Icon, label, hasDropdown, componentName, externalLink, onClick }) => (
     <div 
       className={`relative flex flex-col items-start ${isOpen ? 'px-4' : ''} py-2 cursor-pointer text-lg
-        hover:bg-blue-50 dark:hover:bg-gray-700 hover:text-blue-700`}
+        hover:bg-teal-50 dark:hover:bg-slate-700 hover:text-teal-700 transition-all duration-200 rounded-lg mx-2`}
         onClick={() => {
           if (externalLink && onClick) {
             onClick(); 
@@ -71,12 +71,12 @@ const Sidebar = () => {
       >
       <div className="flex items-center justify-between w-full">
         <div className={`flex items-center space-x-3 ${isOpen ? 'justify-start' : 'justify-center'} w-full`}>
-          <Icon className="w-6 h-6 text-gray-500 dark:text-gray-300 group-hover:text-blue-700" />
-          {isOpen && <span className="font-medium">{label}</span>}
+          <Icon className="w-6 h-6 text-slate-500 dark:text-slate-300 group-hover:text-teal-600" />
+          {isOpen && <span className="font-medium text-slate-700 dark:text-slate-200">{label}</span>}
         </div>
         {isOpen && hasDropdown && (
           <ChevronDown 
-            className={`w-5 h-5 transition-transform ${openDropdown === label ? 'rotate-180' : ''}`} 
+            className={`w-5 h-5 transition-transform text-slate-400 ${openDropdown === label ? 'rotate-180' : ''}`} 
           />
         )}
       </div>
@@ -84,24 +84,24 @@ const Sidebar = () => {
   );
 
   return (
-    <div className={`${isOpen ? 'w-72' : 'w-20'} bg-white dark:bg-gray-900 dark:text-white border-r h-screen overflow-auto transition-all duration-300 shadow-md flex flex-col justify-between`} style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+    <div className={`${isOpen ? 'w-72' : 'w-20'} bg-slate-50 dark:bg-slate-900 dark:text-slate-100 border-r border-slate-200 dark:border-slate-700 h-screen overflow-auto transition-all duration-300 shadow-lg flex flex-col justify-between`} style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
       <div>
-        <div className="px-4 py-4 border-b flex items-center justify-between">
+        <div className="px-4 py-4 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between bg-gradient-to-r from-teal-500 to-slate-600">
           {isOpen && (
             <span
               onClick={() => navigate('/')}
-              className="text-xl font-semibold cursor-pointer hover:text-blue-600 transition"
+              className="text-xl font-bold cursor-pointer text-white hover:text-teal-100 transition"
             >
               Wellness
             </span>
           )}
-          <button onClick={toggleSidebar} className="hover:bg-gray-100 dark:hover:bg-gray-700 p-2 rounded-md">
-            <Menu className="w-6 h-6" />
+          <button onClick={toggleSidebar} className="hover:bg-white/20 p-2 rounded-md transition-colors">
+            <Menu className="w-6 h-6 text-white" />
           </button>
         </div>
 
-        <div className="py-2 bg-white dark:bg-gray-900 dark:text-white">
-          {isOpen && <div className="text-sm text-gray-400 px-4 py-2">MENU</div>}
+        <div className="py-2 bg-slate-50 dark:bg-slate-900 dark:text-slate-100">
+          {isOpen && <div className="text-sm text-slate-500 dark:text-slate-400 px-4 py-2 font-semibold tracking-wide">MENU</div>}
           <MenuItem 
             icon={LayoutDashboard} 
             label="Dashboard" 
@@ -117,20 +117,20 @@ const Sidebar = () => {
               hasDropdown={true}
             />
             {openDropdown === 'Manage Product' && isOpen && (
-              <div className={`ml-12 mt-1 space-y-1 ${theme === 'dark' ? 'bg-gray-800' : 'bg-gray-50'} rounded-md p-1`}>
+              <div className={`ml-12 mt-1 space-y-1 ${theme === 'dark' ? 'bg-slate-800' : 'bg-slate-100'} rounded-lg p-2 shadow-inner`}>
                 <div 
-                  className="flex items-center px-3 py-2 hover:bg-blue-100 dark:hover:bg-gray-700 rounded cursor-pointer"
+                  className="flex items-center px-3 py-2 hover:bg-teal-100 dark:hover:bg-slate-700 rounded-md cursor-pointer transition-colors"
                   onClick={() => handleMenuItemClick('product')}
                 >
-                  <Table className="w-5 h-5 mr-2" />
-                  <span>Product</span>
+                  <Table className="w-5 h-5 mr-2 text-teal-600" />
+                  <span className="text-slate-700 dark:text-slate-200">Product</span>
                 </div>
                 <div 
-                  className="flex items-center px-3 py-2 hover:bg-blue-100 dark:hover:bg-gray-700 rounded cursor-pointer"
+                  className="flex items-center px-3 py-2 hover:bg-teal-100 dark:hover:bg-slate-700 rounded-md cursor-pointer transition-colors"
                   onClick={() => handleMenuItemClick('category')}
                 >
-                  <Tags className="w-5 h-5 mr-2" />
-                  <span>Category</span>
+                  <Tags className="w-5 h-5 mr-2 text-teal-600" />
+                  <span className="text-slate-700 dark:text-slate-200">Category</span>
                 </div>
               </div>
             )}
@@ -143,41 +143,41 @@ const Sidebar = () => {
               hasDropdown={true}
             />
             {openDropdown === 'Manage Programs' && isOpen && (
-              <div className={`ml-12 mt-1 space-y-1 ${theme === 'dark' ? 'bg-gray-800' : 'bg-gray-50'} rounded-md p-1`}>
+              <div className={`ml-12 mt-1 space-y-1 ${theme === 'dark' ? 'bg-slate-800' : 'bg-slate-100'} rounded-lg p-2 shadow-inner`}>
                 <div 
-                  className="flex items-center px-3 py-2 hover:bg-blue-100 dark:hover:bg-gray-700 rounded cursor-pointer"
+                  className="flex items-center px-3 py-2 hover:bg-teal-100 dark:hover:bg-slate-700 rounded-md cursor-pointer transition-colors"
                   onClick={() => handleMenuItemClick('program')}
                 >
-                  <Table className="w-5 h-5 mr-2" />
-                  <span>Program</span>  
+                  <Table className="w-5 h-5 mr-2 text-teal-600" />
+                  <span className="text-slate-700 dark:text-slate-200">Program</span>  
                 </div>
                 <div 
-                  className="flex items-center px-3 py-2 hover:bg-blue-100 dark:hover:bg-gray-700 rounded cursor-pointer"
+                  className="flex items-center px-3 py-2 hover:bg-teal-100 dark:hover:bg-slate-700 rounded-md cursor-pointer transition-colors"
                   onClick={() => handleMenuItemClick('userprograms')}
                 >
-                  <UserPlus className="w-5 h-5 mr-2" />
-                  <span>UserPrograms</span>
+                  <UserPlus className="w-5 h-5 mr-2 text-teal-600" />
+                  <span className="text-slate-700 dark:text-slate-200">UserPrograms</span>
                 </div>
                     <div 
-                  className="flex items-center px-3 py-2 hover:bg-blue-100 dark:hover:bg-gray-700 rounded cursor-pointer"
+                  className="flex items-center px-3 py-2 hover:bg-teal-100 dark:hover:bg-slate-700 rounded-md cursor-pointer transition-colors"
                   onClick={() => handleMenuItemClick('log')}
                 >
-                  <UserPlus className="w-5 h-5 mr-2" />
-                  <span>Log</span>
+                  <UserPlus className="w-5 h-5 mr-2 text-teal-600" />
+                  <span className="text-slate-700 dark:text-slate-200">Log</span>
                 </div>
                 <div 
-                  className="flex items-center px-3 py-2 hover:bg-blue-100 dark:hover:bg-gray-700 rounded cursor-pointer"
+                  className="flex items-center px-3 py-2 hover:bg-teal-100 dark:hover:bg-slate-700 rounded-md cursor-pointer transition-colors"
                   onClick={() => handleMenuItemClick('cardmember')}
                 >
-                  <UserPlus className="w-5 h-5 mr-2" />
-                  <span>CardMember</span>
+                  <UserPlus className="w-5 h-5 mr-2 text-teal-600" />
+                  <span className="text-slate-700 dark:text-slate-200">CardMember</span>
                 </div>
                 <div 
-                  className="flex items-center px-3 py-2 hover:bg-blue-100 dark:hover:bg-gray-700 rounded cursor-pointer"
+                  className="flex items-center px-3 py-2 hover:bg-teal-100 dark:hover:bg-slate-700 rounded-md cursor-pointer transition-colors"
                   onClick={() => handleMenuItemClick('list')}
                 >
-                  <ListOrdered  className="w-5 h-5 mr-2" />
-                  <span>List</span>
+                  <ListOrdered  className="w-5 h-5 mr-2 text-teal-600" />
+                  <span className="text-slate-700 dark:text-slate-200">List</span>
                 </div>
 
 
@@ -196,20 +196,20 @@ const Sidebar = () => {
               hasDropdown={true}
             />
             {openDropdown === 'Manage Users' && isOpen && (
-              <div className={`ml-12 mt-1 space-y-1 ${theme === 'dark' ? 'bg-gray-800' : 'bg-gray-50'} rounded-md p-1`}>
+              <div className={`ml-12 mt-1 space-y-1 ${theme === 'dark' ? 'bg-slate-800' : 'bg-slate-100'} rounded-lg p-2 shadow-inner`}>
                 <div 
-                  className="flex items-center px-3 py-2 hover:bg-blue-100 dark:hover:bg-gray-700 rounded cursor-pointer"
+                  className="flex items-center px-3 py-2 hover:bg-teal-100 dark:hover:bg-slate-700 rounded-md cursor-pointer transition-colors"
                   onClick={() => handleMenuItemClick('users')}
                 >
-                  <Table className="w-5 h-5 mr-2" />
-                  <span>Users</span>
+                  <Table className="w-5 h-5 mr-2 text-teal-600" />
+                  <span className="text-slate-700 dark:text-slate-200">Users</span>
                 </div>
                 <div 
-                  className="flex items-center px-3 py-2 hover:bg-blue-100 dark:hover:bg-gray-700 rounded cursor-pointer"
+                  className="flex items-center px-3 py-2 hover:bg-teal-100 dark:hover:bg-slate-700 rounded-md cursor-pointer transition-colors"
                   onClick={() => handleMenuItemClick('createuser')}
                 >
-                  <UserPlus className="w-5 h-5 mr-2" />
-                  <span>Create User</span>
+                  <UserPlus className="w-5 h-5 mr-2 text-teal-600" />
+                  <span className="text-slate-700 dark:text-slate-200">Create User</span>
                 </div>
               </div>
             )}
@@ -226,20 +226,20 @@ const Sidebar = () => {
               hasDropdown={true}
             />
             {openDropdown === 'Manage Roles' && isOpen && (
-              <div className={`ml-12 mt-1 space-y-1 ${theme === 'dark' ? 'bg-gray-800' : 'bg-gray-50'} rounded-md p-1`}>
+              <div className={`ml-12 mt-1 space-y-1 ${theme === 'dark' ? 'bg-slate-800' : 'bg-slate-100'} rounded-lg p-2 shadow-inner`}>
                 <div 
-                  className="flex items-center px-3 py-2 hover:bg-blue-100 dark:hover:bg-gray-700 rounded cursor-pointer"
+                  className="flex items-center px-3 py-2 hover:bg-teal-100 dark:hover:bg-slate-700 rounded-md cursor-pointer transition-colors"
                   onClick={() => handleMenuItemClick('roles')}
                 >
-                  <Shield className="w-5 h-5 mr-2" />
-                  <span>Role</span>
+                  <Shield className="w-5 h-5 mr-2 text-teal-600" />
+                  <span className="text-slate-700 dark:text-slate-200">Role</span>
                 </div>
                 <div 
-                  className="flex items-center px-3 py-2 hover:bg-blue-100 dark:hover:bg-gray-700 rounded cursor-pointer"
+                  className="flex items-center px-3 py-2 hover:bg-teal-100 dark:hover:bg-slate-700 rounded-md cursor-pointer transition-colors"
                   onClick={() => handleMenuItemClick('dashboardrole')}
                 >
-                  <Shield className="w-5 h-5 mr-2" />
-                  <span>DashboardRole</span>
+                  <Shield className="w-5 h-5 mr-2 text-teal-600" />
+                  <span className="text-slate-700 dark:text-slate-200">DashboardRole</span>
                 </div>
               </div>
             )}
@@ -253,27 +253,27 @@ const Sidebar = () => {
             hasDropdown={true}
           />
           {openDropdown === 'Manage Training' && isOpen && (
-            <div className={`ml-12 mt-1 space-y-1 ${theme === 'dark' ? 'bg-gray-800' : 'bg-gray-50'} rounded-md p-1`}>
+            <div className={`ml-12 mt-1 space-y-1 ${theme === 'dark' ? 'bg-slate-800' : 'bg-slate-100'} rounded-lg p-2 shadow-inner`}>
               <div 
-                className="flex items-center px-3 py-2 hover:bg-blue-100 dark:hover:bg-gray-700 rounded cursor-pointer"
+                className="flex items-center px-3 py-2 hover:bg-teal-100 dark:hover:bg-slate-700 rounded-md cursor-pointer transition-colors"
                 onClick={() => handleMenuItemClick('training')}
               >
-                <Table className="w-5 h-5 mr-2" />
-                <span>Training</span>
+                <Table className="w-5 h-5 mr-2 text-teal-600" />
+                <span className="text-slate-700 dark:text-slate-200">Training</span>
               </div>
               <div 
-                className="flex items-center px-3 py-2 hover:bg-blue-100 dark:hover:bg-gray-700 rounded cursor-pointer"
+                className="flex items-center px-3 py-2 hover:bg-teal-100 dark:hover:bg-slate-700 rounded-md cursor-pointer transition-colors"
                 onClick={() => handleMenuItemClick('trainingapplication')}
               >
-                <UserPlus className="w-5 h-5 mr-2" />
-                <span>TrainingApplication</span>
+                <UserPlus className="w-5 h-5 mr-2 text-teal-600" />
+                <span className="text-slate-700 dark:text-slate-200">TrainingApplication</span>
               </div>
               <div 
-                className="flex items-center px-3 py-2 hover:bg-blue-100 dark:hover:bg-gray-700 rounded cursor-pointer"
+                className="flex items-center px-3 py-2 hover:bg-teal-100 dark:hover:bg-slate-700 rounded-md cursor-pointer transition-colors"
                 onClick={() => handleMenuItemClick('scheduleTraining')}
               >
-                <Calendar className="w-5 h-5 mr-2" />
-                <span>Schedule Training</span>
+                <Calendar className="w-5 h-5 mr-2 text-teal-600" />
+                <span className="text-slate-700 dark:text-slate-200">Schedule Training</span>
               </div>
             </div>
           )}
@@ -290,16 +290,16 @@ const Sidebar = () => {
        hasDropdown={true}
       />
       {openDropdown === 'Manage Order' && isOpen && (
-      <div className={`ml-12 mt-1 space-y-1 ${theme === 'dark' ? 'bg-gray-800' : 'bg-gray-50'} rounded-md p-1`}>
+      <div className={`ml-12 mt-1 space-y-1 ${theme === 'dark' ? 'bg-slate-800' : 'bg-slate-100'} rounded-lg p-2 shadow-inner`}>
       <div 
-        className="flex items-center px-3 py-2 hover:bg-blue-100 dark:hover:bg-gray-700 rounded cursor-pointer"
+        className="flex items-center px-3 py-2 hover:bg-teal-100 dark:hover:bg-slate-700 rounded-md cursor-pointer transition-colors"
         onClick={() => handleMenuItemClick('order')}
       >
-        <ClipboardList className="w-5 h-5 mr-2" />
-        <span>Orders</span>
+        <ClipboardList className="w-5 h-5 mr-2 text-teal-600" />
+        <span className="text-slate-700 dark:text-slate-200">Orders</span>
          </div>
           <div 
-            className="flex items-center px-3 py-2 hover:bg-blue-100 dark:hover:bg-gray-700 rounded cursor-pointer"
+            className="flex items-center px-3 py-2 hover:bg-teal-100 dark:hover:bg-slate-700 rounded-md cursor-pointer transition-colors"
             onClick={() => handleMenuItemClick('review')}
            >
            </div>
@@ -315,13 +315,13 @@ const Sidebar = () => {
               hasDropdown={true}
             />
             {openDropdown === 'Manage Delivery' && isOpen && (
-              <div className={`ml-12 mt-1 space-y-1 ${theme === 'dark' ? 'bg-gray-800' : 'bg-gray-50'} rounded-md p-1`}>
+              <div className={`ml-12 mt-1 space-y-1 ${theme === 'dark' ? 'bg-slate-800' : 'bg-slate-100'} rounded-lg p-2 shadow-inner`}>
                 <div 
-                  className="flex items-center px-3 py-2 hover:bg-blue-100 dark:hover:bg-gray-700 rounded cursor-pointer"
+                  className="flex items-center px-3 py-2 hover:bg-teal-100 dark:hover:bg-slate-700 rounded-md cursor-pointer transition-colors"
                   onClick={() => handleMenuItemClick('delivery')}
                 >
-                  <TruckIcon className="w-5 h-5 mr-2" />
-                  <span>Delivery</span>
+                  <TruckIcon className="w-5 h-5 mr-2 text-teal-600" />
+                  <span className="text-slate-700 dark:text-slate-200">Delivery</span>
                 </div>
               </div>
             )}
@@ -354,20 +354,20 @@ const Sidebar = () => {
               hasDropdown={true}
             />
             {openDropdown === 'Manage Appointment' && isOpen && (
-              <div className={`ml-12 mt-1 space-y-1 ${theme === 'dark' ? 'bg-gray-800' : 'bg-gray-50'} rounded-md p-1`}>
+              <div className={`ml-12 mt-1 space-y-1 ${theme === 'dark' ? 'bg-slate-800' : 'bg-slate-100'} rounded-lg p-2 shadow-inner`}>
                 <div 
-                  className="flex items-center px-3 py-2 hover:bg-blue-100 dark:hover:bg-gray-700 rounded cursor-pointer"
+                  className="flex items-center px-3 py-2 hover:bg-teal-100 dark:hover:bg-slate-700 rounded-md cursor-pointer transition-colors"
                   onClick={() => handleMenuItemClick('appointment')}
                 >
-                  <Table className="w-5 h-5 mr-2" />
-                  <span>Appointments</span>
+                  <Table className="w-5 h-5 mr-2 text-teal-600" />
+                  <span className="text-slate-700 dark:text-slate-200">Appointments</span>
                 </div>
                 <div 
-                  className="flex items-center px-3 py-2 hover:bg-blue-100 dark:hover:bg-gray-700 rounded cursor-pointer"
+                  className="flex items-center px-3 py-2 hover:bg-teal-100 dark:hover:bg-slate-700 rounded-md cursor-pointer transition-colors"
                   onClick={() => handleMenuItemClick('createappointment')}
                 >
-                  <UserPlus className="w-5 h-5 mr-2" />
-                  <span>Create Appointment</span>
+                  <UserPlus className="w-5 h-5 mr-2 text-teal-600" />
+                  <span className="text-slate-700 dark:text-slate-200">Create Appointment</span>
                 </div>
               </div>
             )}
@@ -394,20 +394,20 @@ const Sidebar = () => {
             hasDropdown={true}
           />
           {openDropdown === 'Manage Group' && isOpen && (
-            <div className={`ml-12 mt-1 space-y-1 ${theme === 'dark' ? 'bg-gray-800' : 'bg-gray-50'} rounded-md p-1`}>
+            <div className={`ml-12 mt-1 space-y-1 ${theme === 'dark' ? 'bg-slate-800' : 'bg-slate-100'} rounded-lg p-2 shadow-inner`}>
               <div 
-                className="flex items-center px-3 py-2 hover:bg-blue-100 dark:hover:bg-gray-700 rounded cursor-pointer"
+                className="flex items-center px-3 py-2 hover:bg-teal-100 dark:hover:bg-slate-700 rounded-md cursor-pointer transition-colors"
                 onClick={() => handleMenuItemClick('creategroup')}
               >
-                <Table className="w-5 h-5 mr-2" />
-                <span>Create Group</span>
+                <Table className="w-5 h-5 mr-2 text-teal-600" />
+                <span className="text-slate-700 dark:text-slate-200">Create Group</span>
               </div>
               <div 
-                className="flex items-center px-3 py-2 hover:bg-blue-100 dark:hover:bg-gray-700 rounded cursor-pointer"
+                className="flex items-center px-3 py-2 hover:bg-teal-100 dark:hover:bg-slate-700 rounded-md cursor-pointer transition-colors"
                 onClick={() => handleMenuItemClick('usersgroup')}
               >
-                <UserPlus className="w-5 h-5 mr-2" />
-                <span>UsersGrup</span>
+                <UserPlus className="w-5 h-5 mr-2 text-teal-600" />
+                <span className="text-slate-700 dark:text-slate-200">UsersGrup</span>
               </div>
             
             </div>
@@ -418,8 +418,8 @@ const Sidebar = () => {
         </div>
 
 
-        <div className="py-2 border-t bg-white dark:bg-gray-900 dark:text-white">
-          {isOpen && <div className="text-sm text-gray-400 px-4 py-2">SUPPORT</div>}
+        <div className="py-2 border-t border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 dark:text-slate-100">
+          {isOpen && <div className="text-sm text-slate-500 dark:text-slate-400 px-4 py-2 font-semibold tracking-wide">SUPPORT</div>}
           <MenuItem 
             icon={Github} 
             label="Repository" 
@@ -435,13 +435,13 @@ const Sidebar = () => {
         </div>
       </div>
 
-      <div className="p-4 border-t bg-white dark:bg-gray-900 dark:text-white">
+      <div className="p-4 border-t border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 dark:text-slate-100">
         <button 
           onClick={handleLogout} 
-          className="flex items-center w-full bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600"
+          className="flex items-center w-full bg-gradient-to-r from-red-500 to-red-600 text-white px-4 py-2 rounded-lg hover:from-red-600 hover:to-red-700 transition-all duration-200 shadow-md hover:shadow-lg"
         >
           <LogOut className="w-6 h-6" />
-          {isOpen && <span className="ml-2">Logout</span>}
+          {isOpen && <span className="ml-2 font-medium">Logout</span>}
         </button>
       </div>
     </div>
