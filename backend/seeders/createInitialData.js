@@ -141,7 +141,7 @@ const createDefaultRolesAndUsers = async () => {
 
     // 5. Generate 100 faker users
     const fakerUsers = [];
-    for (let i = 0; i < 100; i++) {
+    for (let i = 0; i < 50; i++) {
       const gender = faker.person.sexType(); // male | female
       const cityName = cities[Math.floor(Math.random() * cities.length)];
       const role = roles[Math.floor(Math.random() * roles.length)];
@@ -168,7 +168,7 @@ let specialistCount = specialistNames.length;
 for (const userData of usersToCreate) {
   const existing = await User.findOne({ where: { email: userData.email } });
   if (existing) {
-    console.log(`Përdoruesi ${userData.email} ekziston.`);
+    // console.log(`Përdoruesi ${userData.email} ekziston.`);
     continue;
   }
 
@@ -204,7 +204,7 @@ for (const userData of usersToCreate) {
     cityId: userCity.mongo._id
   });
 
-  console.log(`Përdoruesi ${userData.email} u krijua.`);
+  // console.log(`Përdoruesi ${userData.email} u krijua.`);
 
   // Shto orarin nëse është në listën fillestare ose është specialist (dhe <= 50)
   const isFakerSpecialist = ['Fizioterapeut', 'Nutricionist', 'Trajner', 'Psikolog'].includes(userData.role);
@@ -235,7 +235,7 @@ for (const userData of usersToCreate) {
     });
 
     specialistCount++;
-    console.log(`Orari u krijua për specialistin ${userData.name}`);
+    // console.log(`Orari u krijua për specialistin ${userData.name}`);
   }
 }
 

@@ -20,6 +20,11 @@ const TrainingApplicationMongoSchema = new Schema({
     ref: 'TrainingMongo',
     required: true,
   },
+   payment: {
+    type: String,
+       required: false,
+         default: 'unpaid'
+  },
   status: {
     type: String,
     enum: ['në pritje', 'miratuar', 'refuzuar'],

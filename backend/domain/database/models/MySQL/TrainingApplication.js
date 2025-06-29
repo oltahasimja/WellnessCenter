@@ -22,6 +22,11 @@ const TrainingApplication = sequelize.define("TrainingApplication", {
     onDelete: 'CASCADE',
     onUpdate: 'CASCADE',
   },
+    payment: {
+    type: DataTypes.TEXT,
+    allowNull: true,
+      defaultValue: 'unpaid' 
+  },
   trainingId: {
     type: DataTypes.INTEGER,
     allowNull: false,

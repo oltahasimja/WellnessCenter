@@ -69,7 +69,12 @@ const userSchema = new Schema({
     index: true  
   },
   resetPasswordToken: String,
-  resetPasswordExpires: Date
+  resetPasswordExpires: Date,
+  deletedAt: {
+    type: Date,
+    default: null,
+    index: true 
+  }
 }, { timestamps: true });
 
 const UserMongo = mongoose.model('UserMongo', userSchema);

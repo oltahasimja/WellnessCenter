@@ -10,11 +10,17 @@ const {
   deleteUser,
   getSpecialists,
   getUsersByRole,
-  updatePassword
+  updatePassword,
+  getDeletedUsers,
+  restoreUser
 } = require("../adapters/controllers/UserController");
 
  const { isAuthenticated } = require('../middlewares/authMiddleware');
 //  router.use(isAuthenticated);
+
+router.get('/deleted', getDeletedUsers);
+
+router.post('/:id/restore',  restoreUser);
 
 
 router.get('/specialists', getSpecialists);

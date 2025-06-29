@@ -2,6 +2,7 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 const { ObjectId } = require('mongoose').Types;
+const { Op } = require('sequelize');
 
 const { UserMongo, RoleMongo, CountryMongo, CityMongo, ProfileImageMongo, DashboardRoleMongo } = require('../database/models/indexMongo');
 
@@ -10,69 +11,59 @@ const { User, Country, City, ProfileImage, Role, DashboardRole } = require('../d
 
 class UserRepository {
 
-
-
   async getSpecialists() {
     try {
-
-      // Merrni specialistët dhe populloni të dhënat e rolit
       const roleIds = await RoleMongo.find({ name: { $in: ['Fizioterapeut', 'Nutricionist', 'Trajner', 'Psikolog'] } }).lean();
       return await UserMongo.find({
-        'roleId': { $in: roleIds.map(role => new mongoose.Types.ObjectId(role._id)) }
+        'roleId': { $in: roleIds.map(role => new mongoose.Types.ObjectId(role._id)) },
+        deletedAt: null 
       }).populate('roleId').lean();
     } catch (error) {
       console.error('Gabim gjatë marrjes së specialistëve:', error);
       throw error;
     }
   }
-  
-  
 
-
-  // Read operations - Get from MongoDB with fallback to MySQL
+  // Read operations
   async findAll() {
     try {
-        return await UserMongo.find()
+        return await UserMongo.find({ deletedAt: null }) 
             .populate('roleId')
             .populate('countryId')
             .populate('cityId')
             .populate('dashboardRoleId')
             .populate('profileImageId')
-            // .populate({
-            //   path: 'profileImageId',
-            //   select: 'id name'  
-            // })
             .lean();
     } catch (error) {
         console.error("MongoDB findAll failed:", error);
         throw error;
     }
-}
-  
-async findById(id) {
-  try {
-    const user = await UserMongo.findOne({ mysqlId: id.toString() })
-      .populate('roleId')
-      .populate('countryId')
-      .populate('cityId')
-      .populate('dashboardRoleId')
-      .populate({
-        path: 'profileImageId',
-        select: 'name'  // Sigurohu që po kthen vetëm fushën 'name'
-      })
-      .lean();
-
-    // Nëse profileImageId është objekt, kthe vetëm të dhënat e imazhit
-    if (user?.profileImageId) {
-      user.profileImageId = user.profileImageId.name;
-    }
-
-    return user;
-  } catch (error) {
-    console.error("MongoDB findById failed:", error);
-    throw error;
   }
-}
+
+  async findById(id) {
+    try {
+      const user = await UserMongo.findOne({ mysqlId: id.toString() })
+        .populate('roleId')
+        .populate('countryId')
+        .populate('cityId')
+        .populate('dashboardRoleId')
+        .populate({
+          path: 'profileImageId',
+          select: 'name'
+        })
+        .lean();
+
+      if (user?.profileImageId) {
+        user.profileImageId = user.profileImageId.name;
+      }
+      return user;
+    } catch (error) {
+      console.error("MongoDB findById failed:", error);
+      throw error;
+    }
+  }
+
+
 async create(data) {
   try {
       console.log("Creating User:", data);
@@ -326,20 +317,28 @@ async update(id, data) {
 
 
 
-  async delete(id) {
+async delete(id) {
     try {
-      // Delete from MySQL
+      const deletionTime = new Date();
+
       const deletedMySQL = await User.destroy({ where: { id } });
       
-      // Delete from MongoDB
-      await UserMongo.deleteOne({ mysqlId: id });
+      if (deletedMySQL === 0) {
+        return 0;
+      }
+
+      await UserMongo.updateOne(
+        { mysqlId: id.toString() },
+        { $set: { deletedAt: deletionTime } }
+      );
       
       return deletedMySQL;
     } catch (error) {
-      console.error("Error deleting User:", error);
-      throw new Error('Error deleting User: ' + error.message);
+      console.error("Error soft deleting User:", error);
+      throw new Error('Error soft deleting User: ' + error.message);
     }
   }
+
 
 
   async findByRole(roleId) {
@@ -393,6 +392,46 @@ async updatePassword(id, currentPassword, newPassword) {
     throw error;
   }
 }
+
+async findDeleted() {
+    try {
+      const deletedUsers = await User.findAll({
+        where: {
+          deletedAt: {
+            [Op.ne]: null // Kthen rekordet ku deletedAt NUK është NULL
+          }
+        },
+        paranoid: false, // E rëndësishme! Anashkalon sjelljen default të 'paranoid: true'
+        include: [Role, Country, City, DashboardRole, ProfileImage]
+      });
+
+      const deletedMongoUsers = await UserMongo.find({ deletedAt: { $ne: null } })
+        .populate('roleId')
+        .populate('countryId')
+      return deletedMongoUsers;
+
+      return deletedUsers;
+    } catch (error) {
+      console.error("Error finding deleted users:", error);
+      throw error;
+    }
+  }
+
+  async restore(id) {
+    try {
+      await User.restore({ where: { id } });
+
+      await UserMongo.updateOne(
+        { mysqlId: id.toString() },
+        { $set: { deletedAt: null } }
+      );
+
+      return true;
+    } catch (error) {
+      console.error("Error restoring User:", error);
+      throw new Error('Error restoring User: ' + error.message);
+    }
+  }
 
 }
 

@@ -70,9 +70,9 @@ const createUser = async (req, res) => {
   try {
     console.log(req.body);
 
-    // const randomPassword = crypto.randomBytes(8).toString('hex'); // 16 karaktere
+     const randomPassword = crypto.randomBytes(8).toString('hex'); // 16 karaktere
 
-     const randomPassword = 'bani1234'; // 16 karaktere
+    //  const randomPassword = 'bani1234'; // 16 karaktere
 
     
     const hashedPassword = await bcrypt.hash(randomPassword, 10);
@@ -89,13 +89,13 @@ const createUser = async (req, res) => {
     };
     
     // Dergo emailin
-    // transporter.sendMail(mailOptions, (error, info) => {
-    //   if (error) {
-    //     console.error('Error sending email:', error);
-    //   } else {
-    //     console.log('Email sent: ' + info.response);
-    //   }
-    // });
+    transporter.sendMail(mailOptions, (error, info) => {
+      if (error) {
+        console.error('Error sending email:', error);
+      } else {
+        console.log('Email sent: ' + info.response);
+      }
+    });
 
     res.status(201).json(newUser);
     
@@ -140,7 +140,7 @@ const deleteUser = async (req, res) => {
   try {
     const deletedResource = await UseCase.delete(req.params.id);
     if (deletedResource) {
-      res.json({ message: "User deleted" });
+      res.json({ message: "User marked as deleted" }); 
     } else {
       res.status(404).json({ message: "User not found" });
     }
@@ -164,6 +164,28 @@ const updatePassword = async (req, res) => {
     });
   }
 };
+
+const getDeletedUsers = async (req, res) => {
+  try {
+    const result = await UseCase.getDeleted(); 
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+const restoreUser = async (req, res) => {
+  try {
+    const restoredResource = await UseCase.restore(req.params.id);
+    if (restoredResource) {
+      res.json({ message: "User restored successfully" });
+    } else {
+      res.status(404).json({ message: "User not found or could not be restored" });
+    }
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
 module.exports = { 
   getAllUsers, 
   getUserById, 
@@ -172,5 +194,7 @@ module.exports = {
   deleteUser,
   getSpecialists,
   getUsersByRole,
-  updatePassword
+  updatePassword,
+  getDeletedUsers,
+  restoreUser
 };
